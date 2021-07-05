@@ -1,327 +1,80 @@
-Paramak
-=======
+Paramak-neutronics
+==================
 
-
-.. cadquery::
-   :select: text
-   :gridsize: 0
-   :height: 100px
-
-   import cadquery as cq
-   text = cq.Workplane().text( 
-      txt="Paramak",
-      fontsize=0.5,
-      distance=-0.5,
-      cut=True,
-      font="Sans"
-   )
-
-The Paramak python package allows rapid production of 3D CAD models of fusion
-reactors. The purpose of the Paramak is to provide geometry for parametric
-studies. It is possible to use the created geometry in engineering and
-neutronics studies as the STP files produced can be automatically converted to
-DAGMC compatible neutronics models or meshed and used in finite element
-analysis codes.
-
-Features have been added to address particular needs and the software is by no
-means a finished product. Contributions are welcome. CadQuery functions provide
-the majority of the features, and incorporating additional capabilities is
-straightforward for developers with Python knowledge.
-
-.. raw:: html
-
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/fXboew3U7rw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
+Paramak-neutronics adds support for DAGMC Openmc based simulations using geometry
+generating using the `Paramak <https://github.com/fusion-energy/paramak>`_
 
 .. toctree::
    :maxdepth: 1
 
-   parametric_neutronics.install
-   parametric_neutronics.neutronics_model
+   install
+   paramak_neutronics.neutronics_model
    example_neutronics_simulations
    tests
 
 History
 -------
 
-The package was originally conceived by Jonathan Shimwell and based on the
-`FreeCAD Python API <https://wiki.freecadweb.org/FreeCAD_API>`_  When 
-`CadQuery 2 <https://github.com/CadQuery/cadquery>`_ was released the project
-started to migrate the code base. Shortly after this migration the project
-became open-source and has flourished ever since.
+The package was originally conceived by Jonathan Shimwell to help automate
+neutronics simulations of fusion reactors.
 
-The project has grown largely due to two contributors in particular
-(John Billingsley and Remi Delaporte-Mathurin) and others have also helped,
-you can see all those who have helped the development in the 
-`Authors.md <https://github.com/fusion-energy/paramak/blob/main/AUTHORS.md>`_ and in the 
-`GitHub contributions <https://github.com/fusion-energy/paramak/graphs/contributors>`_.
-
-The code has been professionally reviewed by
-`PullRequest.com <https://www.pullrequest.com/>`_ who produced a
-`report <https://github.com/ukaea/paramak/files/5704872/PULLREQUEST.Paramak.Project.Review.pdf>`_
-and inline `suggestions <https://github.com/ukaea/paramak/pull/639>`_.
-
-The Paramak source code is distributed with a permissive open-source license
-(MIT) and is avaialbe from the GitHub repository 
+The Paramak-neutronics source code is distributed with a permissive open-source
+license (MIT) and is available from the GitHub repository 
 `https://github.com/fusion-energy/paramak <https://github.com/fusion-energy/paramak>`_
-
-Publications and Presentations
-------------------------------
-
-Published in F1000 Research.
-`https://f1000research.com/articles/10-27 <https://f1000research.com/articles/10-27>`_
-
-Presented at the Spanish Fusion HPC Workshop and available in the 3rd video at minute 41.
-`https://hpcfusion2020.bsc.es/media <https://hpcfusion2020.bsc.es/media>`_
-
-Slides from first released presentation.
-`Link <https://github.com/ukaea/paramak/files/5260982/UKAEA_Paramak_shimwell.pdf>`_
 
 
 Features
 --------
 
-In general the Paramak takes input arguments and creates 3D objects. This can
-be accomplished via the use of parametric Shapes, parametric Components and
-parametric Reactors with each level building upon the level below.
+In general Paramak-neutronics takes a Paramak.Reactor or Paramak.Shape object and
+allows tallies to be easily added and processes the results for ease of access.
 
-Parametric Shapes are the simplest and accept points and connection information
-in 2D space (defaults to x,z) and performs operations on them to create 3D
-volumes. The points and connections are provided by the user when making
-parametric Shapes. Supported CAD opperations include (rotate, extrude, sweep)
-and Boolean opperations such as cut, union and intersect. Additionally the 
-CadQuery objects created can be combined and modified using CadQuery's powerful 
-filtering capabilties to furter customise the shapes by performing operations
-like edge filleting.
+The Paramak supports automated neutronics model creation and subsequent
+simulation. 
 
-Parametric Components build on top of this foundation and will calculate the
-points and connections for you when provided with input arguments. The inputs
-differ between components as a center column requires different inputs to a
-breeder blanket or a magnet.
+The neutronics models created are DAGMC models and are therefore compatible 
+with a suite of neutronics codes (MCNP, Fluka, Geant4, OpenMC).
 
-Parametric Reactors build upon these two lower level objects to create an
-entire reactor model from input parameters. Linkage between the componets is
-encoded in each parametric Ractor design.
+The automated simulations supported within the paramak are via OpenMC however
+one could also carry out simulations in other neutronics codes using the
+dagmc.h5m file created. Moab can be used to inspect the dagmc.h5 file and file
+the material tag names.
 
-The different parametric reactor families are shown below.
+.. code-block:: bash
 
-.. image:: https://user-images.githubusercontent.com/8583900/118414245-58be8880-b69b-11eb-981e-c5806f721e0f.png
-   :width: 713
-   :align: center
+   mbsize -ll dagmc.h5m | grep 'mat:'
 
-A selection of the parametric Components are shown below.
+The creation of the dagmc.h5m file can be carried out via three routes.
 
-.. image:: https://user-images.githubusercontent.com/8583900/98823600-387eea00-242a-11eb-9fe3-df65aaa3dd21.png
-   :width: 713
-   :align: center
+Option 1. Use of `PyMoab <https://bitbucket.org/fathomteam/moab>`_ which is
+distributed with MOAB. Thus method can not imprint or merge the surfaces of the
+geometry that touch. Therefore this method should only be used for single
+components or components that touch on flat surfaces. Curved surfaces converted
+via this method can potentially overlap and cause errors with the particle
+tracking.
 
-The different families of parametric Shapes that can be made with the Paramak
-are shown int he table below.
+Option 2. Use of `Trelis <https://www.coreform.com/products/trelis/>`_ by
+Coreform along with the DAGMC
+`plugin <https://svalinn.github.io/DAGMC/install/plugin.html>`_ / This method
+can support imprinting and merging of shared surfaces between components and is
+therefore suitable for converting more complex CAD geometry to the PyMoab
+method.
 
+Option 3. Use of the `PPP <https://github.com/ukaea/parallel-preprocessor>`_
+and `OCC_Faceter <https://github.com/makeclean/occ_faceter/>`_ . This option
+has not yet been fully demonstrated but is partly included to test the
+promising new method.
 
+To create a model it is also necessary to define the source and the materials
+used. 
 
-.. |rotatestraight| image:: https://user-images.githubusercontent.com/56687624/87055469-4f070180-c1fc-11ea-9679-a29e37a90e15.png
-                          :height: 120px
+For fusion simulations you might want to used the parametric-plasma-source
+`Git repository <https://github.com/open-radiation-sources/parametric-plasma-source>`_ 
 
-.. |extrudestraight| image:: https://user-images.githubusercontent.com/56687624/87055493-56c6a600-c1fc-11ea-8c58-f5b62ae72e0e.png
-                          :height: 120px
+Details of the Neutronics Material Maker are available from the
+`documentation <https://neutronics-material-maker.readthedocs.io/en/latest/>`_ 
+and the `source code repository <https://github.com/ukaea/neutronics_material_maker>`_
+. However openmc.Materials can also be used directly.
 
-.. |sweepstraight| image:: https://user-images.githubusercontent.com/56687624/98713447-8c80c480-237f-11eb-8615-c090e93138f6.png
-                          :height: 120px
-
-.. |rotatespline| image:: https://user-images.githubusercontent.com/56687624/87055473-50382e80-c1fc-11ea-95dd-b4932b1e78d9.png
-                          :height: 120px
-
-.. |extrudespline| image:: https://user-images.githubusercontent.com/56687624/98713431-87bc1080-237f-11eb-9075-01bca99b7018.png
-                          :height: 120px
-
-.. |sweepspline| image:: https://user-images.githubusercontent.com/56687624/98713443-8b4f9780-237f-11eb-83bb-38ca7f222073.png
-                          :height: 120px
-
-.. |rotatecircle| image:: https://user-images.githubusercontent.com/56687624/98713427-868ae380-237f-11eb-87af-cf6b5fe032b2.png
-                          :height: 120px
-
-.. |extrudecircle| image:: https://user-images.githubusercontent.com/56687624/87055517-5b8b5a00-c1fc-11ea-83ef-d4329c6815f7.png
-                          :height: 120px
-
-.. |sweepcircle| image:: https://user-images.githubusercontent.com/56687624/98713436-88ed3d80-237f-11eb-99cd-27dcb4f313b1.png
-                          :height: 120px
-
-.. |rotatemixed| image:: https://user-images.githubusercontent.com/56687624/87055483-53cbb580-c1fc-11ea-878d-92835684c8ff.png
-                          :height: 120px
-
-.. |extrudemixed| image:: https://user-images.githubusercontent.com/56687624/87055511-59c19680-c1fc-11ea-8740-8c7987745c45.png
-                          :height: 120px
-
-.. |sweepmixed| image:: https://user-images.githubusercontent.com/56687624/98713440-8a1e6a80-237f-11eb-9eed-12b9d7731090.png
-                          :height: 120px
-
-
-
-
-
-
-+--------------------------------------+--------------------------------------+---------------------------------------+---------------------------------------+
-|                                      | Rotate                               | Extrude                               | Sweep                                 |
-+======================================+======================================+=======================================+=======================================+
-| Points connected with straight lines | |rotatestraight|                     | |extrudestraight|                     | |sweepstraight|                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      | ::                                   | ::                                    | ::                                    |
-|                                      |                                      |                                       |                                       |
-|                                      |     RotateStraightShape()            |     ExtrudeStraightShape()            |     SweepStraightShape()              |
-+--------------------------------------+--------------------------------------+---------------------------------------+---------------------------------------+
-| Points connected with spline curves  | |rotatespline|                       | |extrudespline|                       | |sweepspline|                         |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      | ::                                   | ::                                    | ::                                    |
-|                                      |                                      |                                       |                                       |
-|                                      |     RotateSplineShape()              |     ExtrudeSplineShape()              |     SweepSplineShape()                |
-+--------------------------------------+--------------------------------------+---------------------------------------+---------------------------------------+
-| Points connected with a circle       | |rotatecircle|                       | |extrudecircle|                       | |sweepcircle|                         |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-|                                      | ::                                   | ::                                    | ::                                    |
-|                                      |                                      |                                       |                                       |
-|                                      |     RotateCircleShape()              |     ExtrudeCircleShape()              |     SweepCircleShape()                |
-+--------------------------------------+--------------------------------------+---------------------------------------+---------------------------------------+
-| Points connected with a mixture      | |rotatemixed|                        | |extrudemixed|                        | |sweepmixed|                          |
-|                                      |                                      |                                       |                                       |
-| ::                                   |                                      |                                       |                                       |
-|                                      |                                      |                                       |                                       |
-| (splines, straights and circles)     |                                      |                                       |                                       |
-|                                      | ::                                   | ::                                    | ::                                    |
-|                                      |                                      |                                       |                                       |
-|                                      |     RotateMixedShape()               |     ExtrudeMixedShape()               |     SweepMixedShape()                 |
-+--------------------------------------+--------------------------------------+---------------------------------------+---------------------------------------+
-
-
-Usage - Parametric Shapes
--------------------------
-
-There are a collection of Python scripts in the example folder that demonstrate
-simple shape construction and visualisation. However here is a quick example of
-a RotateStraightShape.
-
-After importing the class the user then sets the points. By default, points
-should be a list of (x,z) points. In this case the points are connected with
-straight lines.
-
-.. code-block:: python
-
-   import paramak
-
-   my_shape = paramak.RotateStraightShape(points = [(20,0), (20,100), (100,0)])
-
-Once these properties have been set then users can write 3D volumes in CAD STP
-or STL formats.
-
-.. code-block:: python
-
-   my_shape.export_stp('example.stp')
-
-   my_shape.export_stl('example.stl')
-
-.. image:: https://user-images.githubusercontent.com/56687624/88935761-ff0ae000-d279-11ea-8848-de9b486840d9.png
-   :width: 350
-   :height: 300
-   :align: center
-
-Usage - Parametric Components
------------------------------
-
-Parametric components are wrapped versions of the eight basic shapes where
-parameters drive the construction of the shape. There are numerous parametric
-components for a variety of different reactor components such as center columns,
-blankets, poloidal field coils. This example shows the construction of a
-plasma. Users could also construct a plasma by using a RotateSplineShape()
-combined with coordinates for the points. However a parametric component called
-Plasma can construct a plasma from more convenient parameters. Parametric
-components also inherit from the Shape object so they have access to the same
-methods like export_stp() and export_stl().
-
-.. code-block:: python
-
-   import paramak
-
-   my_plasma = paramak.Plasma(
-      major_radius=620,
-      minor_radius=210,
-      triangularity=0.33,
-      elongation=1.85
-   )
-
-   my_plasma.export_stp('plasma.stp')
-
-.. image:: https://user-images.githubusercontent.com/56687624/88935871-1ea20880-d27a-11ea-82e1-1afa55ff9ba8.png
-   :width: 350
-   :height: 300
-   :align: center
-
-Usage - Parametric Reactors
----------------------------
-
-Parametric Reactors() are wrapped versions of a combination of parametric
-shapes and components that comprise a particular reactor design. Some
-parametric reactors include a ball reactor and a submersion ball reactor. These
-allow full reactor models to be constructed by specifying a series of simple
-parameters. This example shows the construction of a simple ball reactor
-without the optional outer pf and tf coils.
-
-.. code-block:: python
-
-   import paramak
-
-   my_reactor = paramak.BallReactor(
-      inner_bore_radial_thickness = 50,
-      inboard_tf_leg_radial_thickness = 50,
-      center_column_shield_radial_thickness= 50,
-      divertor_radial_thickness = 100,
-      inner_plasma_gap_radial_thickness = 50,
-      plasma_radial_thickness = 200,
-      outer_plasma_gap_radial_thickness = 50,
-      firstwall_radial_thickness = 50,
-      blanket_radial_thickness = 100,
-      blanket_rear_wall_radial_thickness = 50,
-      elongation = 2,
-      triangularity = 0.55,
-      rotation_angle = 180
-   )
-
-   my_reactor.name = 'BallReactor'
-   
-   my_reactor.export_stp()
-
-.. image:: https://user-images.githubusercontent.com/56687624/89203299-465fdc00-d5ac-11ea-8663-a5b7eecfb584.png
-   :width: 350
-   :height: 300
-   :align: center
-
-Usage - Reactor Object
-----------------------
-
-A reactor object provides a container object for all Shape objects created, and
-allows operations to be performed on the whole collection of Shapes.
-
-.. code-block:: python
-
-   import paramak
-
-Initiate a Reactor object and pass a list of all Shape objects to the
-shapes_and_components parameter.
-
-.. code-block:: python
-
-   my_reactor = paramak.Reactor(shapes_and_components = [my_shape, my_plasma])
-
-A html graph of the combined Shapes can be created.
-
-.. code-block:: python
-
-   my_reactor.export_html('reactor.html')
+The `OpenMC workshop <https://github.com/ukaea/openmc_workshop>`_ also has
+some Paramak with DAGMC and OpenMC based tasks that might be of interest.

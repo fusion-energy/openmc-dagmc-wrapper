@@ -13,8 +13,5 @@ possible by running pytest from the paramak based directory.
 
    pytest tests
 
-The status of the tests is available on the CircleCI account
-`CircleCI account. <https://app.circleci.com/pipelines/github/fusion-energy/paramak?branch=main>`_ 
-
 The test suite can be explored on the
-`Gihub source code repository. <https://github.com/fusion-energy/paramak/tree/main/tests>`_ 
+`Gihub source code repository. <https://github.com/fusion-energy/paramak-neutronics/tree/main/tests>`_ 
