@@ -126,7 +126,7 @@ RUN git clone --single-branch --branch main https://github.com/pshriwise/double-
 RUN mkdir DAGMC && \
     cd DAGMC && \
     # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --single-branch --branch 9b59a53311e94b8a49c8405d730aeef84f4ca3e2 --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \

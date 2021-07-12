@@ -6,39 +6,46 @@ Installation
 Prerequisites
 -------------
 
-To use the paramak-neutronics module you will need the Python, Paramak, DAGMC and OpenMC installed.
+To use the paramak-neutronics module you will need the Python, Paramak, DAGMC
+and OpenMC installed.
 
-* `Python 3 <https://www.python.org/downloads/>`_
+The recommended method is to install Python 3 using Anaconda or Miniconda
 
-Python 3 and can be installed using Conda or Miniconda (recommended)
-
-* `Anaconda <https://www.anaconda.com/>`_
-* `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
+* `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ (preferable to avoid hdf5 conflicts)
+* `Anaconda https://www.anaconda.com/>`_
   
 Once you have Conda or MiniConda installed then CadQuery can be installed
-into a new enviroment and that environment can be activated using Anaconda or Miniconda. 
+into a new enviroment and that environment can be activated using Conda.
 
 First create a new Conda environment.
 
 .. code-block:: python
 
-   conda create -n paramak_env
+   conda create -n my_env
 
 
 Then activated the conda environment, 
 
 .. code-block:: python
 
-   conda activate paramak_env
+   conda activate my_env
 
-
-Then install the paramak-neutronics package 
+Then install CadQuery:
 
 .. code-block:: python
 
-   # conda install not working yet, try pip install paramak-neutronics
-   conda install -c fusion-energy paramak-neutronics
+   conda install -c conda-forge -c cadquery cadquery=2.1
 
+
+Then install the paramak-neutronics package using Pip.
+
+.. code-block:: python
+
+   pip install paramak-neutronics
+
+To complete the software stack OpenMC, DAGMC, Cubit and the DAGMC/Cubit plugin
+will also need installing. We don't have simple instructions for these packages
+yet but one option is to duplicate the stages in the `Dockerfile <https://github.com/fusion-energy/paramak-neutronics/blob/main/Dockerfile>`_
 
 Docker Image Installation
 -------------------------

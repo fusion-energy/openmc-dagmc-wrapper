@@ -2,18 +2,7 @@ Examples - Neutronics Simulations
 =================================
 
 These are minimal examples of neutronics simulations that demonstrate the core
-functionality of the neutronics features. In general it easy to export geomtry
-in h5m format for use in DAGMC enabled simulations. There are two options for
-this export. The Trelis method of converting geometry imprints and merges
-surfaces while the PyMoab converts the geoemtry without imprinting and merging
-surfaces.
-
-The resulting h5m files can be used in DAGMC enabled neutronics codes such as
-OpenMC and MCNP. There is also a class (NeutronicsModel) that facilitates
-adding tallies, materials and a source to the geoemtry to create a complete
-OpenMC neutronics model which can be simulated. The simulated results are also
-extracted from the statepoint.h5 file that OpenMC produces and converted to
-vtk, png and JSON files depending on the tally.
+functionality of the neutronics features.
 
 
 ball_reactor.ipynb

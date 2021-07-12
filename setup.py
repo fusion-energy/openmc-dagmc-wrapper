@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="paramak_neutronics",
-    version="0.0.1",
+    version="0.0.3",
     author="The Paramak Development Team",
     author_email="mail@jshimwell.com",
     description="Perform neutronics simulations on models generated with the Paramak",
