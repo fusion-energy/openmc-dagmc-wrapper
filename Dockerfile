@@ -5,10 +5,10 @@
 # the neutronics model production and subsequent simulation
 
 # To build this Dockerfile into a docker image:
-# docker build -f base.Dockerfile -t paramank_neutronics .
+# docker build -t paramank_neutronics .
 
 # To build this Dockerfile and use multiple cores to compile:
-# docker build -f base.Dockerfile -t paramank_neutronics --build-arg compile_cores=7 .
+# docker build -t paramank_neutronics --build-arg compile_cores=7 .
 
 # To run the resulting Docker image:
 # docker run -it paramank_neutronics
@@ -161,6 +161,8 @@ ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
 
 RUN pip install paramak
+
+FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
 COPY paramak_neutronics paramak_neutronics/
