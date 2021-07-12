@@ -1,6 +1,4 @@
-# paramak-neutronics
-
-Adds support for neutronics simulations to the paramak package.
+Adds support for neutronics simulations to the [Paramak](https://github.com/fusion-energy/paramak) package.
 
 Install with Pip
 
@@ -8,4 +6,6 @@ Install with Pip
 pip install paramak-neutronics
 ```
 
-For examples see the [examples folder](https://github.com/fusion-energy/paramak-neutronics/tree/main/examples)
+:point_right: [examples](https://github.com/fusion-energy/paramak-neutronics/tree/main/examples)
+
+:point_right: [Documentation](https://paramak-neutronics.readthedocs.io)
