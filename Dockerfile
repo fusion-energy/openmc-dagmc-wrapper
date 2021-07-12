@@ -13,8 +13,12 @@
 # To run the resulting Docker image:
 # docker run -it paramank_neutronics
 
+# Run with the following command for a jupyter notebook interface
+# docker run -p 8888:8888 ukaea/paramak /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
+
 
 # TODO save build time by basing this on FROM ghcr.io/fusion-energy/paramak:latest
+# This can't be done currently as the base images uses conda installs for moab / dagmc which don't compile with OpenMC
 FROM continuumio/miniconda3:4.9.2 as dependencies
 
 ARG compile_cores=1
