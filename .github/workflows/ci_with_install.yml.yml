@@ -15,7 +15,7 @@ jobs:
   testing:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fusion-energy/paramak-neutronics
+      image: ghcr.io/fusion-energy/paramak-neutronics:dependencies
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
