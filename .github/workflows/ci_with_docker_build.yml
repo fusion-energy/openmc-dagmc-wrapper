@@ -1,11 +1,11 @@
+
 # Builds a dockerimage and then runs tests from within the docker enviroment
 
 name: CI with docker build
 on:
   pull_request:
     branches:
-    - develop
-    - main
+    - main  # this takes around 90 mins to build the image, hence limiting to occational PRs
 
 jobs:
   build:

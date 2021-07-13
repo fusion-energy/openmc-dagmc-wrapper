@@ -14,7 +14,7 @@
 # docker run -it paramank_neutronics
 
 # Run with the following command for a jupyter notebook interface
-# docker run -p 8888:8888 ukaea/paramak /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
+# docker run -p 8888:8888 paramank_neutronics /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
 
 
 # TODO save build time by basing this on FROM ghcr.io/fusion-energy/paramak:latest
@@ -140,7 +140,9 @@ RUN mkdir DAGMC && \
     rm -rf /DAGMC/DAGMC /DAGMC/build
 
 # Clone and install OpenMC with DAGMC
-RUN git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc && \
+# RUN git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc && \
+# TODO return to openmc develop / or a release once the PR 1825 has been merged
+RUN git clone  --recurse-submodules --single-branch --branch dagmc_universe --depth 1 https://github.com/pshriwise/openmc.git  /opt/openmc && \
     cd /opt/openmc && \
     mkdir build && \
     cd build && \
@@ -170,7 +172,9 @@ FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
 COPY paramak_neutronics paramak_neutronics/
-COPY examples examples/
 COPY setup.py setup.py
+COPY examples examples/
 COPY tests tests/
 COPY README.md README.md
+
+RUN python setup.py install
