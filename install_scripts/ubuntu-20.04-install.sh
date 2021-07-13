@@ -6,13 +6,14 @@
 # For an easier install consider using the Dockerfile or prebuilt docker image.
 
 # Change to the number of cores you want to use in the compiling steps.
-compile_cores=1
+compile_cores=7
 
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
-    PATH=/opt/openmc/bin:$PATH \
-    LD_LIBRARY_PATH=/opt/openmc/lib:$LD_LIBRARY_PATH \
-    CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx \
-    DEBIAN_FRONTEND=noninteractive
+printf '\nexport PATH="/opt/openmc/bin:$PATH"' >> ~/.bashrc
+printf '\nexport LD_LIBRARY_PATH="/opt/openmc/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
+
+# CC=/usr/bin/mpicc
+# CXX=/usr/bin/mpicxx
+
 
 cd ~
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -49,27 +50,27 @@ sudo apt-get install -y curl
 # Installing CadQuery
 conda install -c conda-forge -c python python=3.8
 conda install -c conda-forge -c cadquery cadquery=2.1
-pip install jupyter-cadquery==2.1.0
+pip install jupyter-cadquery==2.2.0
 
 
 # Install neutronics dependencies from Debian package manager
-apt-get install -y wget
-apt-get install -y git
-apt-get install -y gfortran g++ cmake
-apt-get install -y mpich
-apt-get install -y libmpich-dev
-apt-get install -y libhdf5-serial-dev
-apt-get install -y libhdf5-mpich-dev
-apt-get install -y imagemagick
+sudo apt-get install -y wget
+sudo apt-get install -y git
+sudo apt-get install -y gfortran g++ cmake
+sudo apt-get install -y mpich
+sudo apt-get install -y libmpich-dev
+sudo apt-get install -y libhdf5-serial-dev
+sudo apt-get install -y libhdf5-mpich-dev
+sudo apt-get install -y imagemagick
 
 
 # install addition packages required for MOAB
-apt-get --yes install libeigen3-dev
-apt-get --yes install libblas-dev
-apt-get --yes install liblapack-dev
-apt-get --yes install libnetcdf-dev
-apt-get --yes install libtbb-dev
-apt-get --yes install libglfw3-dev
+sudo apt-get -y install libeigen3-dev
+sudo apt-get -y install libblas-dev
+sudo apt-get -y install liblapack-dev
+sudo apt-get -y install libnetcdf-dev
+sudo apt-get -y install libtbb-dev
+sudo apt-get -y install libglfw3-dev
 
 
 # Clone and install Embree
