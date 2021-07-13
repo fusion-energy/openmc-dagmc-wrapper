@@ -1,27 +1,12 @@
-# This Dockerfile creates an enviroment / dependancies needed to run the 
-# paramank_neutronics package.
 
-# This dockerfile provides an API endpoint that accepts arguments to drive
-# the neutronics model production and subsequent simulation
+# This script should install the dependencies on Ubuntu 20.04.
 
-# To build this Dockerfile into a docker image:
-# docker build -t paramank_neutronics .
+# There might be small changes needed for different enviroments.
 
-# To build this Dockerfile and use multiple cores to compile:
-# docker build -t paramank_neutronics --build-arg compile_cores=7 .
+# For an easier install consider using the Dockerfile or prebuilt docker image.
 
-# To run the resulting Docker image:
-# docker run -it paramank_neutronics
-
-# Run with the following command for a jupyter notebook interface
-# docker run -p 8888:8888 ukaea/paramak /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
-
-
-# TODO save build time by basing this on FROM ghcr.io/fusion-energy/paramak:latest
-# This can't be done currently as the base images uses conda installs for moab / dagmc which don't compile with OpenMC
-FROM continuumio/miniconda3:4.9.2 as dependencies
-
-ARG compile_cores=1
+# Change to the number of cores you want to use in the compiling steps.
+compile_cores=1
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
     PATH=/opt/openmc/bin:$PATH \
@@ -179,9 +164,10 @@ pip install openmc_data_downloader
 openmc_data_downloader -e all -i H3 -l ENDFB-7.1-NNDC TENDL-2019 -p neutron photon
 
 # setting enviromental varibles
-ENV OPENMC_CROSS_SECTIONS=/cross_sections.xml
-ENV PATH="/MOAB/build/bin:${PATH}"
-ENV PATH="/DAGMC/bin:${PATH}"
+printf '\nexport OPENMC_CROSS_SECTIONS="/cross_sections.xml"' >> ~/.bashrc
+printf '/MOAB/build/bin:$PATH"' >> ~/.bashrc
+printf '/DAGMC/bin:$PATH"' >> ~/.bashrc
 
-RUN pip install paramak
+pip install paramak
+pip install paramak-neutronics
 
