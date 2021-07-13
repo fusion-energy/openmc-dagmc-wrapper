@@ -1,3 +1,4 @@
+
 # This yml file will trigger a Github Action on release creation.
 # This Action will build and upload a Docker image to GHCR
 # https://github.com/marketplace/actions/publish-docker

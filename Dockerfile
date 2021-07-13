@@ -126,7 +126,9 @@ RUN git clone --single-branch --branch main https://github.com/pshriwise/double-
 RUN mkdir DAGMC && \
     cd DAGMC && \
     # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    # git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    # TODO return to openmc develop once the PR 1825 has been merged
+    git clone --single-branch --branch dagmc_universe --depth 1 https://github.com/pshriwise/openmc.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -140,6 +142,7 @@ RUN mkdir DAGMC && \
     rm -rf /DAGMC/DAGMC /DAGMC/build
 
 # Clone and install OpenMC with DAGMC
+RUN git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc && \
 RUN git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc && \
     cd /opt/openmc && \
     mkdir build && \

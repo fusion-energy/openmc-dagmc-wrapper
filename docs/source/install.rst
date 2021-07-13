@@ -46,6 +46,7 @@ Then install the paramak-neutronics package using Pip.
 To complete the software stack OpenMC, DAGMC, Cubit and the DAGMC/Cubit plugin
 will also need installing. We don't have simple instructions for these packages
 yet but one option is to duplicate the stages in the `Dockerfile <https://github.com/fusion-energy/paramak-neutronics/blob/main/Dockerfile>`_
+or to make use of the `install scripts <https://github.com/fusion-energy/paramak-neutronics/blob/main/install_scripts/`_
 
 Docker Image Installation
 -------------------------
