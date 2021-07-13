@@ -73,39 +73,31 @@ sudo apt-get -y install libtbb-dev
 sudo apt-get -y install libglfw3-dev
 
 
+# This allows writting to /opt folder. Change permssions to suit requirements
+sudo chmod -R 777 opt/
+
 # Clone and install Embree
-git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git
-cd embree
+git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git /opt/embree
+cd /opt/embree
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=.. \
-         -DEMBREE_ISPC_SUPPORT=OFF
+cmake .. -DCMAKE_INSTALL_PREFIX=.. -DEMBREE_ISPC_SUPPORT=OFF
 make -j"$compile_cores"
 make -j"$compile_cores" install
 
 
 # Clone and install MOAB
 pip install --upgrade numpy cython
-mkdir MOAB
-cd MOAB
+mkdir /opt/MOAB
+cd /opt/MOAB
 mkdir build
 git clone  --single-branch --branch 5.2.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
 cd build
-cmake ../moab -DENABLE_HDF5=ON \
-              -DENABLE_NETCDF=ON \
-              -DENABLE_FORTRAN=OFF \
-              -DENABLE_BLASLAPACK=OFF \
-              -DBUILD_SHARED_LIBS=OFF \
-              -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_NETCDF=ON -DENABLE_FORTRAN=OFF -DENABLE_BLASLAPACK=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 rm -rf *
-cmake ../moab -DENABLE_HDF5=ON \
-              -DENABLE_PYMOAB=ON \
-              -DENABLE_FORTRAN=OFF \
-              -DBUILD_SHARED_LIBS=ON \
-              -DENABLE_BLASLAPACK=OFF \
-              -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DENABLE_FORTRAN=OFF -DBUILD_SHARED_LIBS=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 cd pymoab
@@ -114,8 +106,8 @@ python setup.py install
 
 
 # Clone and install Double-Down
-git clone --single-branch --branch main https://github.com/pshriwise/double-down.git
-cd double-down
+git clone --single-branch --branch main https://github.com/pshriwise/double-down.git /opt/double-down
+cd /opt/double-down
 mkdir build
 cd build
 cmake .. -DMOAB_DIR=/MOAB \
@@ -125,7 +117,9 @@ make -j"$compile_cores"
 make -j"$compile_cores" install
 
 
+
 # Clone and install DAGMC
+cd /
 mkdir DAGMC
 cd DAGMC
 # TODO change to tagged release
