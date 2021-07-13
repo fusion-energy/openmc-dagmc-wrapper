@@ -159,10 +159,10 @@ RUN git clone  --recurse-submodules --single-branch --branch dagmc_universe --de
 RUN pip install vtk && \
     pip install neutronics_material_maker && \
     pip install openmc_data_downloader && \
-    openmc_data_downloader -e all -i H3 -l ENDFB-7.1-NNDC TENDL-2019 -p neutron photon
+    openmc_data_downloader -d nuclear_data -e all -i H3 -l ENDFB-7.1-NNDC TENDL-2019 -p neutron photon
 
 # setting enviromental varibles
-ENV OPENMC_CROSS_SECTIONS=/cross_sections.xml
+ENV OPENMC_CROSS_SECTIONS=/nuclear_data/cross_sections.xml
 ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
 
