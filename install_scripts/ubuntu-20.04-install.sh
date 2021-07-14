@@ -6,13 +6,14 @@
 # For an easier install consider using the Dockerfile or prebuilt docker image.
 
 # Change to the number of cores you want to use in the compiling steps.
-compile_cores=1
+compile_cores=7
 
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
-    PATH=/opt/openmc/bin:$PATH \
-    LD_LIBRARY_PATH=/opt/openmc/lib:$LD_LIBRARY_PATH \
-    CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx \
-    DEBIAN_FRONTEND=noninteractive
+printf '\nexport PATH="/opt/openmc/bin:$PATH"' >> ~/.bashrc
+printf '\nexport LD_LIBRARY_PATH="/opt/openmc/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
+
+# CC=/usr/bin/mpicc
+# CXX=/usr/bin/mpicxx
+
 
 cd ~
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -49,62 +50,54 @@ sudo apt-get install -y curl
 # Installing CadQuery
 conda install -c conda-forge -c python python=3.8
 conda install -c conda-forge -c cadquery cadquery=2.1
-pip install jupyter-cadquery==2.1.0
+pip install jupyter-cadquery==2.2.0
 
 
 # Install neutronics dependencies from Debian package manager
-apt-get install -y wget
-apt-get install -y git
-apt-get install -y gfortran g++ cmake
-apt-get install -y mpich
-apt-get install -y libmpich-dev
-apt-get install -y libhdf5-serial-dev
-apt-get install -y libhdf5-mpich-dev
-apt-get install -y imagemagick
+sudo apt-get install -y wget
+sudo apt-get install -y git
+sudo apt-get install -y gfortran g++ cmake
+sudo apt-get install -y mpich
+sudo apt-get install -y libmpich-dev
+sudo apt-get install -y libhdf5-serial-dev
+sudo apt-get install -y libhdf5-mpich-dev
+sudo apt-get install -y imagemagick
 
 
 # install addition packages required for MOAB
-apt-get --yes install libeigen3-dev
-apt-get --yes install libblas-dev
-apt-get --yes install liblapack-dev
-apt-get --yes install libnetcdf-dev
-apt-get --yes install libtbb-dev
-apt-get --yes install libglfw3-dev
+sudo apt-get -y install libeigen3-dev
+sudo apt-get -y install libblas-dev
+sudo apt-get -y install liblapack-dev
+sudo apt-get -y install libnetcdf-dev
+sudo apt-get -y install libtbb-dev
+sudo apt-get -y install libglfw3-dev
 
+
+# This allows writting to /opt folder. Change permssions to suit requirements
+sudo chmod -R 777 opt/
 
 # Clone and install Embree
-git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git
-cd embree
+git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git /opt/embree
+cd /opt/embree
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=.. \
-         -DEMBREE_ISPC_SUPPORT=OFF
+cmake .. -DCMAKE_INSTALL_PREFIX=.. -DEMBREE_ISPC_SUPPORT=OFF
 make -j"$compile_cores"
 make -j"$compile_cores" install
 
 
 # Clone and install MOAB
 pip install --upgrade numpy cython
-mkdir MOAB
-cd MOAB
-mkdir build
+mkdir /opt/MOAB
+cd /opt/MOAB
 git clone  --single-branch --branch 5.2.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
+mkdir build
 cd build
-cmake ../moab -DENABLE_HDF5=ON \
-              -DENABLE_NETCDF=ON \
-              -DENABLE_FORTRAN=OFF \
-              -DENABLE_BLASLAPACK=OFF \
-              -DBUILD_SHARED_LIBS=OFF \
-              -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_NETCDF=ON -DENABLE_FORTRAN=OFF -DENABLE_BLASLAPACK=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/opt/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 rm -rf *
-cmake ../moab -DENABLE_HDF5=ON \
-              -DENABLE_PYMOAB=ON \
-              -DENABLE_FORTRAN=OFF \
-              -DBUILD_SHARED_LIBS=ON \
-              -DENABLE_BLASLAPACK=OFF \
-              -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DENABLE_FORTRAN=OFF -DBUILD_SHARED_LIBS=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/opt/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 cd pymoab
@@ -113,18 +106,18 @@ python setup.py install
 
 
 # Clone and install Double-Down
-git clone --single-branch --branch main https://github.com/pshriwise/double-down.git
-cd double-down
+git clone --single-branch --branch main https://github.com/pshriwise/double-down.git /opt/double-down
+cd /opt/double-down
 mkdir build
 cd build
-cmake .. -DMOAB_DIR=/MOAB \
-         -DCMAKE_INSTALL_PREFIX=.. \
-         -DEMBREE_DIR=/embree
+cmake .. -DMOAB_DIR=/opt/MOAB -DCMAKE_INSTALL_PREFIX=.. -DEMBREE_DIR=/opt/embree
 make -j"$compile_cores"
 make -j"$compile_cores" install
 
 
+
 # Clone and install DAGMC
+cd /
 mkdir DAGMC
 cd DAGMC
 # TODO change to tagged release

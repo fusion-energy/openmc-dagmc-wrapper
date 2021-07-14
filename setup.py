@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="paramak_neutronics",
-    version="0.0.5",
+    version="0.0.6",
     author="The Paramak Development Team",
     author_email="mail@jshimwell.com",
     description="Perform neutronics simulations on models generated with the Paramak",
@@ -23,6 +23,7 @@ setuptools.setup(
         "pytest-runner",
     ],
     install_requires=[
+        "paramak",
         "remove_dagmc_tags",
         "neutronics_material_maker",
         "parametric_plasma_source",
