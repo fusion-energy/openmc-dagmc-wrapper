@@ -90,14 +90,14 @@ make -j"$compile_cores" install
 pip install --upgrade numpy cython
 mkdir /opt/MOAB
 cd /opt/MOAB
-mkdir build
 git clone  --single-branch --branch 5.2.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
+mkdir build
 cd build
-cmake ../moab -DENABLE_HDF5=ON -DENABLE_NETCDF=ON -DENABLE_FORTRAN=OFF -DENABLE_BLASLAPACK=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_NETCDF=ON -DENABLE_FORTRAN=OFF -DENABLE_BLASLAPACK=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/opt/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 rm -rf *
-cmake ../moab -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DENABLE_FORTRAN=OFF -DBUILD_SHARED_LIBS=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/MOAB
+cmake ../moab -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DENABLE_FORTRAN=OFF -DBUILD_SHARED_LIBS=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/opt/MOAB
 make -j"$compile_cores"
 make -j"$compile_cores" install
 cd pymoab
@@ -110,9 +110,7 @@ git clone --single-branch --branch main https://github.com/pshriwise/double-down
 cd /opt/double-down
 mkdir build
 cd build
-cmake .. -DMOAB_DIR=/MOAB \
-         -DCMAKE_INSTALL_PREFIX=.. \
-         -DEMBREE_DIR=/embree
+cmake .. -DMOAB_DIR=/opt/MOAB -DCMAKE_INSTALL_PREFIX=.. -DEMBREE_DIR=/opt/embree
 make -j"$compile_cores"
 make -j"$compile_cores" install
 
