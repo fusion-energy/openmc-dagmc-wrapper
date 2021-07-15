@@ -140,9 +140,8 @@ RUN mkdir DAGMC && \
     rm -rf /DAGMC/DAGMC /DAGMC/build
 
 # Clone and install OpenMC with DAGMC
-# RUN git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc && \
-# TODO return to openmc develop / or a release once the PR 1825 has been merged
-RUN git clone  --recurse-submodules --single-branch --branch dagmc_universe --depth 1 https://github.com/pshriwise/openmc.git  /opt/openmc && \
+# TODO clone a specific release when the next release containing (PR 1825) is avaialble.
+RUN git clone  --recurse-submodules --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git  /opt/openmc && \
     cd /opt/openmc && \
     mkdir build && \
     cd build && \
