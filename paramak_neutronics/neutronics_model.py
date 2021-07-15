@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple, Union
 import paramak
 from .neutronics_utils import get_neutronics_results_from_statepoint_file
 from .neutronics_utils import (create_inital_particles,
+                               silently_remove_file,
                                extract_points_from_initial_source)
 from paramak.utils import plotly_trace
 
@@ -287,7 +288,7 @@ class NeutronicsModel():
         #             "material has been added that is not needed for this \
         #             reactor model", reactor_material)
 
-        os.system('rm materials.xml')
+        silently_remove_file('materials.xml')
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
@@ -395,9 +396,9 @@ class NeutronicsModel():
             mesh_3d_corners = self.mesh_3d_corners
 
         # this removes any old file from previous simulations
-        os.system('rm geometry.xml')
-        os.system('rm settings.xml')
-        os.system('rm tallies.xml')
+        silently_remove_file('geometry.xml')
+        silently_remove_file('settings.xml')
+        silently_remove_file('tallies.xml')
 
         # materials.xml is removed in this function
         self.create_openmc_materials()
@@ -641,7 +642,7 @@ class NeutronicsModel():
             self.export_xml()
 
         if export_h5m is True:
-            os.system('rm *.h5')
+            silently_remove_file('dagmc.h5')
             self.geometry.export_h5m()
 
         # checks all the nessecary files are found
@@ -661,8 +662,8 @@ class NeutronicsModel():
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
-        os.system('rm summary.h5')
-        os.system('rm statepoint.' + str(self.simulation_batches) + '.h5')
+        silently_remove_file('summary.h5')
+        silently_remove_file('statepoint.' + str(self.simulation_batches) + '.h5')
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads
