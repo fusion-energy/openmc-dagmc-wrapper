@@ -6,6 +6,8 @@
 [![Upload Python Package](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/python-publish.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/python-publish.yml)
 [![CI with install](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml)
 [![CI with docker build](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml)
+[![Code Grade](https://www.code-inspector.com/project/25343/score/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/25343/status/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
 
 Adds support for neutronics simulations to the [Paramak](https://github.com/fusion-energy/paramak) package.
 
