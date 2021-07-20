@@ -1,6 +1,7 @@
 
 import math
 import os
+import errno
 import subprocess
 import warnings
 from collections import defaultdict
@@ -17,6 +18,16 @@ try:
 except ImportError:
     warnings.warn('OpenMC not found, create_inital_particles \
             method not available', UserWarning)
+
+
+def silently_remove_file(filename: str):
+    """Allows files to be deleted without printing warning messages int the 
+    terminal. input XML files for OpenMC are deleted prior to running
+    simulations and many not exist."""
+    try:
+        os.remove(filename)
+    except OSError:
+        pass  # in some cases the file will not exist
 
 
 def find_volume_ids_in_h5m(
@@ -468,7 +479,11 @@ def create_inital_particles(
 
     model = openmc.model.Model(geom, mats, sett)
 
-    os.system('rm *.xml')
+    silently_remove_file('settings.xml')
+    silently_remove_file('materials.xml')
+    silently_remove_file('geometry.xml')
+    silently_remove_file('settings.xml')
+    silently_remove_file('tallies.xml')
     model.export_to_xml()
 
     # this just adds write_initial_source == True to the settings.xml
