@@ -74,7 +74,7 @@ sudo apt-get -y install libglfw3-dev
 
 
 # This allows writting to /opt folder. Change permssions to suit requirements
-sudo chmod -R 777 opt/
+sudo chmod -R 777 /opt
 
 # Clone and install Embree
 git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git /opt/embree
