@@ -6,12 +6,12 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="paramak_neutronics",
     version="develop",
-    author="The Paramak Development Team",
+    author="The Paramak Neutronics Development Team",
     author_email="mail@jshimwell.com",
     description="Perform neutronics simulations on models generated with the Paramak",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/shimwell/paramak-neutronics",
+    url="https://github.com/fusion-energy/paramak-neutronics",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

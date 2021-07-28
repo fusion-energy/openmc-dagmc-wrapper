@@ -56,7 +56,7 @@ pip install jupyter-cadquery==2.2.0
 # Install neutronics dependencies from Debian package manager
 sudo apt-get install -y wget
 sudo apt-get install -y git
-sudo apt-get install -y gfortran g++ cmake
+sudo apt-get install -y gfortran g++ cmake gcc
 sudo apt-get install -y mpich
 sudo apt-get install -y libmpich-dev
 sudo apt-get install -y libhdf5-serial-dev
@@ -74,7 +74,7 @@ sudo apt-get -y install libglfw3-dev
 
 
 # This allows writting to /opt folder. Change permssions to suit requirements
-sudo chmod -R 777 opt/
+sudo chmod -R 777 /opt
 
 # Clone and install Embree
 git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git /opt/embree
@@ -117,7 +117,7 @@ make -j"$compile_cores" install
 
 
 # Clone and install DAGMC
-cd /
+cd /opt
 mkdir DAGMC
 cd DAGMC
 # TODO change to tagged release
@@ -126,27 +126,28 @@ git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/
 mkdir build
 cd build
 cmake ../DAGMC -DBUILD_TALLY=ON \
-               -DMOAB_DIR=/MOAB \
+               -DMOAB_DIR=/opt/MOAB \
                -DDOUBLE_DOWN=ON \
                -DBUILD_STATIC_EXE=OFF \
                -DBUILD_STATIC_LIBS=OFF \
-               -DCMAKE_INSTALL_PREFIX=/DAGMC/ \
-               -DDOUBLE_DOWN_DIR=/double-down 
+               -DCMAKE_INSTALL_PREFIX=/opt/DAGMC/ \
+               -DDOUBLE_DOWN_DIR=/opt/double-down 
 make -j"$compile_cores" install
-rm -rf /DAGMC/DAGMC /DAGMC/build
+rm -rf /opt/DAGMC/DAGMC /opt/DAGMC/build
 
 # Clone and install OpenMC with DAGMC
-git clone --recurse-submodules https://github.com/openmc-dev/openmc.git /opt/openmc
+cd /opt
+git clone --recurse-submodules --branch develop https://github.com/openmc-dev/openmc.git
 cd /opt/openmc
 mkdir build
 cd build
 cmake -Doptimize=on \
         -Ddagmc=ON \
-        -DDAGMC_DIR=/DAGMC/ \
+        -DDAGMC_DIR=/opt/DAGMC/ \
         -DHDF5_PREFER_PARALLEL=on .. 
 make -j"$compile_cores"
-make -j"$compile_cores" install
-cd .. 
+sudo make -j"$compile_cores" install
+cd /opt/openmc
 pip install -e .
 
 pip install vtk
