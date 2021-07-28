@@ -9,6 +9,8 @@
 compile_cores=7
 
 printf '\nexport PATH="/opt/openmc/bin:$PATH"' >> ~/.bashrc
+printf '\nexport PATH="/opt/DAGMC/bin:$PATH"' >> ~/.bashrc
+printf '\nexport PATH="/opt/MOAB/bin:$PATH"' >> ~/.bashrc
 printf '\nexport LD_LIBRARY_PATH="/opt/openmc/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
 
 # CC=/usr/bin/mpicc
