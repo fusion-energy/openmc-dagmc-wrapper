@@ -167,3 +167,38 @@ printf '/DAGMC/bin:$PATH"' >> ~/.bashrc
 pip install paramak
 pip install paramak-neutronics
 
+
+# optional install of Cubit Coreform
+
+printf '\nexport PATH="/opt/Coreform-Cubit-2021.5/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+# download cubit coreform
+wget -O coreform-cubit-2021.5.deb https://f002.backblazeb2.com/file/cubit-downloads/Coreform-Cubit/Releases/Linux/Coreform-Cubit-2021.5%2B15962_5043ef39-Lin64.deb
+sudo dpkg -i coreform-cubit-2021.5.deb 
+# enter "cubit-learn" in the product key to use the non commercial version
+
+# you can now add cubit to your python path, or import like this
+# import sys
+# sys.path.append('/opt/Coreform-Cubit-2021.5/bin/')
+# import cubit
+# cubit.init([])
+
+# download the dagmc plugin for cubit
+wget https://github.com/svalinn/Cubit-plugin/releases/download/0.1.0/svalinn-plugin_ubuntu-20.04_cubit_2021.5.tgz
+sudo tar -xzvf svalinn-plugin_ubuntu-20.04_cubit_2021.5.tgz -C /opt/Coreform-Cubit-2021.5
+
+# check all packages are installed
+# sudo apt-get install -y libx11-6 
+# sudo apt-get install -y libxt6 
+# sudo apt-get install -y libgl1
+# sudo apt-get install -y libglu1-mesa
+# sudo apt-get install -y libgl1-mesa-glx
+# sudo apt-get install -y libxcb-icccm4 
+# sudo apt-get install -y libxcb-image0 
+# sudo apt-get install -y libxcb-keysyms1 
+# sudo apt-get install -y libxcb-render-util0 
+# sudo apt-get install -y libxkbcommon-x11-0 
+# sudo apt-get install -y libxcb-randr0 
+sudo apt-get install -y libxcb-xinerama0
+
