@@ -17,7 +17,10 @@
 
 [![docker-publish-release](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/docker_publish.yml)
 
-Adds support for neutronics simulations to the [Paramak](https://github.com/fusion-energy/paramak) package.
+
+# Paramak Neutronics
+
+The Paramak-neutronics python package adds support for OpenMC DAGMC neutronics simulations to the [Paramak](https://github.com/fusion-energy/paramak) package. This allows for neutronics responces to be rapidly found for a range of geometries (produced with the paramak), materials and neutronic source definitions. Neutronics responces can be obtained in the form of cell tallies and reglar mesh tallies (2D and 3D). Users can also export the OpenMC input files along with the DAGMC geometry (h5m file) and build upon the simulations provided. Post processing of results are also carried out automatically provide images, JSON output files and VTK files for convenient access to the results.
 
 
 :point_right: [Documentation](https://paramak-neutronics.readthedocs.io)
