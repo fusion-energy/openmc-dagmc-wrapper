@@ -5,6 +5,8 @@
 [![CI with install](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml)
 [![CI with docker build](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml)
 
+[![codecov](https://codecov.io/gh/fusion-energy/paramak-neutronics/branch/main/graph/badge.svg?token=5j7c7eGF6W)](https://codecov.io/gh/fusion-energy/paramak-neutronics)
+
 [![Code Grade](https://www.code-inspector.com/project/25343/score/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
 [![Code Grade](https://www.code-inspector.com/project/25343/status/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
 
