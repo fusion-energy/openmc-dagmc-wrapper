@@ -1,0 +1,58 @@
+# Python CircleCI 2.0 configuration file
+##
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+
+version: 2
+jobs:
+  # test:
+  build:
+    docker:
+      - image: ghcr.io/fusion-energy/paramak-neutronics:dependencies
+    steps:
+      - checkout
+      - run:
+          name: install
+          command: |
+            python setup.py install
+
+      - run:
+          name: run test_NeutronicModel
+          command: 
+            pytest tests/test_NeutronicModel.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run test_Reactor_neutronics
+          command: 
+            pytest tests/test_Reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run test_Shape_neutronics
+          command: 
+            pytest tests/test_Shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run test_neutronics_utils
+          command: 
+            pytest tests/test_neutronics_utils.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run test_example_neutronics_simulations
+          command: 
+            pytest tests/test_example_neutronics_simulations.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run notebook_testing
+          command: 
+            pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
+
+
+      - store_test_results:
+          path: test-reports
+
+      - run: bash <(curl -s https://codecov.io/bash)
+
+workflows:
+  version: 2
+  test-build-deploy:
+    jobs:
+      - build

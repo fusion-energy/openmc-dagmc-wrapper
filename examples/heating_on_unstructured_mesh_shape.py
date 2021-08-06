@@ -4,7 +4,7 @@ import paramak
 
 rotated_spline = paramak.RotateSplineShape(
     rotation_angle=180,
-    method='trelis',
+    method='cubit',
     points=[
         (500, 0),
         (500, -20),

@@ -127,3 +127,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# output files from simulations
+*.png
+*.vtk
+*.jou
+*.cub
+*.json
+*.xml
+*.h5
+*.h5m
+*.stl
+*.stp
+*.trelis
+*.out

@@ -602,15 +602,15 @@ class TestShape(unittest.TestCase):
         assert Path("flux_on_2D_mesh_xy.png").exists() is True
         assert Path("flux_on_2D_mesh_yz.png").exists() is True
 
-    def test_trelis_run_without_trelis(self):
+    def test_cubit_run_without_cubit(self):
         """Creates NeutronicsModel objects and checks errors are
         raised correctly when arguments are incorrect."""
 
-        # If Trelis is in the CI then this should work
+        # If cubit is in the CI then this should work
         def test_export_h5m_error_handling():
             """Makes a reactor from two shapes, then mades a neutronics model
             and tests the TBR simulation value"""
-            self.my_shape.method = 'trelis'
+            self.my_shape.method = 'cubit'
             paramak_neutronics.NeutronicsModel(
                 geometry=self.my_shape,
                 source=self.source,
