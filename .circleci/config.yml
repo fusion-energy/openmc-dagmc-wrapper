@@ -40,10 +40,11 @@ jobs:
           command: 
             pytest tests/test_example_neutronics_simulations.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
-      - run:
-          name: run notebook_testing
-          command: 
-            pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
+      # TODO add example notebooks
+      # - run:
+      #     name: run notebook_testing
+      #     command: 
+      #       pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
 
 
       - store_test_results:
