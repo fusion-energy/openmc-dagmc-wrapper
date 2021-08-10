@@ -1,0 +1,59 @@
+{% set name = "paramak_neutronics" %}
+{% set data = load_setup_py_data() %}
+
+package:
+  name: "{{ name|lower }}"
+  version: {{ data.get('version') }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python {{ python }}
+    - setuptools
+  run:
+    - paramak
+    # - jupyter-cadquery not avaialbe on conda
+
+test:
+  imports:
+    - paramak_neutronics
+    - paramak_neutronics.NeutronicsModel
+    - paramak_neutronics.get_neutronics_results_from_statepoint_file
+    - paramak_neutronics.find_material_groups_in_h5m
+    - paramak_neutronics.find_volume_ids_in_h5m
+    - paramak_neutronics.create_inital_particles
+    - paramak_neutronics.extract_points_from_initial_source
+    - paramak_neutronics.silently_remove_file
+    - tests
+  requires:
+    - pytest
+    - pytest-runner
+  source_files:
+    - tests/
+    - examples/
+  commands:
+    - pytest -v tests/test_example_neutronics_simulations.py
+    - pytest -v tests/test_NeutronicModel.py
+    - pytest -v tests/test_neutronics_utils.py
+    - pytest -v tests/test_Reactor_neutronics.py
+    - pytest -v tests/test_Shape_neutronics.py
+    - pytest -v tests/notebook_testing.py
+
+about:
+  home: "https://github.com/fusion-energy/paramak-neutronics"
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE.txt
+  summary: "Create 3D fusion reactor CAD models based on input parameters"
+  doc_url: https://paramak.readthedocs.io/
+  dev_url: https://github.com/fusion-energy/paramak
+  summary: Paramak-neutronics - Perform neutronics simulations on models generated with the Paramak
+extra:
+  recipe-maintainers:
+    - shimwell
