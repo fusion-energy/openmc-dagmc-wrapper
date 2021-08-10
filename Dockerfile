@@ -71,7 +71,7 @@ RUN apt-get --yes install libeigen3-dev && \
 
 
 # Clone and install Embree
-RUN git clone --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git && \
+RUN git clone --shallow-submodules --single-branch --branch v3.12.2 --depth 1 https://github.com/embree/embree.git && \
     cd embree && \
     mkdir build && \
     cd build && \
@@ -86,7 +86,7 @@ RUN pip install --upgrade numpy cython && \
     mkdir MOAB && \
     cd MOAB && \
     mkdir build && \
-    git clone  --single-branch --branch 5.3.0 --depth 1 https://bitbucket.org/fathomteam/moab.git && \
+    git clone --shallow-submodules --single-branch --branch 5.3.0 --depth 1 https://bitbucket.org/fathomteam/moab.git && \
     cd build && \
     cmake ../moab -DENABLE_HDF5=ON \
                   -DENABLE_NETCDF=ON \
@@ -111,7 +111,7 @@ RUN pip install --upgrade numpy cython && \
 
 
 # Clone and install Double-Down
-RUN git clone --single-branch --branch main https://github.com/pshriwise/double-down.git && \
+RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https://github.com/pshriwise/double-down.git && \
     cd double-down && \
     mkdir build && \
     cd build && \
@@ -126,7 +126,7 @@ RUN git clone --single-branch --branch main https://github.com/pshriwise/double-
 RUN mkdir DAGMC && \
     cd DAGMC && \
     # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -141,7 +141,7 @@ RUN mkdir DAGMC && \
 
 # Clone and install OpenMC with DAGMC
 # TODO clone a specific release when the next release containing (PR 1825) is avaialble.
-RUN git clone  --recurse-submodules --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git  /opt/openmc && \
+RUN git clone --shallow-submodules --recurse-submodules --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git  /opt/openmc && \
     cd /opt/openmc && \
     mkdir build && \
     cd build && \
