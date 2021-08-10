@@ -86,7 +86,7 @@ RUN pip install --upgrade numpy cython && \
     mkdir MOAB && \
     cd MOAB && \
     mkdir build && \
-    git clone  --single-branch --branch 5.2.1 --depth 1 https://bitbucket.org/fathomteam/moab.git && \
+    git clone  --single-branch --branch 5.3.0 --depth 1 https://bitbucket.org/fathomteam/moab.git && \
     cd build && \
     cmake ../moab -DENABLE_HDF5=ON \
                   -DENABLE_NETCDF=ON \
