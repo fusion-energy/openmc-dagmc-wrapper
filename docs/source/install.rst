@@ -3,8 +3,8 @@ Installation
 ============
 
 
-Prerequisites
--------------
+Install
+-------
 
 To use the paramak-neutronics module you will need the Python, Paramak, DAGMC
 and OpenMC installed.
@@ -21,20 +21,21 @@ First create a new Conda environment.
 
 .. code-block:: python
 
-   conda create -n my_env
+   conda create -n paramak_env
 
 
 Then activated the conda environment, 
 
 .. code-block:: python
 
-   conda activate my_env
+   conda activate paramak_env
+
 
 Then install CadQuery:
 
 .. code-block:: python
 
-   conda install -c conda-forge -c cadquery cadquery=2.1
+   conda install -c fusion-energy -c cadquery -c conda-forge paramak
 
 
 Then install the paramak-neutronics package using Pip.
@@ -42,6 +43,7 @@ Then install the paramak-neutronics package using Pip.
 .. code-block:: python
 
    pip install paramak-neutronics
+
 
 To complete the software stack OpenMC, DAGMC, Cubit and the DAGMC/Cubit plugin
 will also need installing. We don't have simple instructions for these packages
