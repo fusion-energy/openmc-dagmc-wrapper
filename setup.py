@@ -26,7 +26,6 @@ setuptools.setup(
         "paramak",
         "remove_dagmc_tags",
         "neutronics_material_maker",
-        "parametric_plasma_source",
         "vtk",
     ],
     # openmc, dagmc, pymoab are also needed but not avaible on PyPi

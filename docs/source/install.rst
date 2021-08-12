@@ -14,7 +14,7 @@ The recommended method is to install Python 3 using Anaconda or Miniconda
 * `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ (preferable to avoid hdf5 conflicts)
 * `Anaconda https://www.anaconda.com/>`_
   
-Once you have Conda or MiniConda installed then CadQuery can be installed
+Once you have Conda or MiniConda installed then the Paramak can be installed
 into a new enviroment and that environment can be activated using Conda.
 
 First create a new Conda environment.
@@ -24,14 +24,14 @@ First create a new Conda environment.
    conda create -n paramak_env
 
 
-Then activated the conda environment, 
+Then activated the conda environment.
 
 .. code-block:: python
 
    conda activate paramak_env
 
 
-Then install CadQuery:
+Then install the Paramak.
 
 .. code-block:: python
 
