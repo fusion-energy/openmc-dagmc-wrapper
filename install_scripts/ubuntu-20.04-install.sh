@@ -90,9 +90,8 @@ make -j"$compile_cores" install
 
 # Clone and install MOAB
 pip install --upgrade numpy cython
-mkdir /opt/MOAB
+git clone  --single-branch --branch 5.3.0 --depth 1 https://bitbucket.org/fathomteam/moab.git /opt/MOAB/moab
 cd /opt/MOAB
-git clone  --single-branch --branch 5.2.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
 mkdir build
 cd build
 cmake ../moab -DENABLE_HDF5=ON -DENABLE_NETCDF=ON -DENABLE_FORTRAN=OFF -DENABLE_BLASLAPACK=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/opt/MOAB
@@ -119,12 +118,13 @@ make -j"$compile_cores" install
 
 
 # Clone and install DAGMC
-cd /opt
-mkdir DAGMC
-cd DAGMC
+# cd /opt
+# mkdir DAGMC
+# cd DAGMC
 # TODO change to tagged release
 # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git
-git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git
+git clone --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git /opt/DAGMC/DAGMC
+cd /opt/DAGMC
 mkdir build
 cd build
 cmake ../DAGMC -DBUILD_TALLY=ON \
