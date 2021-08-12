@@ -649,10 +649,10 @@ class NeutronicsModel():
                     method to create the xml files".format(required_file)
                 raise FileNotFoundError(msg)
 
-        if not Path('dagmc.h5m').is_file():
-            msg = """dagmc.h5m file was not found. Please set export_h5m to
-                  True or use the export_h5m() methods to create the dagmc.h5m
-                  file"""
+        if not Path(self.h5m_filename).is_file():
+            msg = f"""{self.h5m_filename} file was not found. Please set 
+                  export_h5m to True or use the export_h5m() methods to create 
+                  the dagmc.h5m file"""
             raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
