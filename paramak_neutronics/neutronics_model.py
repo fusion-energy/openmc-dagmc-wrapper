@@ -4,7 +4,7 @@ import os
 import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
-
+import plotly.graph_objects as go
 import paramak
 from .neutronics_utils import get_neutronics_results_from_statepoint_file
 from .neutronics_utils import (create_inital_particles,
@@ -80,7 +80,7 @@ class NeutronicsModel():
 
     def __init__(
         self,
-        geometry: Union[paramak.Reactor, paramak.Shape],
+        h5m_filename: str,
         source,
         materials: dict,
         simulation_batches: Optional[int] = 100,
@@ -101,7 +101,7 @@ class NeutronicsModel():
     ):
 
         self.materials = materials
-        self.geometry = geometry
+        self.h5m_filename = h5m_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
@@ -124,17 +124,16 @@ class NeutronicsModel():
         self.statepoint_filename = None
 
     @property
-    def geometry(self):
-        return self._geometry
+    def h5m_filename(self):
+        return self._h5m_filename
 
-    @geometry.setter
-    def geometry(self, value):
-        if isinstance(value, (paramak.Shape, paramak.Reactor, type(None))):
-            self._geometry = value
+    @h5m_filename.setter
+    def h5m_filename(self, value):
+        if isinstance(value, str):
+            self._h5m_filename = value
         else:
             raise TypeError(
-                "NeutronicsModelFromReactor.geometry should be a \
-                paramak.Shape(), paramak.Reactor()")
+                "NeutronicsModelFromReactor.geometry should be a string")
 
     @property
     def source(self):
@@ -430,15 +429,15 @@ class NeutronicsModel():
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
                 mesh_xyz.lower_left = [
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension,
+                    -self.largest_dimension,
+                    -self.largest_dimension
                 ]
 
                 mesh_xyz.upper_right = [
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension
+                    self.largest_dimension,
+                    self.largest_dimension,
+                    self.largest_dimension
                 ]
             else:
                 mesh_xyz.lower_left = self.mesh_3d_corners[0]
@@ -466,15 +465,15 @@ class NeutronicsModel():
 
             if self.mesh_2d_corners is None:
                 mesh_xz.lower_left = [
-                    -self.geometry.largest_dimension,
+                    -self.largest_dimension,
                     -1,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension
                 ]
 
                 mesh_xz.upper_right = [
-                    self.geometry.largest_dimension,
+                    self.largest_dimension,
                     1,
-                    self.geometry.largest_dimension
+                    self.largest_dimension
                 ]
             else:
                 mesh_xz.lower_left = self.mesh_2d_corners[0]
@@ -489,14 +488,14 @@ class NeutronicsModel():
 
             if self.mesh_2d_corners is None:
                 mesh_xy.lower_left = [
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension,
+                    -self.largest_dimension,
+                    -self.largest_dimension,
                     -1
                 ]
 
                 mesh_xy.upper_right = [
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension,
+                    self.largest_dimension,
+                    self.largest_dimension,
                     1
                 ]
             else:
@@ -513,14 +512,14 @@ class NeutronicsModel():
             if self.mesh_2d_corners is None:
                 mesh_yz.lower_left = [
                     -1,
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension,
+                    -self.largest_dimension
                 ]
 
                 mesh_yz.upper_right = [
                     1,
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension
+                    self.largest_dimension,
+                    self.largest_dimension
                 ]
             else:
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
@@ -641,10 +640,6 @@ class NeutronicsModel():
         if export_xml is True:
             self.export_xml()
 
-        if export_h5m is True:
-            silently_remove_file('dagmc.h5')
-            self.geometry.export_h5m()
-
         # checks all the nessecary files are found
         for required_file in ['geometry.xml', 'materials.xml', 'settings.xml',
                               'tallies.xml']:
@@ -680,10 +675,11 @@ class NeutronicsModel():
 
     def export_html(
             self,
+            figure: go.Figure(),
             filename: Optional[str] = "neutronics_model.html",
-            facet_splines: Optional[bool] = True,
-            facet_circles: Optional[bool] = True,
-            tolerance: Optional[float] = 1.,
+            # facet_splines: Optional[bool] = True,
+            # facet_circles: Optional[bool] = True,
+            # tolerance: Optional[float] = 1.,
             view_plane: Optional[str] = 'RZ',
             number_of_source_particles: Optional[int] = 1000):
         """Creates a html graph representation of the points for the Shape
@@ -693,14 +689,11 @@ class NeutronicsModel():
         added.
 
         Args:
+            figure: The Plotly figure to add the source points to.
+                Paramak.export_html() returns a go.Figure() objct that can be
+                passed in here.
             filename: the filename used to save the html graph. Defaults to
                 neutronics_model.html
-            facet_splines: If True then spline edges will be faceted. Defaults
-                to True.
-            facet_circles: If True then circle edges will be faceted. Defaults
-                to True.
-            tolerance: faceting toleranceto use when faceting cirles and
-                splines. Defaults to 1e-3.
             view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
                 'YX', 'ZY', 'ZX', 'RZ' and 'XYZ'. Defaults to 'RZ'. Defaults to
                 'RZ'.
@@ -709,13 +702,14 @@ class NeutronicsModel():
             plotly.Figure(): figure object
         """
 
-        fig = self.geometry.export_html(
-            filename=None,
-            facet_splines=facet_splines,
-            facet_circles=facet_circles,
-            tolerance=tolerance,
-            view_plane=view_plane,
-        )
+
+        # fig = self.geometry.export_html(
+        #     filename=None,
+        #     facet_splines=facet_splines,
+        #     facet_circles=facet_circles,
+        #     tolerance=tolerance,
+        #     view_plane=view_plane,
+        # )
 
         if number_of_source_particles != 0:
             source_filename = create_inital_particles(
@@ -723,7 +717,7 @@ class NeutronicsModel():
             points = extract_points_from_initial_source(
                 source_filename, view_plane)
 
-            fig.add_trace(
+            figure.add_trace(
                 plotly_trace(
                     points=points,
                     mode="markers",
@@ -740,8 +734,8 @@ class NeutronicsModel():
             if path_filename.suffix != ".html":
                 path_filename = path_filename.with_suffix(".html")
 
-            fig.write_html(str(path_filename))
+            figure.write_html(str(path_filename))
 
             print("Exported html graph to ", path_filename)
 
-        return fig
+        return figure
