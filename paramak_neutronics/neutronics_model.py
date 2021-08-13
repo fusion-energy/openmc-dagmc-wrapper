@@ -453,6 +453,25 @@ class NeutronicsModel():
                 tally.scores = [score]
                 self.tallies.append(tally)
 
+            self._create_2d_mesh_tallies()
+
+            self._create_cell_tallies()
+
+        # make the model from geometry, materials, settings and tallies
+        model = openmc.model.Model(
+            geom, self.mats, settings, self.tallies)
+
+        geom.export_to_xml()
+        settings.export_to_xml()
+        self.tallies.export_to_xml()
+
+        self.model = model
+        return model
+
+    def _create_2d_mesh_tallies(self):
+        """Creates regular mesh tallies with a single cell thickness in one
+        dimention. Resulting in a 2D mesh tallies"""
+
         if self.mesh_tally_2d is not None:
 
             # Create mesh which will be used for tally
@@ -538,6 +557,9 @@ class NeutronicsModel():
                     tally.scores = [score]
                     self.tallies.append(tally)
 
+    def _create_cell_tallies(self):
+        """Creates cell tallies for all TBR, spectra and standard tallies"""
+
         if self.cell_tallies is not None:
 
             for standard_tally in self.cell_tallies:
@@ -554,16 +576,14 @@ class NeutronicsModel():
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES['CCFE-709']
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    'neutron'])
+                    neutron_particle_filter = openmc.ParticleFilter(['neutron'])
                     self._add_tally_for_every_material(
                         'neutron_spectra',
                         'flux',
                         [neutron_particle_filter, energy_filter]
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       'photon'])
+                        photon_particle_filter = openmc.ParticleFilter(['photon'])
                         self._add_tally_for_every_material(
                             'photon_spectra',
                             'flux',
@@ -573,17 +593,6 @@ class NeutronicsModel():
                     score = standard_tally
                     sufix = standard_tally
                     self._add_tally_for_every_material(sufix, score)
-
-        # make the model from geometry, materials, settings and tallies
-        model = openmc.model.Model(
-            geom, self.mats, settings, self.tallies)
-
-        geom.export_to_xml()
-        settings.export_to_xml()
-        self.tallies.export_to_xml()
-
-        self.model = model
-        return model
 
     def _add_tally_for_every_material(self, sufix: str, score: str,
                                       additional_filters: List = None) -> None:
