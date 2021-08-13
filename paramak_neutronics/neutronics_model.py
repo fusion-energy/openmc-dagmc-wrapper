@@ -1,23 +1,20 @@
 
 import json
-import os
 import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 import plotly.graph_objects as go
-import paramak
 from .neutronics_utils import get_neutronics_results_from_statepoint_file
 from .neutronics_utils import (create_inital_particles,
                                silently_remove_file,
                                extract_points_from_initial_source)
 from paramak.utils import plotly_trace
 
-try:
-    import openmc
-    from openmc.data import REACTION_MT, REACTION_NAME
-except ImportError:
-    warnings.warn('OpenMC not found, NeutronicsModelFromReactor.simulate \
-            method not available', UserWarning)
+
+import openmc
+import openmc.lib  # needed to find bounding box of h5m file
+from openmc.data import REACTION_MT, REACTION_NAME
+
 
 try:
     import neutronics_material_maker as nmm
@@ -302,6 +299,19 @@ class NeutronicsModel():
         self.mats.export_to_xml()
 
         return self.mats
+
+    def find_bounding_box(self):
+        """Computes the bounding box of the DAGMC geometry"""
+        dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
+        geometry = openmc.Geometry(root=dag_univ)
+        geometry.export_to_xml()
+        openmc.lib.init()
+        bbox = openmc.lib.global_bounding_box()
+        openmc.lib.finalize()
+        return bbox
+
+    # def build_csg_graveyard(self):
+
 
     def export_xml(
             self,
