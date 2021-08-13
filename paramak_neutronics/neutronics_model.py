@@ -1,20 +1,18 @@
-
 import json
 import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
-import plotly.graph_objects as go
-from .neutronics_utils import get_neutronics_results_from_statepoint_file
-from .neutronics_utils import (create_inital_particles,
-                               silently_remove_file,
-                               extract_points_from_initial_source)
-from paramak.utils import plotly_trace
-
 
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
+import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
+from paramak.utils import plotly_trace
 
+from .neutronics_utils import (create_inital_particles,
+                               extract_points_from_initial_source,
+                               get_neutronics_results_from_statepoint_file,
+                               silently_remove_file)
 
 try:
     import neutronics_material_maker as nmm
@@ -304,11 +302,41 @@ class NeutronicsModel():
     def find_bounding_box(self):
         """Computes the bounding box of the DAGMC geometry"""
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
+                
+        boundary_surface = openmc.Sphere(r=1, boundary_type='vacuum')
+        boundary_region = -boundary_surface
+        boundary_region_cell = openmc.Cell(region=boundary_region)
+
+        dag_univ = openmc.DAGMCUniverse('dagmc.h5m', auto_geom_ids=False)
+
+        # how do I get boundary_region_cell in to the geometry as well
         geometry = openmc.Geometry(root=dag_univ)
+        geometry.root_universe=dag_univ
         geometry.export_to_xml()
-        openmc.lib.init()
+
+        openmc.Plots().export_to_xml()
+        openmc.Materials().export_to_xml()
+
+        # a minimal settings .xml to allow openmc to init
+        settings = openmc.Settings()
+        settings.verbosity=1
+        settings.batches = 1
+        settings.particles = 1
+        settings.export_to_xml()
+
+
+        # The -p runs in plotting mode which avoids the check that OpenMC does
+        # when looking for boundary surfaces and therefore avoids this error
+        # ERROR: No boundary conditions were applied to any surfaces!
+        openmc.lib.init(['-p'])
+
         bbox = openmc.lib.global_bounding_box()
         openmc.lib.finalize()
+
+        silently_remove_file('settings.xml',)
+        silently_remove_file('plots.xml')
+        silently_remove_file('geometry.xml')
+        silently_remove_file('materials.xml')
         return bbox
 
     # def build_csg_graveyard(self):
