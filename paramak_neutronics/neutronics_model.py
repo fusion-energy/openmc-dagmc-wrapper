@@ -95,8 +95,9 @@ class NeutronicsModel():
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
+        largest_dimension= 1000,
     ):
-
+        self.largest_dimension = largest_dimension
         self.materials = materials
         self.h5m_filename = h5m_filename
         self.source = source
