@@ -545,7 +545,7 @@ class TestShape(unittest.TestCase):
         test_reactor = paramak.Reactor([test_shape, test_shape2])
 
         neutronics_model = paramak_neutronics.NeutronicsModel(
-            geometry=test_reactor,
+            h5m_filename=test_reactor.export_h5m(),
             source=self.source,
             materials={
                 'mat1': 'copper',
@@ -578,7 +578,7 @@ class TestShape(unittest.TestCase):
         test_reactor = paramak.Reactor([test_shape, test_shape2])
 
         neutronics_model = paramak_neutronics.NeutronicsModel(
-            geometry=test_reactor,
+            h5m_filename=test_reactor.export_h5m(),
             source=self.source,
             materials={
                 'mat1': 'copper',
@@ -715,10 +715,11 @@ class TestNeutronicsBallReactor(unittest.TestCase):
     def test_neutronics_model_attributes(self):
         """Makes a BallReactor neutronics model and simulates the TBR"""
 
+        h5m_filename=self.my_reactor.export_h5m()
         # makes the neutronics material
         neutronics_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_reactor,
             source=openmc.Source(),
+            h5m_filename=h5m_filename,
             materials={
                 'inboard_tf_coils_mat': 'copper',
                 'center_column_shield_mat': 'WC',
@@ -731,7 +732,7 @@ class TestNeutronicsBallReactor(unittest.TestCase):
             simulation_particles_per_batch=12,
         )
 
-        assert neutronics_model.geometry == self.my_reactor
+        assert neutronics_model.h5m_filename == h5m_filename
 
         assert neutronics_model.materials == {
             'inboard_tf_coils_mat': 'copper',
