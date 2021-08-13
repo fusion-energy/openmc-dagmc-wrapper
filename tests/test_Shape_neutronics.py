@@ -216,7 +216,7 @@ class TestSimulationResultsVsCsg(unittest.TestCase):
         )
 
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=my_geometry,
+            h5m_filename=my_geometry.export_h5m(),
             source=source,
             simulation_batches=batches,
             simulation_particles_per_batch=particles,

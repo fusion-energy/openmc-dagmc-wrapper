@@ -23,6 +23,8 @@ class TestShape(unittest.TestCase):
             method='pymoab'
         )
 
+        self.h5m_filename = self.my_shape.export_h5m()
+
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
         source = openmc.Source()
@@ -37,14 +39,12 @@ class TestShape(unittest.TestCase):
         os.system('rm *.h5m')
 
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'WC'},
         )
 
-        self.my_shape.export_h5m()
-
-        my_model.simulate(export_h5m=False)
+        my_model.simulate()
 
         my_model.results is not None
 
@@ -57,7 +57,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': test_mat},
             cell_tallies=['heating'],
@@ -84,7 +84,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': test_mat},
             cell_tallies=['heating'],
@@ -116,7 +116,7 @@ class TestShape(unittest.TestCase):
         # converts the geometry into a neutronics geometry
         # this simulation has no tally to test this edge case
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': test_mat},
             simulation_batches=2,
@@ -140,7 +140,7 @@ class TestShape(unittest.TestCase):
         def incorrect_faceting_tolerance():
             """Sets faceting_tolerance as a string which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 faceting_tolerance='coucou'
@@ -156,7 +156,7 @@ class TestShape(unittest.TestCase):
         def incorrect_merge_tolerance():
             """Set merge_tolerance as a string which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 merge_tolerance='coucou'
@@ -172,7 +172,7 @@ class TestShape(unittest.TestCase):
         def incorrect_cell_tallies():
             """Set a cell tally that is not accepted which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 cell_tallies=['coucou'],
@@ -188,7 +188,7 @@ class TestShape(unittest.TestCase):
         def incorrect_cell_tally_type():
             """Set a cell tally that is the wrong type which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 cell_tallies=1,
@@ -204,7 +204,7 @@ class TestShape(unittest.TestCase):
         def incorrect_mesh_tally_2d():
             """Set a mesh_tally_2d that is not accepted which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 mesh_tally_2d=['coucou'],
@@ -220,7 +220,7 @@ class TestShape(unittest.TestCase):
         def incorrect_mesh_tally_2d_type():
             """Set a mesh_tally_2d that is the wrong type which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 mesh_tally_2d=1,
@@ -236,7 +236,7 @@ class TestShape(unittest.TestCase):
         def incorrect_mesh_tally_3d():
             """Set a mesh_tally_3d that is not accepted which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 mesh_tally_3d=['coucou'],
@@ -252,7 +252,7 @@ class TestShape(unittest.TestCase):
         def incorrect_mesh_tally_3d_type():
             """Set a mesh_tally_3d that is the wrong type which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 mesh_tally_3d=1,
@@ -268,7 +268,7 @@ class TestShape(unittest.TestCase):
         def incorrect_materials():
             """Set a material as a string which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials='coucou',
             )
@@ -283,7 +283,7 @@ class TestShape(unittest.TestCase):
         def incorrect_materials_type():
             """Sets a material as an int which should raise an error"""
             test_model = paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 23},
             )
@@ -300,7 +300,7 @@ class TestShape(unittest.TestCase):
         def incorrect_simulation_batches_to_small():
             """Sets simulation batch below 2 which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 simulation_batches=1
@@ -316,7 +316,7 @@ class TestShape(unittest.TestCase):
         def incorrect_simulation_batches_wrong_type():
             """Sets simulation_batches as a string which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 simulation_batches='one'
@@ -332,7 +332,7 @@ class TestShape(unittest.TestCase):
         def incorrect_simulation_particles_per_batch_wrong_type():
             """Sets simulation_particles_per_batch below 2 which should raise an error"""
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'eurofer'},
                 simulation_particles_per_batch='one'
@@ -353,7 +353,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': mat},
             cell_tallies=['heating', 'flux', 'TBR', 'spectra'],
@@ -396,7 +396,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'Be'},
             mesh_tally_2d=['heating'],
@@ -423,7 +423,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'Be'},
             mesh_tally_3d=['heating', '(n,Xt)'],
@@ -451,7 +451,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'Be'},
             simulation_batches=3.1,
@@ -472,7 +472,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'Be'},
             mesh_tally_3d=['heating'],
@@ -503,7 +503,7 @@ class TestShape(unittest.TestCase):
 
         # converts the geometry into a neutronics geometry
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=self.my_shape,
+            h5m_filename=self.h5m_filename,
             source=self.source,
             materials={'center_column_shield_mat': 'Be'},
             mesh_tally_3d=['heating'],
@@ -612,7 +612,7 @@ class TestShape(unittest.TestCase):
             and tests the TBR simulation value"""
             self.my_shape.method = 'cubit'
             paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'WC'},
             )
@@ -630,7 +630,7 @@ class TestShape(unittest.TestCase):
             with a FileNotFoundError"""
 
             my_model = paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'WC'},
             )
@@ -654,7 +654,7 @@ class TestShape(unittest.TestCase):
             with a FileNotFoundError"""
 
             my_model = paramak_neutronics.NeutronicsModel(
-                geometry=self.my_shape,
+                h5m_filename=self.h5m_filename,
                 source=self.source,
                 materials={'center_column_shield_mat': 'WC'},
             )
