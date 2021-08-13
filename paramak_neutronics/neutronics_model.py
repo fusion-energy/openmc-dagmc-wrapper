@@ -683,7 +683,7 @@ class NeutronicsModel():
 
     def export_html(
             self,
-            figure: go.Figure(),
+            figure: go.Figure() = go.Figure(),
             filename: Optional[str] = "neutronics_model.html",
             # facet_splines: Optional[bool] = True,
             # facet_circles: Optional[bool] = True,
@@ -699,7 +699,9 @@ class NeutronicsModel():
         Args:
             figure: The Plotly figure to add the source points to.
                 Paramak.export_html() returns a go.Figure() objct that can be
-                passed in here.
+                passed in here and have source points added to it. Otherwise
+                this defaults to plotly.graph_objects.Figure() which provides
+                an empty figure for source points.
             filename: the filename used to save the html graph. Defaults to
                 neutronics_model.html
             view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
@@ -709,15 +711,6 @@ class NeutronicsModel():
         Returns:
             plotly.Figure(): figure object
         """
-
-
-        # fig = self.geometry.export_html(
-        #     filename=None,
-        #     facet_splines=facet_splines,
-        #     facet_circles=facet_circles,
-        #     tolerance=tolerance,
-        #     view_plane=view_plane,
-        # )
 
         if number_of_source_particles != 0:
             source_filename = create_inital_particles(
