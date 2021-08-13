@@ -64,11 +64,11 @@ class NeutronicsModel():
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.geometry.largest_dimension property to set
+            uses the NeutronicsModel.largest_dimension property to set
             the corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.geometry.largest_dimension property to set
+            uses the NeutronicsModel.largest_dimension property to set
             the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
@@ -95,7 +95,7 @@ class NeutronicsModel():
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
-        largest_dimension= 1000,
+        largest_dimension: Optional[float] = 1000,
     ):
         self.largest_dimension = largest_dimension
         self.materials = materials
