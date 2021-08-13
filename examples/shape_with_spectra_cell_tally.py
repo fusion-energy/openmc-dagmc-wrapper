@@ -23,7 +23,7 @@ def main():
 
     # converts the geometry into a neutronics geometry
     my_model = paramak.NeutronicsModel(
-        geometry=my_shape,
+        h5m_filename=my_shape.export_h5m(),
         source=source,
         materials={'center_column_shield_mat': 'Be'},
         cell_tallies=['heating', 'flux', 'TBR', 'spectra'],

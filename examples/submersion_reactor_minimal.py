@@ -42,7 +42,7 @@ def make_model_and_simulate():
 
     # makes the neutronics model from the geometry and material allocations
     neutronics_model = paramak.NeutronicsModel(
-        geometry=my_reactor,
+        h5m_filename=my_reactor.export_h5m(),
         source=source,
         materials={
             'inboard_tf_coils_mat': 'eurofer',
