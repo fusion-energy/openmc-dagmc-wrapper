@@ -331,13 +331,6 @@ class NeutronicsModel:
         """Computes the bounding box of the DAGMC geometry"""
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
 
-        boundary_surface = openmc.Sphere(r=1, boundary_type="vacuum")
-        boundary_region = -boundary_surface
-        boundary_region_cell = openmc.Cell(region=boundary_region)
-
-        dag_univ = openmc.DAGMCUniverse("dagmc.h5m", auto_geom_ids=False)
-
-        # how do I get boundary_region_cell in to the geometry as well
         geometry = openmc.Geometry(root=dag_univ)
         geometry.root_universe = dag_univ
         geometry.export_to_xml()
@@ -364,9 +357,7 @@ class NeutronicsModel:
         bbox = openmc.lib.global_bounding_box()
         openmc.lib.finalize()
 
-        silently_remove_file(
-            "settings.xml",
-        )
+        silently_remove_file("settings.xml")
         silently_remove_file("plots.xml")
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
