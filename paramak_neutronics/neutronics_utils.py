@@ -119,13 +119,6 @@ def _save_2d_mesh_tally_as_png(
             resutls  from.
     """
 
-    try:
-        import openmc
-    except ImportError as err:
-        raise err(
-            'openmc not found, _save_2d_mesh_tally_as_png method is not \
-            available')
-
     my_slice = tally.get_slice(scores=[score])
     tally_filter = tally.find_filter(filter_type=openmc.MeshFilter)
     shape = tally_filter.mesh.dimension.tolist()
@@ -154,13 +147,6 @@ def get_neutronics_results_from_statepoint_file(
     Returns:
         dict: a dictionary of the simulation results
     """
-
-    try:
-        import openmc
-    except ImportError as err:
-        raise err(
-            'openmc not found, get_neutronics_results_from_statepoint_file \
-            method is not available')
 
     # open the results file
     statepoint = openmc.StatePoint(statepoint_filename)
