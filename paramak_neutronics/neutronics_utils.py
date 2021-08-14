@@ -1,4 +1,3 @@
-
 import errno
 import math
 import os
@@ -23,7 +22,7 @@ def load_moab_file(filename: str):
 
 
 def silently_remove_file(filename: str):
-    """Allows files to be deleted without printing warning messages int the 
+    """Allows files to be deleted without printing warning messages int the
     terminal. input XML files for OpenMC are deleted prior to running
     simulations and many not exist."""
     try:
@@ -32,7 +31,7 @@ def silently_remove_file(filename: str):
         pass  # in some cases the file will not exist
 
 
-def find_volume_ids_in_h5m(filename: Optional[str] = 'dagmc.h5m') -> List[str]:
+def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     """Reads in a DAGMC h5m file and uses PyMoab to find the volume ids of the
     volumes in the file
 
@@ -50,8 +49,10 @@ def find_volume_ids_in_h5m(filename: Optional[str] = 'dagmc.h5m') -> List[str]:
     try:
         cat_tag = moab_core.tag_get_handle(types.CATEGORY_TAG_NAME)
     except types.MB_ENTITY_NOT_FOUND:
-        msg = ("The category tag could not be found in the PyMOAB instance."
-              "Please check that the DAGMC file has been loaded.")
+        msg = (
+            "The category tag could not be found in the PyMOAB instance."
+            "Please check that the DAGMC file has been loaded."
+        )
         raise RuntimeError(msg)
 
     # get the id tag
@@ -69,9 +70,7 @@ def find_volume_ids_in_h5m(filename: Optional[str] = 'dagmc.h5m') -> List[str]:
     return sorted(list(ids))
 
 
-def find_material_groups_in_h5m(
-        filename: Optional[str] = 'dagmc.h5m'
-) -> List[str]:
+def find_material_groups_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     """Reads in a DAGMC h5m file and uses mbsize to find the names of the
     material groups in the file
 
@@ -92,22 +91,19 @@ def find_material_groups_in_h5m(
         raise ValueError(
             "mbsize failed, check MOAB is install and the MOAB/build/bin "
             "folder is in the path directory (Linux and Mac) or set as an "
-            "enviromental varible (Windows)")
+            "enviromental varible (Windows)"
+        )
 
     list_of_mats = terminal_output.split()
-    list_of_mats = list(filter(lambda a: a != '=', list_of_mats))
-    list_of_mats = list(filter(lambda a: a != 'NAME', list_of_mats))
-    list_of_mats = list(filter(lambda a: a != 'EXTRA_NAME0', list_of_mats))
+    list_of_mats = list(filter(lambda a: a != "=", list_of_mats))
+    list_of_mats = list(filter(lambda a: a != "NAME", list_of_mats))
+    list_of_mats = list(filter(lambda a: a != "EXTRA_NAME0", list_of_mats))
     list_of_mats = list(set(list_of_mats))
 
     return list_of_mats
 
 
-def _save_2d_mesh_tally_as_png(
-        score: str,
-        filename: str,
-        tally
-) -> str:
+def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
     """Extracts 2D mesh tally results from a tally and saves the result as
     a png image.
 
@@ -133,8 +129,7 @@ def _save_2d_mesh_tally_as_png(
 
 
 def get_neutronics_results_from_statepoint_file(
-        statepoint_filename: str,
-        fusion_power: Optional[float] = None
+    statepoint_filename: str, fusion_power: Optional[float] = None
 ) -> dict:
     """Reads the statepoint file from the neutronics simulation
     and extracts the tally results.
@@ -156,83 +151,76 @@ def get_neutronics_results_from_statepoint_file(
     # access the tallies
     for tally in statepoint.tallies.values():
 
-        if tally.name.endswith('TBR'):
+        if tally.name.endswith("TBR"):
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame['std. dev.'].sum()
+            tally_std_dev = data_frame["std. dev."].sum()
             results[tally.name] = {
-                'result': tally_result,
-                'std. dev.': tally_std_dev,
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
             }
 
-        elif tally.name.endswith('heating'):
+        elif tally.name.endswith("heating"):
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame['std. dev.'].sum()
-            results[tally.name]['MeV per source particle'] = {
-                'result': tally_result / 1e6,
-                'std. dev.': tally_std_dev / 1e6,
+            tally_std_dev = data_frame["std. dev."].sum()
+            results[tally.name]["MeV per source particle"] = {
+                "result": tally_result / 1e6,
+                "std. dev.": tally_std_dev / 1e6,
             }
 
             if fusion_power is not None:
-                results[tally.name]['Watts'] = {
-                    'result': tally_result * 1.602176487e-19 * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
-                    'std. dev.': tally_std_dev * 1.602176487e-19 * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                results[tally.name]["Watts"] = {
+                    "result": tally_result
+                    * 1.602176487e-19
+                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                    "std. dev.": tally_std_dev
+                    * 1.602176487e-19
+                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
                 }
 
-        elif tally.name.endswith('flux'):
+        elif tally.name.endswith("flux"):
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame['std. dev.'].sum()
-            results[tally.name]['Flux per source particle'] = {
-                'result': tally_result,
-                'std. dev.': tally_std_dev,
+            tally_std_dev = data_frame["std. dev."].sum()
+            results[tally.name]["Flux per source particle"] = {
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
             }
 
-        elif tally.name.endswith('spectra'):
+        elif tally.name.endswith("spectra"):
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"]
-            tally_std_dev = data_frame['std. dev.']
-            results[tally.name]['Flux per source particle'] = {
-                'energy': openmc.mgxs.GROUP_STRUCTURES['CCFE-709'].tolist(),
-                'result': tally_result.tolist(),
-                'std. dev.': tally_std_dev.tolist(),
+            tally_std_dev = data_frame["std. dev."]
+            results[tally.name]["Flux per source particle"] = {
+                "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
+                "result": tally_result.tolist(),
+                "std. dev.": tally_std_dev.tolist(),
             }
 
-        elif '_on_2D_mesh' in tally.name:
-            score = tally.name.split('_')[0]
+        elif "_on_2D_mesh" in tally.name:
+            score = tally.name.split("_")[0]
             _save_2d_mesh_tally_as_png(
                 score=score,
                 tally=tally,
-                filename=tally.name.replace(
-                    '(',
-                    '').replace(
-                    ')',
-                    '').replace(
-                    ',',
-                    '-'))
+                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
+            )
 
-        elif '_on_3D_mesh' in tally.name:
+        elif "_on_3D_mesh" in tally.name:
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
 
             xs = np.linspace(
-                mesh.lower_left[0],
-                mesh.upper_right[0],
-                mesh.dimension[0] + 1
+                mesh.lower_left[0], mesh.upper_right[0], mesh.dimension[0] + 1
             )
             ys = np.linspace(
-                mesh.lower_left[1],
-                mesh.upper_right[1],
-                mesh.dimension[1] + 1
+                mesh.lower_left[1], mesh.upper_right[1], mesh.dimension[1] + 1
             )
             zs = np.linspace(
-                mesh.lower_left[2],
-                mesh.upper_right[2],
-                mesh.dimension[2] + 1
+                mesh.lower_left[2], mesh.upper_right[2], mesh.dimension[2] + 1
             )
             tally = statepoint.get_tally(name=tally.name)
 
@@ -245,7 +233,7 @@ def get_neutronics_results_from_statepoint_file(
             for content in [data, error]:
                 for counter, i in enumerate(content):
                     if math.isnan(i):
-                        content[counter] = 0.
+                        content[counter] = 0.0
 
             write_3d_mesh_tally_to_vtk(
                 xs=xs,
@@ -254,36 +242,31 @@ def get_neutronics_results_from_statepoint_file(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace(
-                    '(',
-                    '').replace(
-                    ')',
-                    '').replace(
-                    ',',
-                    '-') +
-                '.vtk')
+                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
+                + ".vtk",
+            )
 
         else:
             # this must be a standard score cell tally
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame['std. dev.'].sum()
-            results[tally.name]['events per source particle'] = {
-                'result': tally_result,
-                'std. dev.': tally_std_dev,
+            tally_std_dev = data_frame["std. dev."].sum()
+            results[tally.name]["events per source particle"] = {
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
             }
 
     return results
 
 
 def write_3d_mesh_tally_to_vtk(
-        xs: np.linspace,
-        ys: np.linspace,
-        zs: np.linspace,
-        tally_data: List[float],
-        error_data: Optional[List[float]] = None,
-        outfile: Optional[str] = '3d_mesh_tally_data.vtk',
-        tally_label: Optional[str] = '3d_mesh_tally_data',
+    xs: np.linspace,
+    ys: np.linspace,
+    zs: np.linspace,
+    tally_data: List[float],
+    error_data: Optional[List[float]] = None,
+    outfile: Optional[str] = "3d_mesh_tally_data.vtk",
+    tally_label: Optional[str] = "3d_mesh_tally_data",
 ) -> str:
     """Converts regular 3d data into a vtk file for visualising the data.
     Programs that can visualise vtk files include Paraview
@@ -308,8 +291,10 @@ def write_3d_mesh_tally_to_vtk(
     try:
         import vtk
     except (ImportError, ModuleNotFoundError):
-        msg = "Conversion to VTK requested," \
+        msg = (
+            "Conversion to VTK requested,"
             "but the Python VTK module is not installed. Try pip install pyvtk"
+        )
         raise ImportError(msg)
 
     vtk_box = vtk.vtkRectilinearGrid()
@@ -317,17 +302,17 @@ def write_3d_mesh_tally_to_vtk(
     vtk_box.SetDimensions(len(xs), len(ys), len(zs))
 
     vtk_x_array = vtk.vtkDoubleArray()
-    vtk_x_array.SetName('x-coords')
+    vtk_x_array.SetName("x-coords")
     vtk_x_array.SetArray(xs, len(xs), True)
     vtk_box.SetXCoordinates(vtk_x_array)
 
     vtk_y_array = vtk.vtkDoubleArray()
-    vtk_y_array.SetName('y-coords')
+    vtk_y_array.SetName("y-coords")
     vtk_y_array.SetArray(ys, len(ys), True)
     vtk_box.SetYCoordinates(vtk_y_array)
 
     vtk_z_array = vtk.vtkDoubleArray()
-    vtk_z_array.SetName('z-coords')
+    vtk_z_array.SetName("z-coords")
     vtk_z_array.SetArray(zs, len(zs), True)
     vtk_box.SetZCoordinates(vtk_z_array)
 
@@ -351,17 +336,14 @@ def write_3d_mesh_tally_to_vtk(
 
     writer.SetInputData(vtk_box)
 
-    print('Writing %s' % outfile)
+    print("Writing %s" % outfile)
 
     writer.Write()
 
     return outfile
 
 
-def create_inital_particles(
-        source,
-        number_of_source_particles: int = 2000
-) -> str:
+def create_inital_particles(source, number_of_source_particles: int = 2000) -> str:
     """Accepts an openmc source and creates an inital_source.h5 that can be
     used to find intial xyz, direction and energy of the partice source.
 
@@ -382,7 +364,7 @@ def create_inital_particles(
     # GEOMETRY
 
     # just a minimal geometry
-    outer_surface = openmc.Sphere(r=100000, boundary_type='vacuum')
+    outer_surface = openmc.Sphere(r=100000, boundary_type="vacuum")
     cell = openmc.Cell(region=-outer_surface)
     universe = openmc.Universe(cells=[cell])
     geom = openmc.Geometry(universe)
@@ -402,11 +384,11 @@ def create_inital_particles(
 
     model = openmc.model.Model(geom, mats, sett)
 
-    silently_remove_file('settings.xml')
-    silently_remove_file('materials.xml')
-    silently_remove_file('geometry.xml')
-    silently_remove_file('settings.xml')
-    silently_remove_file('tallies.xml')
+    silently_remove_file("settings.xml")
+    silently_remove_file("materials.xml")
+    silently_remove_file("geometry.xml")
+    silently_remove_file("settings.xml")
+    silently_remove_file("tallies.xml")
     model.export_to_xml()
 
     # this just adds write_initial_source == True to the settings.xml
@@ -427,8 +409,7 @@ def create_inital_particles(
 
 
 def extract_points_from_initial_source(
-        input_filename: str = 'initial_source.h5',
-        view_plane: str = 'RZ'
+    input_filename: str = "initial_source.h5", view_plane: str = "RZ"
 ) -> list:
     """Reads in an inital source h5 file (generated by OpenMC), extracts point
     and projects them onto a view plane.
@@ -444,31 +425,30 @@ def extract_points_from_initial_source(
         list: list of points extracted
     """
     import h5py
-    h5_file = h5py.File(input_filename, 'r')
-    dset = h5_file['source_bank']
+
+    h5_file = h5py.File(input_filename, "r")
+    dset = h5_file["source_bank"]
 
     points = []
 
     for particle in dset:
-        if view_plane == 'XZ':
+        if view_plane == "XZ":
             points.append((particle[0][0], particle[0][2]))
-        elif view_plane == 'XY':
+        elif view_plane == "XY":
             points.append((particle[0][0], particle[0][1]))
-        elif view_plane == 'YZ':
+        elif view_plane == "YZ":
             points.append((particle[0][1], particle[0][2]))
-        elif view_plane == 'YX':
+        elif view_plane == "YX":
             points.append((particle[0][1], particle[0][0]))
-        elif view_plane == 'ZY':
+        elif view_plane == "ZY":
             points.append((particle[0][2], particle[0][1]))
-        elif view_plane == 'ZX':
+        elif view_plane == "ZX":
             points.append((particle[0][2], particle[0][0]))
-        elif view_plane == 'RZ':
-            xy_coord = math.pow(particle[0][0], 2) + \
-                math.pow(particle[0][1], 2)
+        elif view_plane == "RZ":
+            xy_coord = math.pow(particle[0][0], 2) + math.pow(particle[0][1], 2)
             points.append((math.sqrt(xy_coord), particle[0][2]))
-        elif view_plane == 'XYZ':
+        elif view_plane == "XYZ":
             points.append((particle[0][0], particle[0][1], particle[0][2]))
         else:
-            raise ValueError('view_plane value of ', view_plane,
-                             ' is not supported')
+            raise ValueError("view_plane value of ", view_plane, " is not supported")
     return points
