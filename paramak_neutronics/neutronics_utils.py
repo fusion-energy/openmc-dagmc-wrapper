@@ -1,7 +1,7 @@
 
+import errno
 import math
 import os
-import errno
 import subprocess
 import warnings
 from collections import defaultdict
@@ -11,13 +11,15 @@ from xml.etree.ElementTree import SubElement
 import defusedxml.ElementTree as ET
 import matplotlib.pyplot as plt
 import numpy as np
+import openmc
 from pymoab import core, types
 
-try:
-    import openmc
-except ImportError:
-    warnings.warn('OpenMC not found, create_inital_particles \
-            method not available', UserWarning)
+
+def load_moab_file(filename: str):
+    """Loads a h5m into a Moab Core object and returns the object"""
+    moab_core = core.Core()
+    moab_core.load_file(filename)
+    return moab_core
 
 
 def silently_remove_file(filename: str):
@@ -30,9 +32,7 @@ def silently_remove_file(filename: str):
         pass  # in some cases the file will not exist
 
 
-def find_volume_ids_in_h5m(
-    filename: Optional[str] = 'dagmc.h5m'
-) -> List[str]:
+def find_volume_ids_in_h5m(filename: Optional[str] = 'dagmc.h5m') -> List[str]:
     """Reads in a DAGMC h5m file and uses PyMoab to find the volume ids of the
     volumes in the file
 
@@ -44,28 +44,29 @@ def find_volume_ids_in_h5m(
     """
 
     # create a new PyMOAB instance and load the specified DAGMC file
-    mb = core.Core()
-    mb.load_file(filename)
+    moab_core = load_moab_file(filename)
 
     # retrieve the category tag on the instance
     try:
-        cat_tag = mb.tag_get_handle(types.CATEGORY_TAG_NAME)
+        cat_tag = moab_core.tag_get_handle(types.CATEGORY_TAG_NAME)
     except types.MB_ENTITY_NOT_FOUND:
-        raise RuntimeError("The category tag could not be found in the PyMOAB instance."
-                           "Please check that the DAGMC file has been loaded.")
+        msg = ("The category tag could not be found in the PyMOAB instance."
+              "Please check that the DAGMC file has been loaded.")
+        raise RuntimeError(msg)
 
     # get the id tag
-    gid_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
+    gid_tag = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
 
     # get the set of entities using the provided category tag name
     # (0 means search on the instance's root set)
-    ents = mb.get_entities_by_type_and_tag(0, types.MBENTITYSET, [cat_tag], ["Volume"])
+    ents = moab_core.get_entities_by_type_and_tag(
+        0, types.MBENTITYSET, [cat_tag], ["Volume"]
+    )
 
     # retrieve the IDs of the entities
-    ids = mb.tag_get_data(gid_tag, ents).flatten()
+    ids = moab_core.tag_get_data(gid_tag, ents).flatten()
 
     return sorted(list(ids))
-
 
 
 def find_material_groups_in_h5m(
@@ -130,8 +131,7 @@ def remove_tag_from_h5m_file(
             'available'
         )
 
-    moab_core = core.Core()
-    moab_core.load_file(input_h5m_filename)
+    load_moab_file(input_h5m_filename)
 
     tag_name = moab_core.tag_get_handle(str(types.NAME_TAG_NAME))
 
