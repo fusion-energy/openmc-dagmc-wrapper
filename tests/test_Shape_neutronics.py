@@ -21,7 +21,8 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
                 (70, 50, "circle"),
                 (60, 25, "circle"),
                 (70, 0, "straight")],
-            distance=50
+            distance=50,
+            material_tag='test_shape'
         )
 
     def test_export_h5m_creates_file(self):
@@ -76,6 +77,34 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         large_offset = self.test_shape.graveyard.volume
         assert small_offset < large_offset
 
+    def test_bounding_box_size(self):
+
+        h5m_filename = self.test_shape.export_h5m_with_pymoab(faceting_tolerance=1e-1)
+
+        # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
+        # directions and 14MeV neutrons
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.angle = openmc.stats.Isotropic()
+        source.energy = openmc.stats.Discrete([14e6], [1])
+                
+        h5m_filename='dagmc.h5m'
+        my_model = paramak_neutronics.NeutronicsModel(
+            h5m_filename=h5m_filename,
+            source=source,
+            materials={'test_shape': 'Be'},
+            simulation_batches=3.1,
+            simulation_particles_per_batch=2.1
+        )
+
+        bounding_box=my_model.find_bounding_box()
+
+        print(bounding_box)
+        assert len(bounding_box) == 2
+        assert len(bounding_box[0]) == 3
+        assert len(bounding_box[1]) == 3
+        assert bounding_box[0].all() == [60,60,60]
+        assert bounding_box[1].all() == [60,60,60]
 
 class TestSimulationResultsVsCsg(unittest.TestCase):
     """Makes a geometry in the paramak and in CSG geometry, simulates and
