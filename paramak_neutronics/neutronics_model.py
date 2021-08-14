@@ -12,7 +12,7 @@ from paramak.utils import plotly_trace
 from .neutronics_utils import (create_inital_particles,
                                extract_points_from_initial_source,
                                get_neutronics_results_from_statepoint_file,
-                               silently_remove_file)
+                               silently_remove_file, load_moab_file)
 
 try:
     import neutronics_material_maker as nmm
@@ -296,8 +296,8 @@ class NeutronicsModel():
         self.mats = openmc.Materials(list(self.openmc_materials.values()))
 
         self.mats.export_to_xml()
-
         return self.mats
+
 
     def find_bounding_box(self):
         """Computes the bounding box of the DAGMC geometry"""
@@ -314,8 +314,12 @@ class NeutronicsModel():
         geometry.root_universe=dag_univ
         geometry.export_to_xml()
 
+        # exports materials.xml
+        # replace this with a empty materisl with the correct names
+        self.create_openmc_materials()
+        # openmc.Materials().export_to_xml()
+
         openmc.Plots().export_to_xml()
-        openmc.Materials().export_to_xml()
 
         # a minimal settings .xml to allow openmc to init
         settings = openmc.Settings()
