@@ -79,7 +79,10 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        h5m_filename = self.test_shape.export_h5m_with_pymoab(faceting_tolerance=1e-1)
+        h5m_filename = self.test_shape.export_h5m_with_pymoab(
+            include_graveyard=False,
+            faceting_tolerance=1e-1
+        )
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons

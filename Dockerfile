@@ -126,7 +126,8 @@ RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https
 RUN mkdir DAGMC && \
     cd DAGMC && \
     # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    # git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --shallow-submodules --single-branch --branch dd_bbox --depth 1 https://github.com/pshriwise/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -165,7 +166,6 @@ ENV OPENMC_CROSS_SECTIONS=/nuclear_data/cross_sections.xml
 ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
 
-RUN pip install paramak
 
 FROM dependencies as final
 
