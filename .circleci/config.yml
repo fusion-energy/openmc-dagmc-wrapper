@@ -25,7 +25,7 @@ jobs:
           command: 
             pytest tests/test_shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
-            - run:
+      - run:
           name: run test_reactor_neutronics
           command: 
             pytest tests/test_reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
