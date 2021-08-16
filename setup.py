@@ -27,6 +27,7 @@ setuptools.setup(
         "remove_dagmc_tags",
         "neutronics_material_maker",
         "vtk",
+        "neutronics_material_maker",
     ],
     # openmc, dagmc, pymoab are also needed but not avaible on PyPi
 )
