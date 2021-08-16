@@ -96,18 +96,22 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             h5m_filename=h5m_filename,
             source=source,
             materials={'test_shape': 'Be'},
-            simulation_batches=3.1,
-            simulation_particles_per_batch=2.1
+            simulation_batches=3,
+            simulation_particles_per_batch=2
         )
 
         bounding_box=my_model.find_bounding_box()
 
-        print(bounding_box)
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0].all() == [60,60,60]
-        assert bounding_box[1].all() == [60,60,60]
+        assert bounding_box[0][0] == pytest.approx(50, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-25, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(0, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(70, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(25, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(70, abs=0.1)
+
 
 class TestSimulationResultsVsCsg(unittest.TestCase):
     """Makes a geometry in the paramak and in CSG geometry, simulates and

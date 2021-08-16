@@ -29,6 +29,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
     CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx \
     DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get --allow-releaseinfo-change update
 RUN apt-get update -y && \
     apt-get upgrade -y
 
@@ -172,8 +173,8 @@ FROM dependencies as final
 COPY run_tests.sh run_tests.sh
 COPY paramak_neutronics paramak_neutronics/
 COPY setup.py setup.py
-COPY examples examples/
-COPY tests tests/
 COPY README.md README.md
+COPY tests tests/
+COPY examples examples/
 
 RUN python setup.py install
