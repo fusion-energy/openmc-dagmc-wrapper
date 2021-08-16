@@ -329,6 +329,10 @@ class NeutronicsModel:
 
     def find_bounding_box(self):
         """Computes the bounding box of the DAGMC geometry"""
+
+        if not Path(self.h5m_filename).is_file:
+            msg = f'h5m file with filename {self.h5m_filename} not found'
+            raise FileNotFoundError(msg)
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
 
         geometry = openmc.Geometry(root=dag_univ)
