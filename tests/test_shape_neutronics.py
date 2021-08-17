@@ -142,7 +142,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         my_model = paramak_neutronics.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=self.source,
-            materials={"test_shape": "Be"},
+            materials={"test_shape_2": "Be"},
             simulation_batches=3,
             simulation_particles_per_batch=2,
         )
@@ -169,7 +169,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         my_model = paramak_neutronics.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=self.source,
-            materials={"test_shape": "Be"},
+            materials={"test_shape_3": "Be"},
             simulation_batches=3,
             simulation_particles_per_batch=2,
         )
