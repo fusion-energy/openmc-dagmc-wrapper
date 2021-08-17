@@ -1,4 +1,3 @@
-
 import json
 import os
 import unittest
@@ -12,7 +11,6 @@ from paramak.utils import add_stl_to_moab_core, define_moab_core_and_tags
 
 
 class TestNeutronicsUtilityFunctions(unittest.TestCase):
-
     def test_create_inital_source_file(self):
         """Creates an initial_source.h5 from a point source"""
 
@@ -38,15 +36,16 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
         paramak_neutronics.create_inital_particles(source, 10)
 
-        for view_plane in ['XZ', 'XY', 'YZ', 'YX', 'ZY', 'ZX', 'RZ', 'XYZ']:
+        for view_plane in ["XZ", "XY", "YZ", "YX", "ZY", "ZX", "RZ", "XYZ"]:
 
             points = paramak_neutronics.extract_points_from_initial_source(
-                view_plane=view_plane)
+                view_plane=view_plane
+            )
 
             assert len(points) == 10
 
             for point in points:
-                if view_plane == 'XYZ':
+                if view_plane == "XYZ":
                     assert len(point) == 3
                     assert point[0] == 0
                     assert point[1] == 0
@@ -68,9 +67,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
             paramak_neutronics.create_inital_particles(source, 10)
 
-            paramak_neutronics.extract_points_from_initial_source(
-                view_plane='coucou'
-            )
+            paramak_neutronics.extract_points_from_initial_source(view_plane="coucou")
 
         self.assertRaises(ValueError, incorrect_viewplane)
 
@@ -78,18 +75,18 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         """exports a h5m with specific material tags and checks they are
         found using the find_material_groups_in_h5m utility function"""
 
-        os.system('rm *.stl *.h5m')
+        os.system("rm *.stl *.h5m")
 
         pf_coil = paramak.PoloidalFieldCoil(
             height=10,
             width=10,
             center_point=(100, 0),
             rotation_angle=180,
-            material_tag='copper'
+            material_tag="copper",
         )
 
         pf_coil.export_h5m_with_pymoab(
-            filename='dagmc.h5',  # missing the m, but this is added
+            filename="dagmc.h5",  # missing the m, but this is added
             include_graveyard=True,
         )
 
@@ -98,31 +95,29 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         )
 
         assert len(list_of_mats) == 2
-        assert 'mat:copper' in list_of_mats
-        assert 'mat:graveyard' in list_of_mats
+        assert "mat:copper" in list_of_mats
+        assert "mat:graveyard" in list_of_mats
 
     def test_find_volume_ids_in_h5_file(self):
         """exports a h5m with a known number of volumes and checks they are
         found using the find_volume_ids_in_h5m utility function"""
 
-        os.system('rm *.stl *.h5m')
+        os.system("rm *.stl *.h5m")
 
         pf_coil = paramak.PoloidalFieldCoil(
             height=10,
             width=10,
             center_point=(100, 0),
             rotation_angle=180,
-            material_tag='copper'
+            material_tag="copper",
         )
 
         pf_coil.export_h5m_with_pymoab(
-            filename='dagmc.h5',  # missing the m, but this is added
+            filename="dagmc.h5",  # missing the m, but this is added
             include_graveyard=True,
         )
 
-        list_of_mats = paramak_neutronics.find_volume_ids_in_h5m(
-            filename="dagmc.h5m"
-        )
+        list_of_mats = paramak_neutronics.find_volume_ids_in_h5m(filename="dagmc.h5m")
 
         assert len(list_of_mats) == 2
         assert 1 in list_of_mats
@@ -131,7 +126,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         """Creates an initial source file using create_inital_particles utility
         and checks the file exists and that the points are correct"""
 
-        os.system('rm *.h5')
+        os.system("rm *.h5")
 
         source = openmc.Source()
         source.space = openmc.stats.Point((1, 2, 3))
@@ -139,15 +134,14 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         source.angle = openmc.stats.Isotropic()
 
         source_file = paramak_neutronics.create_inital_particles(
-            source=source,
-            number_of_source_particles=10
+            source=source, number_of_source_particles=10
         )
 
         assert source_file == "initial_source.h5"
         assert Path(source_file).exists() is True
 
         points = paramak_neutronics.extract_points_from_initial_source(
-            view_plane='XYZ', input_filename=source_file
+            view_plane="XYZ", input_filename=source_file
         )
 
         assert len(points) == 10

@@ -30,7 +30,7 @@ def make_model_and_simulate():
 
     # this can just be set as a string as temperature is needed for this
     # material
-    flibe = nmm.Material.from_library(name='FLiBe', temperature=773.15)
+    flibe = nmm.Material.from_library(name="FLiBe", temperature=773.15)
 
     source = openmc.Source()
     # sets the location of the source to x=0 y=0 z=0
@@ -45,14 +45,15 @@ def make_model_and_simulate():
         h5m_filename=my_reactor.export_h5m(),
         source=source,
         materials={
-            'inboard_tf_coils_mat': 'eurofer',
-            'center_column_shield_mat': 'eurofer',
-            'divertor_mat': 'eurofer',
-            'firstwall_mat': 'eurofer',
-            'blanket_rear_wall_mat': 'eurofer',
-            'blanket_mat': flibe,
-            'supports_mat': 'eurofer'},
-        cell_tallies=['flux'],
+            "inboard_tf_coils_mat": "eurofer",
+            "center_column_shield_mat": "eurofer",
+            "divertor_mat": "eurofer",
+            "firstwall_mat": "eurofer",
+            "blanket_rear_wall_mat": "eurofer",
+            "blanket_mat": flibe,
+            "supports_mat": "eurofer",
+        },
+        cell_tallies=["flux"],
         simulation_batches=5,
         simulation_particles_per_batch=1e4,
     )

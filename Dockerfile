@@ -54,7 +54,9 @@ RUN conda install -c conda-forge -c python python=3.8 && \
 RUN apt-get install -y \
     wget \
     git \
-    gfortran g++ cmake \
+    gfortran \
+    g++ \
+    cmake \
     mpich \
     libmpich-dev \
     libhdf5-serial-dev \
@@ -126,9 +128,9 @@ RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https
 # Clone and install DAGMC
 RUN mkdir DAGMC && \
     cd DAGMC && \
-    # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    # git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --shallow-submodules --single-branch --branch dd_bbox --depth 1 https://github.com/pshriwise/DAGMC.git && \
+    # change to version 3.2.1 when released
+    # git clone --single-branch --branch 3.2.1 --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \

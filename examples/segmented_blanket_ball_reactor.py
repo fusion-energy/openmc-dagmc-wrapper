@@ -38,7 +38,7 @@ def make_model_and_simulate():
             firstwall_structural_fraction,
             firstwall_armour_fraction,
         ],
-        percent_type="vo"
+        percent_type="vo",
     )
 
     # based on
@@ -59,14 +59,14 @@ def make_model_and_simulate():
                 temperature=blanket_rear_wall_coolant_temperature,
                 pressure=blanket_rear_wall_coolant_pressure,
             ),
-            nmm.Material.from_library(
-                name=blanket_rear_wall_structural_material),
+            nmm.Material.from_library(name=blanket_rear_wall_structural_material),
         ],
         fracs=[
             blanket_rear_wall_coolant_fraction,
             blanket_rear_wall_structural_fraction,
         ],
-        percent_type="vo")
+        percent_type="vo",
+    )
 
     # based on
     # https://www.sciencedirect.com/science/article/pii/S2352179118300437
@@ -113,7 +113,7 @@ def make_model_and_simulate():
             blanket_multiplier_fraction,
             blanket_breeder_fraction,
         ],
-        percent_type="vo"
+        percent_type="vo",
     )
 
     # based on
@@ -136,7 +136,7 @@ def make_model_and_simulate():
             nmm.Material.from_library(name=divertor_structural_material),
         ],
         fracs=[divertor_coolant_fraction, divertor_structural_fraction],
-        percent_type="vo"
+        percent_type="vo",
     )
 
     # based on
@@ -156,14 +156,14 @@ def make_model_and_simulate():
                 temperature=center_column_shield_coolant_temperature_k,
                 pressure=center_column_shield_coolant_pressure_Pa,
             ),
-            nmm.Material.from_library(
-                name=center_column_shield_structural_material),
+            nmm.Material.from_library(name=center_column_shield_structural_material),
         ],
         fracs=[
             center_column_shield_coolant_fraction,
             center_column_shield_structural_fraction,
         ],
-        percent_type="vo")
+        percent_type="vo",
+    )
 
     # based on
     # https://pdfs.semanticscholar.org/95fa/4dae7d82af89adf711b97e75a241051c7129.pdf
@@ -184,17 +184,16 @@ def make_model_and_simulate():
                 temperature=inboard_tf_coils_coolant_temperature_k,
                 pressure=inboard_tf_coils_coolant_pressure_Pa,
             ),
-            nmm.Material.from_library(
-                name=inboard_tf_coils_conductor_material),
-            nmm.Material.from_library(
-                name=inboard_tf_coils_structure_material),
+            nmm.Material.from_library(name=inboard_tf_coils_conductor_material),
+            nmm.Material.from_library(name=inboard_tf_coils_structure_material),
         ],
         fracs=[
             inboard_tf_coils_coolant_fraction,
             inboard_tf_coils_conductor_fraction,
             inboard_tf_coils_structure_fraction,
         ],
-        percent_type="vo")
+        percent_type="vo",
+    )
 
     # makes the 3d geometry
     my_reactor = paramak.BallReactor(
@@ -228,13 +227,14 @@ def make_model_and_simulate():
         h5m_filename=my_reactor.export_h5m(),
         source=source,
         materials={
-            'inboard_tf_coils_mat': inboard_tf_coils_material,
-            'center_column_shield_mat': center_column_shield_material,
-            'divertor_mat': divertor_material,
-            'firstwall_mat': firstwall_material,
-            'blanket_mat': blanket_material,
-            'blanket_rear_wall_mat': blanket_rear_wall_material},
-        cell_tallies=['TBR'],
+            "inboard_tf_coils_mat": inboard_tf_coils_material,
+            "center_column_shield_mat": center_column_shield_material,
+            "divertor_mat": divertor_material,
+            "firstwall_mat": firstwall_material,
+            "blanket_mat": blanket_material,
+            "blanket_rear_wall_mat": blanket_rear_wall_material,
+        },
+        cell_tallies=["TBR"],
         simulation_batches=5,
         simulation_particles_per_batch=1e4,
     )
@@ -243,7 +243,7 @@ def make_model_and_simulate():
     neutronics_model.simulate()
 
     # prints the simulation results to screen
-    print('TBR', neutronics_model.results['TBR'])
+    print("TBR", neutronics_model.results["TBR"])
 
 
 if __name__ == "__main__":

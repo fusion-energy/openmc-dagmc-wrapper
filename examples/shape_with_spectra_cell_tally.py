@@ -1,4 +1,3 @@
-
 import openmc
 import paramak
 import plotly.graph_objects as go
@@ -10,8 +9,8 @@ def main():
         inner_radius=50,
         mid_radius=60,
         outer_radius=100,
-        material_tag='center_column_shield_mat',
-        method='pymoab'
+        material_tag="center_column_shield_mat",
+        method="pymoab",
     )
 
     # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
@@ -25,8 +24,8 @@ def main():
     my_model = paramak.NeutronicsModel(
         h5m_filename=my_shape.export_h5m(),
         source=source,
-        materials={'center_column_shield_mat': 'Be'},
-        cell_tallies=['heating', 'flux', 'TBR', 'spectra'],
+        materials={"center_column_shield_mat": "Be"},
+        cell_tallies=["heating", "flux", "TBR", "spectra"],
         simulation_batches=2,
         simulation_particles_per_batch=20,
     )
@@ -35,74 +34,90 @@ def main():
     output_filename = my_model.simulate()
 
     # this extracts the values from the results dictionary
-    energy_bins = my_model.results['center_column_shield_mat_photon_spectra']['Flux per source particle']['energy']
-    neutron_spectra = my_model.results['center_column_shield_mat_neutron_spectra']['Flux per source particle']['result']
-    photon_spectra = my_model.results['center_column_shield_mat_photon_spectra']['Flux per source particle']['result']
+    energy_bins = my_model.results["center_column_shield_mat_photon_spectra"][
+        "Flux per source particle"
+    ]["energy"]
+    neutron_spectra = my_model.results["center_column_shield_mat_neutron_spectra"][
+        "Flux per source particle"
+    ]["result"]
+    photon_spectra = my_model.results["center_column_shield_mat_photon_spectra"][
+        "Flux per source particle"
+    ]["result"]
 
     fig = go.Figure()
 
     # this sets the axis titles and range
     fig.update_layout(
-        xaxis={'title': 'Energy (eV)',
-               'range': (0, 14.1e6)},
-        yaxis={'title': 'Neutrons per cm2 per source neutron'}
+        xaxis={"title": "Energy (eV)", "range": (0, 14.1e6)},
+        yaxis={"title": "Neutrons per cm2 per source neutron"},
     )
 
     # this adds the neutron spectra line to the plot
-    fig.add_trace(go.Scatter(
-        x=energy_bins[:-85],  # trims off the high energy range
-        y=neutron_spectra[:-85],  # trims off the high energy range
-        name='neutron spectra',
-        line=dict(shape='hv')
-    )
+    fig.add_trace(
+        go.Scatter(
+            x=energy_bins[:-85],  # trims off the high energy range
+            y=neutron_spectra[:-85],  # trims off the high energy range
+            name="neutron spectra",
+            line=dict(shape="hv"),
+        )
     )
 
     # this adds the photon spectra line to the plot
-    fig.add_trace(go.Scatter(
-        x=energy_bins[:-85],  # trims off the high energy range
-        y=photon_spectra[:-85],  # trims off the high energy range
-        name='photon spectra',
-        line=dict(shape='hv')
-    )
+    fig.add_trace(
+        go.Scatter(
+            x=energy_bins[:-85],  # trims off the high energy range
+            y=photon_spectra[:-85],  # trims off the high energy range
+            name="photon spectra",
+            line=dict(shape="hv"),
+        )
     )
 
     # this adds the drop down menu fo log and linear scales
     fig.update_layout(
         updatemenus=[
             go.layout.Updatemenu(
-                buttons=list([
-                    dict(
-                        args=[{
-                            "xaxis.type": 'lin', "yaxis.type": 'lin',
-                            'xaxis.range': (0, 14.1e6)
-                        }],
-                        label="linear(x) , linear(y)",
-                        method="relayout"
-                    ),
-                    dict(
-                        args=[{"xaxis.type": 'log', "yaxis.type": 'log'}],
-                        label="log(x) , log(y)",
-                        method="relayout"
-                    ),
-                    dict(
-                        args=[{"xaxis.type": 'log', "yaxis.type": 'lin'}],
-                        label="log(x) , linear(y)",
-                        method="relayout"
-                    ),
-                    dict(
-                        args=[{"xaxis.type": 'lin', "yaxis.type": 'log',
-                               'xaxis.range': (0, 14.1e6)
-                               }],
-                        label="linear(x) , log(y)",
-                        method="relayout"
-                    )
-                ]),
+                buttons=list(
+                    [
+                        dict(
+                            args=[
+                                {
+                                    "xaxis.type": "lin",
+                                    "yaxis.type": "lin",
+                                    "xaxis.range": (0, 14.1e6),
+                                }
+                            ],
+                            label="linear(x) , linear(y)",
+                            method="relayout",
+                        ),
+                        dict(
+                            args=[{"xaxis.type": "log", "yaxis.type": "log"}],
+                            label="log(x) , log(y)",
+                            method="relayout",
+                        ),
+                        dict(
+                            args=[{"xaxis.type": "log", "yaxis.type": "lin"}],
+                            label="log(x) , linear(y)",
+                            method="relayout",
+                        ),
+                        dict(
+                            args=[
+                                {
+                                    "xaxis.type": "lin",
+                                    "yaxis.type": "log",
+                                    "xaxis.range": (0, 14.1e6),
+                                }
+                            ],
+                            label="linear(x) , log(y)",
+                            method="relayout",
+                        ),
+                    ]
+                ),
                 pad={"r": 10, "t": 10},
                 showactive=True,
                 x=0.5,
                 xanchor="left",
                 y=1.1,
-                yanchor="top"
+                yanchor="top",
             ),
         ]
     )

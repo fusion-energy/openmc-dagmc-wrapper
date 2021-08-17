@@ -14,18 +14,16 @@ from .neutronics_utils import (
     extract_points_from_initial_source,
     get_neutronics_results_from_statepoint_file,
     silently_remove_file,
-    load_moab_file,
 )
 
 try:
     import neutronics_material_maker as nmm
 except ImportError:
-    warnings.warn(
-        "neutronics_material_maker not found, \
-            NeutronicsModelFromReactor.materials can't accept strings or \
-            neutronics_material_maker objects",
-        UserWarning,
+    msg = (
+        "neutronics_material_maker not found, NeutronicsModel.materials "
+        "can't accept strings or neutronics_material_maker objects"
     )
+    warnings.warn(msg, UserWarning)
 
 
 class NeutronicsModel:
@@ -68,21 +66,23 @@ class NeutronicsModel:
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the bounding box of the geometr in the h5m file to set the
+            corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the geometry in the h5m file to set the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
             2.819831e-12 Joules
+        bounding_box: the lower left and upper right corners of the geometry
+            used by the 2d and 3d mesh when no corners are specified. Can be
+            found with NeutronicsModel.find_bounding_box but includes graveyard
     """
 
     def __init__(
         self,
         h5m_filename: str,
-        source,
+        source: openmc.Source(),
         materials: dict,
         simulation_batches: Optional[int] = 100,
         simulation_particles_per_batch: Optional[int] = 10000,
@@ -101,9 +101,10 @@ class NeutronicsModel:
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
-        largest_dimension: Optional[float] = 1000,
+        bounding_box: Tuple[
+            Tuple[float, float, float], Tuple[float, float, float]
+        ] = None,
     ):
-        self.largest_dimension = largest_dimension
         self.materials = materials
         self.h5m_filename = h5m_filename
         self.source = source
@@ -126,6 +127,9 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
+
+        # find_bounding_box can be used to populate this
+        self.bounding_box = bounding_box
 
     @property
     def h5m_filename(self):
@@ -331,7 +335,7 @@ class NeutronicsModel:
         """Computes the bounding box of the DAGMC geometry"""
 
         if not Path(self.h5m_filename).is_file:
-            msg = f'h5m file with filename {self.h5m_filename} not found'
+            msg = f"h5m file with filename {self.h5m_filename} not found"
             raise FileNotFoundError(msg)
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
 
@@ -365,7 +369,11 @@ class NeutronicsModel:
         silently_remove_file("plots.xml")
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
-        return bbox
+
+        return (
+            (bbox[0][0], bbox[0][1], bbox[0][2]),
+            (bbox[1][0], bbox[1][1], bbox[1][2]),
+        )
 
     # def build_csg_graveyard(self):
 
@@ -469,9 +477,6 @@ class NeutronicsModel:
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
 
-        # materials.xml is removed in this function
-        self.create_openmc_materials()
-
         # this is the underlying geometry container that is filled with the
         # faceteted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
@@ -495,17 +500,12 @@ class NeutronicsModel:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
-                mesh_xyz.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                ]
 
-                mesh_xyz.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
-                    self.largest_dimension,
-                ]
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
+                mesh_xyz.lower_left = self.bounding_box[0]
+                mesh_xyz.upper_right = self.bounding_box[1]
             else:
                 mesh_xyz.lower_left = self.mesh_3d_corners[0]
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
@@ -530,44 +530,12 @@ class NeutronicsModel:
                 self.mesh_2d_resolution[0],
             ]
 
-            if self.mesh_2d_corners is None:
-                mesh_xz.lower_left = [
-                    -self.largest_dimension,
-                    -1,
-                    -self.largest_dimension,
-                ]
-
-                mesh_xz.upper_right = [
-                    self.largest_dimension,
-                    1,
-                    self.largest_dimension,
-                ]
-            else:
-                mesh_xz.lower_left = self.mesh_2d_corners[0]
-                mesh_xz.upper_right = self.mesh_2d_corners[1]
-
             mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
             mesh_xy.dimension = [
                 self.mesh_2d_resolution[1],
                 self.mesh_2d_resolution[0],
                 1,
             ]
-
-            if self.mesh_2d_corners is None:
-                mesh_xy.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                    -1,
-                ]
-
-                mesh_xy.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
-                    1,
-                ]
-            else:
-                mesh_xy.lower_left = self.mesh_2d_corners[0]
-                mesh_xy.upper_right = self.mesh_2d_corners[1]
 
             mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
             mesh_yz.dimension = [
@@ -577,20 +545,56 @@ class NeutronicsModel:
             ]
 
             if self.mesh_2d_corners is None:
+
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
+                mesh_xz.lower_left = [
+                    self.bounding_box[0][0],
+                    -1,
+                    self.bounding_box[0][2],
+                ]
+
+                mesh_xz.upper_right = [
+                    self.bounding_box[1][0],
+                    1,
+                    self.bounding_box[1][2],
+                ]
+
+                mesh_xy.lower_left = [
+                    self.bounding_box[0][0],
+                    self.bounding_box[0][1],
+                    -1,
+                ]
+
+                mesh_xy.upper_right = [
+                    self.bounding_box[1][0],
+                    self.bounding_box[1][1],
+                    1,
+                ]
+
                 mesh_yz.lower_left = [
                     -1,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
+                    self.bounding_box[0][1],
+                    self.bounding_box[0][2],
                 ]
 
                 mesh_yz.upper_right = [
                     1,
-                    self.largest_dimension,
-                    self.largest_dimension,
+                    self.bounding_box[1][1],
+                    self.bounding_box[1][2],
                 ]
+
             else:
+                mesh_xz.lower_left = self.mesh_2d_corners[0]
+                mesh_xz.upper_right = self.mesh_2d_corners[1]
+
+                mesh_xy.lower_left = self.mesh_2d_corners[0]
+                mesh_xy.upper_right = self.mesh_2d_corners[1]
+
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
                 mesh_yz.upper_right = self.mesh_2d_corners[1]
+
 
             for standard_tally in self.mesh_tally_2d:
                 score = standard_tally
@@ -604,6 +608,9 @@ class NeutronicsModel:
                     tally.filters = [mesh_filter]
                     tally.scores = [score]
                     self.tallies.append(tally)
+
+        # materials.xml is removed in this function
+        self.create_openmc_materials()
 
         if self.cell_tallies is not None:
 
@@ -674,7 +681,6 @@ class NeutronicsModel:
         verbose: Optional[bool] = True,
         cell_tally_results_filename: Optional[str] = "results.json",
         threads: Optional[int] = None,
-        export_h5m: Optional[bool] = True,
         export_xml: Optional[bool] = True,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
@@ -687,12 +693,6 @@ class NeutronicsModel:
                 cell tallies to file.
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
-            export_h5m: controls the creation of the DAGMC geometry
-                file (dagmc.h5m). Set to True to create the DAGMC geometry
-                file with the default settings as determined by the
-                NeutronicsModel.geometry.method attributes or set to False and
-                run the export_h5m() method yourself with more
-                direct control over the settings.
             export_xml: controls the creation of the OpenMC model
                 files (xml files). Set to True to create the OpenMC files with
                 the default settings as determined by the NeutronicsModel

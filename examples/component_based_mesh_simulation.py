@@ -15,11 +15,11 @@ def main():
         inner_radius=50,
         mid_radius=70,
         outer_radius=100,
-        material_tag='center_column_shield_mat',
-        method='pymoab',
+        material_tag="center_column_shield_mat",
+        method="pymoab",
     )
 
-    my_shape.export_stp('my_shape.stp')
+    my_shape.export_stp("my_shape.stp")
 
     # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
     # diections
@@ -31,10 +31,10 @@ def main():
     my_model = paramak.NeutronicsModel(
         h5m_filename=my_shape.export_h5m(),
         source=source,
-        materials={'center_column_shield_mat': 'WB'},  # WB is tungsten boride
-        cell_tallies=['heating', 'TBR'],
-        mesh_tally_2d=['heating'],
-        mesh_tally_3d=['heating'],
+        materials={"center_column_shield_mat": "WB"},  # WB is tungsten boride
+        cell_tallies=["heating", "TBR"],
+        mesh_tally_2d=["heating"],
+        mesh_tally_3d=["heating"],
         simulation_batches=10,  # should be increased for more accurate result
         simulation_particles_per_batch=10,  # settings are low to reduce time required
     )
