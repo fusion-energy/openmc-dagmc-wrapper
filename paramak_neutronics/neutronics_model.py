@@ -477,9 +477,6 @@ class NeutronicsModel:
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
 
-        # materials.xml is removed in this function
-        self.create_openmc_materials()
-
         # this is the underlying geometry container that is filled with the
         # faceteted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
@@ -645,6 +642,9 @@ class NeutronicsModel:
                     score = standard_tally
                     sufix = standard_tally
                     self._add_tally_for_every_material(sufix, score)
+
+        # materials.xml is removed in this function
+        self.create_openmc_materials()
 
         # make the model from geometry, materials, settings and tallies
         model = openmc.model.Model(geom, self.mats, settings, self.tallies)
