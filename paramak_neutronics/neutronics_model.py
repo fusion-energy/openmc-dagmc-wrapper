@@ -503,6 +503,10 @@ class NeutronicsModel:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
+
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
                 mesh_xyz.lower_left = self.bounding_box[0]
                 mesh_xyz.upper_right = self.bounding_box[1]
             else:
@@ -529,7 +533,25 @@ class NeutronicsModel:
                 self.mesh_2d_resolution[0],
             ]
 
+            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
+            mesh_xy.dimension = [
+                self.mesh_2d_resolution[1],
+                self.mesh_2d_resolution[0],
+                1,
+            ]
+
+            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
+            mesh_yz.dimension = [
+                1,
+                self.mesh_2d_resolution[1],
+                self.mesh_2d_resolution[0],
+            ]
+
             if self.mesh_2d_corners is None:
+
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
                 mesh_xz.lower_left = [
                     self.bounding_box[0][0],
                     -1,
@@ -541,18 +563,7 @@ class NeutronicsModel:
                     1,
                     self.bounding_box[1][2],
                 ]
-            else:
-                mesh_xz.lower_left = self.mesh_2d_corners[0]
-                mesh_xz.upper_right = self.mesh_2d_corners[1]
 
-            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
-            mesh_xy.dimension = [
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-                1,
-            ]
-
-            if self.mesh_2d_corners is None:
                 mesh_xy.lower_left = [
                     self.bounding_box[0][0],
                     self.bounding_box[0][1],
@@ -564,18 +575,7 @@ class NeutronicsModel:
                     self.bounding_box[1][1],
                     1,
                 ]
-            else:
-                mesh_xy.lower_left = self.mesh_2d_corners[0]
-                mesh_xy.upper_right = self.mesh_2d_corners[1]
 
-            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
-            mesh_yz.dimension = [
-                1,
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-            ]
-
-            if self.mesh_2d_corners is None:
                 mesh_yz.lower_left = [
                     -1,
                     self.bounding_box[0][1],
@@ -587,9 +587,17 @@ class NeutronicsModel:
                     self.bounding_box[1][1],
                     self.bounding_box[1][2],
                 ]
+
             else:
+                mesh_xz.lower_left = self.mesh_2d_corners[0]
+                mesh_xz.upper_right = self.mesh_2d_corners[1]
+
+                mesh_xy.lower_left = self.mesh_2d_corners[0]
+                mesh_xy.upper_right = self.mesh_2d_corners[1]
+
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
                 mesh_yz.upper_right = self.mesh_2d_corners[1]
+
 
             for standard_tally in self.mesh_tally_2d:
                 score = standard_tally

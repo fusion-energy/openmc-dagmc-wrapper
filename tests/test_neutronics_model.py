@@ -620,7 +620,7 @@ class TestShape(unittest.TestCase):
             os.system("touch tallies.xml")
             os.system("rm dagmc.h5m")
 
-            my_model.simulate(export_h5m=False)
+            my_model.simulate()
 
         self.assertRaises(FileNotFoundError, test_missing_h5m_file_error_handling)
 
