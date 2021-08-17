@@ -29,6 +29,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
     CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx \
     DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get --allow-releaseinfo-change update
 RUN apt-get update -y && \
     apt-get upgrade -y
 
@@ -126,7 +127,8 @@ RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https
 RUN mkdir DAGMC && \
     cd DAGMC && \
     # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    # git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --shallow-submodules --single-branch --branch dd_bbox --depth 1 https://github.com/pshriwise/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -165,15 +167,14 @@ ENV OPENMC_CROSS_SECTIONS=/nuclear_data/cross_sections.xml
 ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
 
-RUN pip install paramak
 
 FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
 COPY paramak_neutronics paramak_neutronics/
 COPY setup.py setup.py
-COPY examples examples/
-COPY tests tests/
 COPY README.md README.md
+COPY tests tests/
+COPY examples examples/
 
 RUN python setup.py install

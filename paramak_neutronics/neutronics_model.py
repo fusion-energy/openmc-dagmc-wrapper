@@ -1,33 +1,34 @@
-
 import json
-import os
 import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-import paramak
-from .neutronics_utils import get_neutronics_results_from_statepoint_file
-from .neutronics_utils import (create_inital_particles,
-                               silently_remove_file,
-                               extract_points_from_initial_source)
+import openmc
+import openmc.lib  # needed to find bounding box of h5m file
+import plotly.graph_objects as go
+from openmc.data import REACTION_MT, REACTION_NAME
 from paramak.utils import plotly_trace
 
-try:
-    import openmc
-    from openmc.data import REACTION_MT, REACTION_NAME
-except ImportError:
-    warnings.warn('OpenMC not found, NeutronicsModelFromReactor.simulate \
-            method not available', UserWarning)
+from .neutronics_utils import (
+    create_inital_particles,
+    extract_points_from_initial_source,
+    get_neutronics_results_from_statepoint_file,
+    silently_remove_file,
+    load_moab_file,
+)
 
 try:
     import neutronics_material_maker as nmm
 except ImportError:
-    warnings.warn("neutronics_material_maker not found, \
+    warnings.warn(
+        "neutronics_material_maker not found, \
             NeutronicsModelFromReactor.materials can't accept strings or \
-            neutronics_material_maker objects", UserWarning)
+            neutronics_material_maker objects",
+        UserWarning,
+    )
 
 
-class NeutronicsModel():
+class NeutronicsModel:
     """Creates a neutronics model of the provided shape geometry with assigned
     materials, source and neutronics tallies.
 
@@ -67,11 +68,11 @@ class NeutronicsModel():
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.geometry.largest_dimension property to set
+            uses the NeutronicsModel.largest_dimension property to set
             the corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.geometry.largest_dimension property to set
+            uses the NeutronicsModel.largest_dimension property to set
             the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
@@ -80,7 +81,7 @@ class NeutronicsModel():
 
     def __init__(
         self,
-        geometry: Union[paramak.Reactor, paramak.Shape],
+        h5m_filename: str,
         source,
         materials: dict,
         simulation_batches: Optional[int] = 100,
@@ -90,18 +91,21 @@ class NeutronicsModel():
         mesh_tally_3d: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = (400, 400),
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = (100, 100, 100),
-        mesh_2d_corners: Optional[Tuple[Tuple[float, float,
-                                              float], Tuple[float, float, float]]] = None,
-        mesh_3d_corners: Optional[Tuple[Tuple[float, float,
-                                              float], Tuple[float, float, float]]] = None,
+        mesh_2d_corners: Optional[
+            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
+        ] = None,
+        mesh_3d_corners: Optional[
+            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
+        ] = None,
         fusion_power: Optional[float] = 1e9,
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
+        largest_dimension: Optional[float] = 1000,
     ):
-
+        self.largest_dimension = largest_dimension
         self.materials = materials
-        self.geometry = geometry
+        self.h5m_filename = h5m_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
@@ -124,17 +128,15 @@ class NeutronicsModel():
         self.statepoint_filename = None
 
     @property
-    def geometry(self):
-        return self._geometry
+    def h5m_filename(self):
+        return self._h5m_filename
 
-    @geometry.setter
-    def geometry(self, value):
-        if isinstance(value, (paramak.Shape, paramak.Reactor, type(None))):
-            self._geometry = value
+    @h5m_filename.setter
+    def h5m_filename(self, value):
+        if isinstance(value, str):
+            self._h5m_filename = value
         else:
-            raise TypeError(
-                "NeutronicsModelFromReactor.geometry should be a \
-                paramak.Shape(), paramak.Reactor()")
+            raise TypeError("NeutronicsModelFromReactor.geometry should be a string")
 
     @property
     def source(self):
@@ -145,7 +147,8 @@ class NeutronicsModel():
         if not isinstance(value, (openmc.Source, type(None))):
             raise TypeError(
                 "NeutronicsModelFromReactor.source should be an \
-                openmc.Source() object")
+                openmc.Source() object"
+            )
         self._source = value
 
     @property
@@ -158,16 +161,21 @@ class NeutronicsModel():
             if not isinstance(value, list):
                 raise TypeError(
                     "NeutronicsModelFromReactor.cell_tallies should be a\
-                    list")
-            output_options = ['TBR', 'heating', 'flux', 'spectra', 'absorption'] + \
-                list(REACTION_MT.keys()) + list(REACTION_NAME.keys())
+                    list"
+                )
+            output_options = (
+                ["TBR", "heating", "flux", "spectra", "absorption"]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
                         "NeutronicsModelFromReactor.cell_tallies argument",
                         entry,
                         "not allowed, the following options are supported",
-                        output_options)
+                        output_options,
+                    )
         self._cell_tallies = value
 
     @property
@@ -180,16 +188,21 @@ class NeutronicsModel():
             if not isinstance(value, list):
                 raise TypeError(
                     "NeutronicsModelFromReactor.mesh_tally_2d should be a\
-                    list")
-            output_options = ['heating', 'flux', 'absorption'] + \
-                list(REACTION_MT.keys()) + list(REACTION_NAME.keys())
+                    list"
+                )
+            output_options = (
+                ["heating", "flux", "absorption"]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
                         "NeutronicsModelFromReactor.mesh_tally_2d argument",
                         entry,
                         "not allowed, the following options are supported",
-                        output_options)
+                        output_options,
+                    )
         self._mesh_tally_2d = value
 
     @property
@@ -202,16 +215,21 @@ class NeutronicsModel():
             if not isinstance(value, list):
                 raise TypeError(
                     "NeutronicsModelFromReactor.mesh_tally_3d should be a\
-                    list")
-            output_options = ['heating', 'flux', 'absorption'] + \
-                list(REACTION_MT.keys()) + list(REACTION_NAME.keys())
+                    list"
+                )
+            output_options = (
+                ["heating", "flux", "absorption"]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
                         "NeutronicsModelFromReactor.mesh_tally_3d argument",
                         entry,
                         "not allowed, the following options are supported",
-                        output_options)
+                        output_options,
+                    )
         self._mesh_tally_3d = value
 
     @property
@@ -221,8 +239,10 @@ class NeutronicsModel():
     @materials.setter
     def materials(self, value):
         if not isinstance(value, dict):
-            raise TypeError("NeutronicsModelFromReactor.materials should be a\
-                dictionary")
+            raise TypeError(
+                "NeutronicsModelFromReactor.materials should be a\
+                dictionary"
+            )
         self._materials = value
 
     @property
@@ -235,11 +255,10 @@ class NeutronicsModel():
             value = int(value)
         if not isinstance(value, int):
             raise TypeError(
-                "NeutronicsModelFromReactor.simulation_batches should be an int")
-        if value < 2:
-            raise ValueError(
-                "The minimum of setting for simulation_batches is 2"
+                "NeutronicsModelFromReactor.simulation_batches should be an int"
             )
+        if value < 2:
+            raise ValueError("The minimum of setting for simulation_batches is 2")
         self._simulation_batches = value
 
     @property
@@ -253,13 +272,15 @@ class NeutronicsModel():
         if not isinstance(value, int):
             raise TypeError(
                 "NeutronicsModelFromReactor.simulation_particles_per_batch\
-                    should be an int")
+                    should be an int"
+            )
         self._simulation_particles_per_batch = value
 
     def create_material(self, material_tag: str, material_entry):
         if isinstance(material_entry, str):
             openmc_material = nmm.Material.from_library(
-                name=material_entry, material_id=None).openmc_material
+                name=material_entry, material_id=None
+            ).openmc_material
         elif isinstance(material_entry, openmc.Material):
             # sets the material name in the event that it had not been set
             openmc_material = material_entry
@@ -267,9 +288,13 @@ class NeutronicsModel():
             # sets the material tag in the event that it had not been set
             openmc_material = material_entry.openmc_material
         else:
-            raise TypeError("materials must be either a str, \
+            raise TypeError(
+                "materials must be either a str, \
                 openmc.Material, nmm.MultiMaterial or nmm.Material object \
-                not a ", type(material_entry), material_entry)
+                not a ",
+                type(material_entry),
+                material_entry,
+            )
         openmc_material.name = material_tag
         return openmc_material
 
@@ -288,12 +313,11 @@ class NeutronicsModel():
         #             "material has been added that is not needed for this \
         #             reactor model", reactor_material)
 
-        silently_remove_file('materials.xml')
+        silently_remove_file("materials.xml")
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
-            openmc_material = self.create_material(
-                material_tag, material_entry)
+            openmc_material = self.create_material(material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -301,22 +325,67 @@ class NeutronicsModel():
         self.mats = openmc.Materials(list(self.openmc_materials.values()))
 
         self.mats.export_to_xml()
-
         return self.mats
 
+    def find_bounding_box(self):
+        """Computes the bounding box of the DAGMC geometry"""
+
+        if not Path(self.h5m_filename).is_file:
+            msg = f'h5m file with filename {self.h5m_filename} not found'
+            raise FileNotFoundError(msg)
+        dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
+
+        geometry = openmc.Geometry(root=dag_univ)
+        geometry.root_universe = dag_univ
+        geometry.export_to_xml()
+
+        # exports materials.xml
+        # replace this with a empty materisl with the correct names
+        self.create_openmc_materials()
+        # openmc.Materials().export_to_xml()
+
+        openmc.Plots().export_to_xml()
+
+        # a minimal settings .xml to allow openmc to init
+        settings = openmc.Settings()
+        settings.verbosity = 1
+        settings.batches = 1
+        settings.particles = 1
+        settings.export_to_xml()
+
+        # The -p runs in plotting mode which avoids the check that OpenMC does
+        # when looking for boundary surfaces and therefore avoids this error
+        # ERROR: No boundary conditions were applied to any surfaces!
+        openmc.lib.init(["-p"])
+
+        bbox = openmc.lib.global_bounding_box()
+        openmc.lib.finalize()
+
+        silently_remove_file("settings.xml")
+        silently_remove_file("plots.xml")
+        silently_remove_file("geometry.xml")
+        silently_remove_file("materials.xml")
+        return bbox
+
+    # def build_csg_graveyard(self):
+
     def export_xml(
-            self,
-            simulation_batches: Optional[int] = None,
-            source=None,
-            max_lost_particles: Optional[int] = None,
-            simulation_particles_per_batch: Optional[int] = None,
-            mesh_tally_3d: Optional[float] = None,
-            mesh_tally_2d: Optional[float] = None,
-            cell_tallies: Optional[float] = None,
-            mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
-            mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
-            mesh_2d_corners: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
-            mesh_3d_corners: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
+        self,
+        simulation_batches: Optional[int] = None,
+        source=None,
+        max_lost_particles: Optional[int] = None,
+        simulation_particles_per_batch: Optional[int] = None,
+        mesh_tally_3d: Optional[float] = None,
+        mesh_tally_2d: Optional[float] = None,
+        cell_tallies: Optional[float] = None,
+        mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
+        mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
+        mesh_2d_corners: Optional[
+            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
+        ] = None,
+        mesh_3d_corners: Optional[
+            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
+        ] = None,
     ):
         """Uses OpenMC python API to make a neutronics model, including tallies
         (cell_tallies and mesh_tally_2d), simulation settings (batches,
@@ -396,19 +465,17 @@ class NeutronicsModel():
             mesh_3d_corners = self.mesh_3d_corners
 
         # this removes any old file from previous simulations
-        silently_remove_file('geometry.xml')
-        silently_remove_file('settings.xml')
-        silently_remove_file('tallies.xml')
+        silently_remove_file("geometry.xml")
+        silently_remove_file("settings.xml")
+        silently_remove_file("tallies.xml")
 
         # materials.xml is removed in this function
         self.create_openmc_materials()
 
         # this is the underlying geometry container that is filled with the
-        # faceteted DGAMC CAD model
-        dag_univ = openmc.DAGMCUniverse("dagmc.h5m")
+        # faceteted DAGMC CAD model
+        dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
         geom = openmc.Geometry(root=dag_univ)
-        # self.universe = openmc.Universe()
-        # geom = openmc.Geometry(self.universe)
 
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
@@ -416,7 +483,6 @@ class NeutronicsModel():
         settings.inactive = 0
         settings.particles = self.simulation_particles_per_batch
         settings.run_mode = "fixed source"
-        # settings.dagmc = True
 
         settings.photon_transport = self.photon_transport
         settings.source = self.source
@@ -426,19 +492,19 @@ class NeutronicsModel():
         self.tallies = openmc.Tallies()
 
         if self.mesh_tally_3d is not None:
-            mesh_xyz = openmc.RegularMesh(mesh_id=1, name='3d_mesh')
+            mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
                 mesh_xyz.lower_left = [
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension,
+                    -self.largest_dimension,
+                    -self.largest_dimension,
                 ]
 
                 mesh_xyz.upper_right = [
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension
+                    self.largest_dimension,
+                    self.largest_dimension,
+                    self.largest_dimension,
                 ]
             else:
                 mesh_xyz.lower_left = self.mesh_3d_corners[0]
@@ -448,7 +514,7 @@ class NeutronicsModel():
                 score = standard_tally
                 prefix = standard_tally
                 mesh_filter = openmc.MeshFilter(mesh_xyz)
-                tally = openmc.Tally(name=prefix + '_on_3D_mesh')
+                tally = openmc.Tally(name=prefix + "_on_3D_mesh")
                 tally.filters = [mesh_filter]
                 tally.scores = [score]
                 self.tallies.append(tally)
@@ -456,71 +522,71 @@ class NeutronicsModel():
         if self.mesh_tally_2d is not None:
 
             # Create mesh which will be used for tally
-            mesh_xz = openmc.RegularMesh(mesh_id=2, name='2d_mesh_xz')
+            mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")
 
             mesh_xz.dimension = [
                 self.mesh_2d_resolution[1],
                 1,
-                self.mesh_2d_resolution[0]
+                self.mesh_2d_resolution[0],
             ]
 
             if self.mesh_2d_corners is None:
                 mesh_xz.lower_left = [
-                    -self.geometry.largest_dimension,
+                    -self.largest_dimension,
                     -1,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension,
                 ]
 
                 mesh_xz.upper_right = [
-                    self.geometry.largest_dimension,
+                    self.largest_dimension,
                     1,
-                    self.geometry.largest_dimension
+                    self.largest_dimension,
                 ]
             else:
                 mesh_xz.lower_left = self.mesh_2d_corners[0]
                 mesh_xz.upper_right = self.mesh_2d_corners[1]
 
-            mesh_xy = openmc.RegularMesh(mesh_id=3, name='2d_mesh_xy')
+            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
             mesh_xy.dimension = [
                 self.mesh_2d_resolution[1],
                 self.mesh_2d_resolution[0],
-                1
+                1,
             ]
 
             if self.mesh_2d_corners is None:
                 mesh_xy.lower_left = [
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension,
-                    -1
+                    -self.largest_dimension,
+                    -self.largest_dimension,
+                    -1,
                 ]
 
                 mesh_xy.upper_right = [
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension,
-                    1
+                    self.largest_dimension,
+                    self.largest_dimension,
+                    1,
                 ]
             else:
                 mesh_xy.lower_left = self.mesh_2d_corners[0]
                 mesh_xy.upper_right = self.mesh_2d_corners[1]
 
-            mesh_yz = openmc.RegularMesh(mesh_id=4, name='2d_mesh_yz')
+            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
             mesh_yz.dimension = [
                 1,
                 self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0]
+                self.mesh_2d_resolution[0],
             ]
 
             if self.mesh_2d_corners is None:
                 mesh_yz.lower_left = [
                     -1,
-                    -self.geometry.largest_dimension,
-                    -self.geometry.largest_dimension
+                    -self.largest_dimension,
+                    -self.largest_dimension,
                 ]
 
                 mesh_yz.upper_right = [
                     1,
-                    self.geometry.largest_dimension,
-                    self.geometry.largest_dimension
+                    self.largest_dimension,
+                    self.largest_dimension,
                 ]
             else:
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
@@ -531,9 +597,10 @@ class NeutronicsModel():
                 prefix = standard_tally
 
                 for mesh_filter, plane in zip(
-                        [mesh_xz, mesh_xy, mesh_yz], ['xz', 'xy', 'yz']):
+                    [mesh_xz, mesh_xy, mesh_yz], ["xz", "xy", "yz"]
+                ):
                     mesh_filter = openmc.MeshFilter(mesh_filter)
-                    tally = openmc.Tally(name=prefix + '_on_2D_mesh_' + plane)
+                    tally = openmc.Tally(name=prefix + "_on_2D_mesh_" + plane)
                     tally.filters = [mesh_filter]
                     tally.scores = [score]
                     self.tallies.append(tally)
@@ -541,33 +608,31 @@ class NeutronicsModel():
         if self.cell_tallies is not None:
 
             for standard_tally in self.cell_tallies:
-                if standard_tally == 'TBR':
-                    score = '(n,Xt)'  # where X is a wild card
-                    sufix = 'TBR'
-                    tally = openmc.Tally(name='TBR')
+                if standard_tally == "TBR":
+                    score = "(n,Xt)"  # where X is a wild card
+                    sufix = "TBR"
+                    tally = openmc.Tally(name="TBR")
                     tally.scores = [score]
                     self.tallies.append(tally)
                     self._add_tally_for_every_material(sufix, score)
 
-                elif standard_tally == 'spectra':
+                elif standard_tally == "spectra":
 
-                    energy_bins = openmc.mgxs.GROUP_STRUCTURES['CCFE-709']
+                    energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    'neutron'])
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
                     self._add_tally_for_every_material(
-                        'neutron_spectra',
-                        'flux',
-                        [neutron_particle_filter, energy_filter]
+                        "neutron_spectra",
+                        "flux",
+                        [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       'photon'])
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
                         self._add_tally_for_every_material(
-                            'photon_spectra',
-                            'flux',
-                            [photon_particle_filter, energy_filter]
+                            "photon_spectra",
+                            "flux",
+                            [photon_particle_filter, energy_filter],
                         )
                 else:
                     score = standard_tally
@@ -575,8 +640,7 @@ class NeutronicsModel():
                     self._add_tally_for_every_material(sufix, score)
 
         # make the model from geometry, materials, settings and tallies
-        model = openmc.model.Model(
-            geom, self.mats, settings, self.tallies)
+        model = openmc.model.Model(geom, self.mats, settings, self.tallies)
 
         geom.export_to_xml()
         settings.export_to_xml()
@@ -585,8 +649,9 @@ class NeutronicsModel():
         self.model = model
         return model
 
-    def _add_tally_for_every_material(self, sufix: str, score: str,
-                                      additional_filters: List = None) -> None:
+    def _add_tally_for_every_material(
+        self, sufix: str, score: str, additional_filters: List = None
+    ) -> None:
         """Adds a tally to self.tallies for every material.
 
         Arguments:
@@ -597,20 +662,20 @@ class NeutronicsModel():
         if additional_filters is None:
             additional_filters = []
         for key, value in self.openmc_materials.items():
-            if key != 'DT_plasma':
+            if key != "DT_plasma":
                 material_filter = openmc.MaterialFilter(value)
-                tally = openmc.Tally(name=key + '_' + sufix)
+                tally = openmc.Tally(name=key + "_" + sufix)
                 tally.filters = [material_filter] + additional_filters
                 tally.scores = [score]
                 self.tallies.append(tally)
 
     def simulate(
-            self,
-            verbose: Optional[bool] = True,
-            cell_tally_results_filename: Optional[str] = 'results.json',
-            threads: Optional[int] = None,
-            export_h5m: Optional[bool] = True,
-            export_xml: Optional[bool] = True,
+        self,
+        verbose: Optional[bool] = True,
+        cell_tally_results_filename: Optional[str] = "results.json",
+        threads: Optional[int] = None,
+        export_h5m: Optional[bool] = True,
+        export_xml: Optional[bool] = True,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -641,51 +706,52 @@ class NeutronicsModel():
         if export_xml is True:
             self.export_xml()
 
-        if export_h5m is True:
-            silently_remove_file('dagmc.h5')
-            self.geometry.export_h5m()
-
         # checks all the nessecary files are found
-        for required_file in ['geometry.xml', 'materials.xml', 'settings.xml',
-                              'tallies.xml']:
+        for required_file in [
+            "geometry.xml",
+            "materials.xml",
+            "settings.xml",
+            "tallies.xml",
+        ]:
             if not Path(required_file).is_file():
                 msg = "{} file was not found. Please set export_xml \
                     to True or use the export_xml() \
-                    method to create the xml files".format(required_file)
+                    method to create the xml files".format(
+                    required_file
+                )
                 raise FileNotFoundError(msg)
 
-        if not Path('dagmc.h5m').is_file():
-            msg = """dagmc.h5m file was not found. Please set export_h5m to
-                  True or use the export_h5m() methods to create the dagmc.h5m
-                  file"""
+        if not Path(self.h5m_filename).is_file():
+            msg = f"""{self.h5m_filename} file was not found. Please set 
+                  export_h5m to True or use the export_h5m() methods to create 
+                  the dagmc.h5m file"""
             raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
-        silently_remove_file('summary.h5')
-        silently_remove_file('statepoint.' + str(self.simulation_batches) + '.h5')
+        silently_remove_file("summary.h5")
+        silently_remove_file("statepoint." + str(self.simulation_batches) + ".h5")
 
-        self.statepoint_filename = self.model.run(
-            output=verbose, threads=threads
-        )
+        self.statepoint_filename = self.model.run(output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename,
-            fusion_power=self.fusion_power
+            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power
         )
 
-        with open(cell_tally_results_filename, 'w') as outfile:
+        with open(cell_tally_results_filename, "w") as outfile:
             json.dump(self.results, outfile, indent=4, sort_keys=True)
 
         return self.statepoint_filename
 
     def export_html(
-            self,
-            filename: Optional[str] = "neutronics_model.html",
-            facet_splines: Optional[bool] = True,
-            facet_circles: Optional[bool] = True,
-            tolerance: Optional[float] = 1.,
-            view_plane: Optional[str] = 'RZ',
-            number_of_source_particles: Optional[int] = 1000):
+        self,
+        figure: go.Figure() = go.Figure(),
+        filename: Optional[str] = "neutronics_model.html",
+        # facet_splines: Optional[bool] = True,
+        # facet_circles: Optional[bool] = True,
+        # tolerance: Optional[float] = 1.,
+        view_plane: Optional[str] = "RZ",
+        number_of_source_particles: Optional[int] = 1000,
+    ):
         """Creates a html graph representation of the points for the Shape
         objects that make up the reactor and optionally the source. Shapes
         are colored by their .color property. Shapes are also labelled by their
@@ -693,14 +759,13 @@ class NeutronicsModel():
         added.
 
         Args:
+            figure: The Plotly figure to add the source points to.
+                Paramak.export_html() returns a go.Figure() objct that can be
+                passed in here and have source points added to it. Otherwise
+                this defaults to plotly.graph_objects.Figure() which provides
+                an empty figure for source points.
             filename: the filename used to save the html graph. Defaults to
                 neutronics_model.html
-            facet_splines: If True then spline edges will be faceted. Defaults
-                to True.
-            facet_circles: If True then circle edges will be faceted. Defaults
-                to True.
-            tolerance: faceting toleranceto use when faceting cirles and
-                splines. Defaults to 1e-3.
             view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
                 'YX', 'ZY', 'ZX', 'RZ' and 'XYZ'. Defaults to 'RZ'. Defaults to
                 'RZ'.
@@ -709,27 +774,13 @@ class NeutronicsModel():
             plotly.Figure(): figure object
         """
 
-        fig = self.geometry.export_html(
-            filename=None,
-            facet_splines=facet_splines,
-            facet_circles=facet_circles,
-            tolerance=tolerance,
-            view_plane=view_plane,
-        )
-
         if number_of_source_particles != 0:
             source_filename = create_inital_particles(
-                self.source, number_of_source_particles)
-            points = extract_points_from_initial_source(
-                source_filename, view_plane)
-
-            fig.add_trace(
-                plotly_trace(
-                    points=points,
-                    mode="markers",
-                    name='source'
-                )
+                self.source, number_of_source_particles
             )
+            points = extract_points_from_initial_source(source_filename, view_plane)
+
+            figure.add_trace(plotly_trace(points=points, mode="markers", name="source"))
 
         if filename is not None:
 
@@ -740,8 +791,8 @@ class NeutronicsModel():
             if path_filename.suffix != ".html":
                 path_filename = path_filename.with_suffix(".html")
 
-            fig.write_html(str(path_filename))
+            figure.write_html(str(path_filename))
 
             print("Exported html graph to ", path_filename)
 
-        return fig
+        return figure

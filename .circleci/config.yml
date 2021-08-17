@@ -18,17 +18,17 @@ jobs:
       - run:
           name: run test_NeutronicModel
           command: 
-            pytest tests/test_NeutronicModel.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronic_model.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
-          name: run test_Reactor_neutronics
+          name: run test_shape_neutronics
           command: 
-            pytest tests/test_Reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
-          name: run test_Shape_neutronics
+          name: run test_reactor_neutronics
           command: 
-            pytest tests/test_Shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_neutronics_utils

@@ -21,7 +21,8 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
                 (70, 50, "circle"),
                 (60, 25, "circle"),
                 (70, 0, "straight")],
-            distance=50
+            distance=50,
+            material_tag='test_shape'
         )
 
     def test_export_h5m_creates_file(self):
@@ -75,6 +76,41 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         self.test_shape.make_graveyard(graveyard_offset=1000)
         large_offset = self.test_shape.graveyard.volume
         assert small_offset < large_offset
+
+    def test_bounding_box_size(self):
+
+        h5m_filename = self.test_shape.export_h5m_with_pymoab(
+            include_graveyard=False,
+            faceting_tolerance=1e-1
+        )
+
+        # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
+        # directions and 14MeV neutrons
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.angle = openmc.stats.Isotropic()
+        source.energy = openmc.stats.Discrete([14e6], [1])
+                
+        h5m_filename='dagmc.h5m'
+        my_model = paramak_neutronics.NeutronicsModel(
+            h5m_filename=h5m_filename,
+            source=source,
+            materials={'test_shape': 'Be'},
+            simulation_batches=3,
+            simulation_particles_per_batch=2
+        )
+
+        bounding_box=my_model.find_bounding_box()
+
+        assert len(bounding_box) == 2
+        assert len(bounding_box[0]) == 3
+        assert len(bounding_box[1]) == 3
+        assert bounding_box[0][0] == pytest.approx(50, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-25, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(0, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(70, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(25, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(70, abs=0.1)
 
 
 class TestSimulationResultsVsCsg(unittest.TestCase):
@@ -216,7 +252,7 @@ class TestSimulationResultsVsCsg(unittest.TestCase):
         )
 
         my_model = paramak_neutronics.NeutronicsModel(
-            geometry=my_geometry,
+            h5m_filename=my_geometry.export_h5m(),
             source=source,
             simulation_batches=batches,
             simulation_particles_per_batch=particles,
