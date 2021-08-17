@@ -19,8 +19,10 @@ from .neutronics_utils import (
 try:
     import neutronics_material_maker as nmm
 except ImportError:
-    msg = ("neutronics_material_maker not found, NeutronicsModel.materials "
-           "can't accept strings or neutronics_material_maker objects")
+    msg = (
+        "neutronics_material_maker not found, NeutronicsModel.materials "
+        "can't accept strings or neutronics_material_maker objects"
+    )
     warnings.warn(msg, UserWarning)
 
 
@@ -99,7 +101,9 @@ class NeutronicsModel:
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
-        bounding_box: Tuple[Tuple[float,float,float], Tuple[float, float,float]] = None,
+        bounding_box: Tuple[
+            Tuple[float, float, float], Tuple[float, float, float]
+        ] = None,
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
@@ -123,7 +127,7 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
-    
+
         # find_bounding_box can be used to populate this
         self.bounding_box = bounding_box
 
@@ -331,7 +335,7 @@ class NeutronicsModel:
         """Computes the bounding box of the DAGMC geometry"""
 
         if not Path(self.h5m_filename).is_file:
-            msg = f'h5m file with filename {self.h5m_filename} not found'
+            msg = f"h5m file with filename {self.h5m_filename} not found"
             raise FileNotFoundError(msg)
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
 
@@ -366,7 +370,10 @@ class NeutronicsModel:
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
 
-        return ((bbox[0][0], bbox[0][1], bbox[0][2]), (bbox[1][0], bbox[1][1], bbox[1][2]))
+        return (
+            (bbox[0][0], bbox[0][1], bbox[0][2]),
+            (bbox[1][0], bbox[1][1], bbox[1][2]),
+        )
 
     # def build_csg_graveyard(self):
 

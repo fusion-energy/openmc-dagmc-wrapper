@@ -33,8 +33,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
     def test_bounding_box_size(self):
 
         h5m_filename = self.test_reactor.export_h5m_with_pymoab(
-            include_graveyard=False,
-            faceting_tolerance=1e-1
+            include_graveyard=False, faceting_tolerance=1e-1
         )
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
@@ -43,25 +42,25 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         source.space = openmc.stats.Point((0, 0, 0))
         source.angle = openmc.stats.Isotropic()
         source.energy = openmc.stats.Discrete([14e6], [1])
-                
-        h5m_filename='dagmc.h5m'
+
+        h5m_filename = "dagmc.h5m"
         my_model = paramak_neutronics.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=source,
             materials={
-                'center_column_shield_mat': 'Be',
-                'firstwall_mat': 'Be',
-                'blanket_mat': 'Be',
-                'divertor_mat': 'Be',
-                'supports_mat': 'Be',
-                'blanket_rear_wall_mat': 'Be',
-                'inboard_tf_coils_mat': 'Be'
+                "center_column_shield_mat": "Be",
+                "firstwall_mat": "Be",
+                "blanket_mat": "Be",
+                "divertor_mat": "Be",
+                "supports_mat": "Be",
+                "blanket_rear_wall_mat": "Be",
+                "inboard_tf_coils_mat": "Be",
             },
             simulation_batches=3,
-            simulation_particles_per_batch=2
+            simulation_particles_per_batch=2,
         )
 
-        bounding_box=my_model.find_bounding_box()
+        bounding_box = my_model.find_bounding_box()
 
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3

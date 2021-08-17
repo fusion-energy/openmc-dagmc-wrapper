@@ -16,8 +16,8 @@ def main():
         inner_radius=50,
         mid_radius=60,
         outer_radius=100,
-        material_tag='center_column_shield_mat',
-        method='pymoab'
+        material_tag="center_column_shield_mat",
+        method="pymoab",
     )
 
     # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
@@ -31,10 +31,10 @@ def main():
     my_model = paramak.NeutronicsModel(
         h5m_filename=my_shape.export_h5m(),
         source=source,
-        materials={'center_column_shield_mat': 'Be'},
-        cell_tallies=['(n,Xa)', '(n,Xt)', '(n,Xp)'],
-        mesh_tally_3d=['(n,Xa)', '(n,Xt)', '(n,Xp)'],
-        mesh_tally_2d=['(n,Xa)', '(n,Xt)', '(n,Xp)'],
+        materials={"center_column_shield_mat": "Be"},
+        cell_tallies=["(n,Xa)", "(n,Xt)", "(n,Xp)"],
+        mesh_tally_3d=["(n,Xa)", "(n,Xt)", "(n,Xp)"],
+        mesh_tally_2d=["(n,Xa)", "(n,Xt)", "(n,Xp)"],
         simulation_batches=2,
         simulation_particles_per_batch=10,
     )
