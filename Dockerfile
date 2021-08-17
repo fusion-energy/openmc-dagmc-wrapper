@@ -54,7 +54,9 @@ RUN conda install -c conda-forge -c python python=3.8 && \
 RUN apt-get install -y \
     wget \
     git \
-    gfortran g++ cmake \
+    gfortran \
+    g++ \
+    cmake \
     mpich \
     libmpich-dev \
     libhdf5-serial-dev \
