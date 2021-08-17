@@ -609,6 +609,9 @@ class NeutronicsModel:
                     tally.scores = [score]
                     self.tallies.append(tally)
 
+        # materials.xml is removed in this function
+        self.create_openmc_materials()
+
         if self.cell_tallies is not None:
 
             for standard_tally in self.cell_tallies:
@@ -642,9 +645,6 @@ class NeutronicsModel:
                     score = standard_tally
                     sufix = standard_tally
                     self._add_tally_for_every_material(sufix, score)
-
-        # materials.xml is removed in this function
-        self.create_openmc_materials()
 
         # make the model from geometry, materials, settings and tallies
         model = openmc.model.Model(geom, self.mats, settings, self.tallies)
