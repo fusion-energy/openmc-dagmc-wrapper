@@ -181,7 +181,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         assert len(bounding_box[1]) == 3
         assert bounding_box[0][0] == pytest.approx(-100, abs=0.1)
         assert bounding_box[0][1] == pytest.approx(-100, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-475, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(475, abs=0.1)
         assert bounding_box[1][0] == pytest.approx(100, abs=0.1)
         assert bounding_box[1][1] == pytest.approx(100, abs=0.1)
         assert bounding_box[1][2] == pytest.approx(775, abs=0.1)
