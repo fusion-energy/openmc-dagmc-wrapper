@@ -14,18 +14,14 @@ from .neutronics_utils import (
     extract_points_from_initial_source,
     get_neutronics_results_from_statepoint_file,
     silently_remove_file,
-    load_moab_file,
 )
 
 try:
     import neutronics_material_maker as nmm
 except ImportError:
-    warnings.warn(
-        "neutronics_material_maker not found, \
-            NeutronicsModelFromReactor.materials can't accept strings or \
-            neutronics_material_maker objects",
-        UserWarning,
-    )
+    msg = ("neutronics_material_maker not found, NeutronicsModel.materials "
+           "can't accept strings or neutronics_material_maker objects")
+    warnings.warn(msg, UserWarning)
 
 
 class NeutronicsModel:
@@ -76,12 +72,15 @@ class NeutronicsModel:
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
             2.819831e-12 Joules
+        bounding_box: the lower left and upper right corners of the geometry
+            used by the 2d and 3d mesh when no corners are specified. Can be
+            found with NeutronicsModel.find_bounding_box but includes graveyard
     """
 
     def __init__(
         self,
         h5m_filename: str,
-        source: openmc.source(),
+        source: openmc.Source(),
         materials: dict,
         simulation_batches: Optional[int] = 100,
         simulation_particles_per_batch: Optional[int] = 10000,
@@ -100,6 +99,7 @@ class NeutronicsModel:
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
+        bounding_box: Tuple[Tuple[float,float,float], Tuple[float, float,float]] = None,
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
@@ -124,8 +124,8 @@ class NeutronicsModel:
         self.output_filename = None
         self.statepoint_filename = None
     
-        # initiates openmc to sense the geometry size
-        self.bounding_box = self.find_bounding_box
+        # find_bounding_box can be used to populate this
+        self.bounding_box = bounding_box
 
     @property
     def h5m_filename(self):
@@ -366,7 +366,7 @@ class NeutronicsModel:
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
 
-        return bbox
+        return ((bbox[0][0], bbox[0][1], bbox[0][2]), (bbox[1][0], bbox[1][1], bbox[1][2]))
 
     # def build_csg_graveyard(self):
 
@@ -666,7 +666,6 @@ class NeutronicsModel:
         verbose: Optional[bool] = True,
         cell_tally_results_filename: Optional[str] = "results.json",
         threads: Optional[int] = None,
-        export_h5m: Optional[bool] = True,
         export_xml: Optional[bool] = True,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
@@ -679,12 +678,6 @@ class NeutronicsModel:
                 cell tallies to file.
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
-            export_h5m: controls the creation of the DAGMC geometry
-                file (dagmc.h5m). Set to True to create the DAGMC geometry
-                file with the default settings as determined by the
-                NeutronicsModel.geometry.method attributes or set to False and
-                run the export_h5m() method yourself with more
-                direct control over the settings.
             export_xml: controls the creation of the OpenMC model
                 files (xml files). Set to True to create the OpenMC files with
                 the default settings as determined by the NeutronicsModel
