@@ -161,7 +161,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_3(self):
 
-        h5m_filename = self.test_shape_2.export_h5m_with_pymoab(
+        h5m_filename = self.test_shape_3.export_h5m_with_pymoab(
             include_graveyard=False, faceting_tolerance=1e-1
         )
 
