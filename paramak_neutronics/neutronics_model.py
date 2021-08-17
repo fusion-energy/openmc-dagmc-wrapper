@@ -68,12 +68,11 @@ class NeutronicsModel:
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the bounding box of the geometr in the h5m file to set the
+            corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the geometry in the h5m file to set the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
             2.819831e-12 Joules
@@ -82,7 +81,7 @@ class NeutronicsModel:
     def __init__(
         self,
         h5m_filename: str,
-        source,
+        source: openmc.source(),
         materials: dict,
         simulation_batches: Optional[int] = 100,
         simulation_particles_per_batch: Optional[int] = 10000,
@@ -101,9 +100,7 @@ class NeutronicsModel:
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         max_lost_particles: Optional[int] = 10,
-        largest_dimension: Optional[float] = 1000,
     ):
-        self.largest_dimension = largest_dimension
         self.materials = materials
         self.h5m_filename = h5m_filename
         self.source = source
@@ -126,6 +123,9 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
+    
+        # initiates openmc to sense the geometry size
+        self.bounding_box = self.find_bounding_box
 
     @property
     def h5m_filename(self):
@@ -365,6 +365,7 @@ class NeutronicsModel:
         silently_remove_file("plots.xml")
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
+
         return bbox
 
     # def build_csg_graveyard(self):
@@ -495,17 +496,8 @@ class NeutronicsModel:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
-                mesh_xyz.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                ]
-
-                mesh_xyz.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
-                    self.largest_dimension,
-                ]
+                mesh_xyz.lower_left = self.bounding_box[0]
+                mesh_xyz.upper_right = self.bounding_box[1]
             else:
                 mesh_xyz.lower_left = self.mesh_3d_corners[0]
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
@@ -532,15 +524,15 @@ class NeutronicsModel:
 
             if self.mesh_2d_corners is None:
                 mesh_xz.lower_left = [
-                    -self.largest_dimension,
+                    self.bounding_box[0][0],
                     -1,
-                    -self.largest_dimension,
+                    self.bounding_box[0][2],
                 ]
 
                 mesh_xz.upper_right = [
-                    self.largest_dimension,
+                    self.bounding_box[1][0],
                     1,
-                    self.largest_dimension,
+                    self.bounding_box[1][2],
                 ]
             else:
                 mesh_xz.lower_left = self.mesh_2d_corners[0]
@@ -555,14 +547,14 @@ class NeutronicsModel:
 
             if self.mesh_2d_corners is None:
                 mesh_xy.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
+                    self.bounding_box[0][0],
+                    self.bounding_box[0][1],
                     -1,
                 ]
 
                 mesh_xy.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
+                    self.bounding_box[1][0],
+                    self.bounding_box[1][1],
                     1,
                 ]
             else:
@@ -579,14 +571,14 @@ class NeutronicsModel:
             if self.mesh_2d_corners is None:
                 mesh_yz.lower_left = [
                     -1,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
+                    self.bounding_box[0][1],
+                    self.bounding_box[0][2],
                 ]
 
                 mesh_yz.upper_right = [
                     1,
-                    self.largest_dimension,
-                    self.largest_dimension,
+                    self.bounding_box[1][1],
+                    self.bounding_box[1][2],
                 ]
             else:
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
