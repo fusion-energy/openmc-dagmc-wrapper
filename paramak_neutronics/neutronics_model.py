@@ -64,6 +64,12 @@ class NeutronicsModel:
         mesh_2d_resolution: The 3D mesh resolution in the height and width
             directions. The larger the resolution the finer the mesh and more
             computational intensity is required to converge each mesh element.
+        number_of_elements_in_2d_mesh: The number of elements required in the
+            2d mesh. Could be rounded if the elements do not fit perfectly into
+            the mesh corners.
+        number_of_elements_in_3d_mesh: The number of elements required in the
+            3d mesh. Could be rounded if the elements do not fit perfectly into
+            the mesh corners.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
             uses the bounding box of the geometr in the h5m file to set the
