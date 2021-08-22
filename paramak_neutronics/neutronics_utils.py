@@ -19,7 +19,8 @@ from typing import Tuple
 def find_2d_mesh_resolution(
     number_of_elements: int,
     mesh_corners: Tuple[Tuple[float, float], Tuple[float, float]],
-    rounding_direction: str='ceil'
+    rounding_direction: str='ceil',
+
 ) -> List[float, float]:
     """Finds the number of mesh elements that fit along each length of the mesh
     given the mesh size and the number of elements required. Results will be
@@ -31,7 +32,7 @@ def find_2d_mesh_resolution(
         mesh_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
             uses the bounding box of the geometr in the h5m file to set the
-            corners.
+            corners. Corners are on a 2d surface not a 3d volume.
         filename: Choice of rounding method used  up 'ceil' or rounding down
             'floor' the numbers of elements when a whole number of elements is
             not possible.
@@ -39,12 +40,12 @@ def find_2d_mesh_resolution(
     Returns:
         The number of elements along each dimention
       """
-    length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[0][0])
-    length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[0][1])
+    length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[1][0])
+    length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[1][1])
 
-    volume_of_mesh = length_of_x_edge * length_of_y_edge
+    area_of_face = length_of_x_edge * length_of_y_edge
 
-    length_of_cube_edge = math.sqrt(volume_of_mesh / number_of_elements)
+    length_of_cube_edge = math.sqrt(area_of_face / number_of_elements)
 
     print('length_of_cube_edge', length_of_cube_edge)
 
@@ -83,9 +84,9 @@ def find_3d_mesh_resolution(
     Returns:
         The number of elements along each dimention
       """
-    length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[0][0])
-    length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[0][1])
-    length_of_z_edge = abs(mesh_corners[0][2]-mesh_corners[0][2])
+    length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[1][0])
+    length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[1][1])
+    length_of_z_edge = abs(mesh_corners[0][2]-mesh_corners[1][2])
 
     volume_of_mesh = length_of_x_edge * length_of_y_edge * length_of_z_edge
 

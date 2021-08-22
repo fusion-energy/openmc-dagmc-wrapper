@@ -62,7 +62,7 @@ class NeutronicsModel:
             depth directions. The larger the resolution the finer the mesh and
             the more computational intensity is required to converge each mesh
             element.
-        mesh_2d_resolution: The 3D mesh resolution in the height and width
+        mesh_2d_resolution: The 2D mesh resolution in the height and width
             directions. The larger the resolution the finer the mesh and more
             computational intensity is required to converge each mesh element.
         number_of_elements_in_2d_mesh: The number of elements required in the
@@ -98,7 +98,7 @@ class NeutronicsModel:
         mesh_tally_3d: Optional[List[str]] = None,
         number_of_elements_in_2d_mesh: Optional [int] = 100,
         number_of_elements_in_3d_mesh: Optional [int] = 1000,
-        mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
+        mesh_2d_resolution: Optional[Tuple[int, int]] = None,
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_2d_corners: Optional[
             Tuple[Tuple[float, float, float], Tuple[float, float, float]]
@@ -397,7 +397,7 @@ class NeutronicsModel:
         mesh_tally_3d: Optional[float] = None,
         mesh_tally_2d: Optional[float] = None,
         cell_tallies: Optional[float] = None,
-        mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
+        mesh_2d_resolution: Optional[Tuple[int, int]] = None,
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_2d_corners: Optional[
             Tuple[Tuple[float, float, float], Tuple[float, float, float]]
@@ -542,33 +542,68 @@ class NeutronicsModel:
         if self.mesh_tally_2d is not None:
 
             # Create mesh which will be used for tally
-            mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")
+            mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")         
+            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
+            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
+
+
 
             if self.mesh_2d_resolution is None:
-                self.mesh_2d_resolution = find_2d_mesh_resolution(
+
+                xz_mesh_corners = [self.bounding_box[0][0], self.bounding_box[1][2]]
+                xy_mesh_corners = [self.bounding_box[0][0], self.bounding_box[1][1]]
+                yz_mesh_corners = [self.bounding_box[0][1], self.bounding_box[1][2]]
+
+                xz_mesh_2d_resolution = find_2d_mesh_resolution(
                     number_of_elements = self.number_of_elements_in_2d_mesh,
-                    mesh_corners=self.mesh_2d_corners,
+                    mesh_corners=xz_mesh_corners
                 )
-            
-            mesh_xz.dimension = [
-                self.mesh_2d_resolution[1],
-                1,
-                self.mesh_2d_resolution[0],
-            ]
+                xy_mesh_2d_resolution = find_2d_mesh_resolution(
+                    number_of_elements = self.number_of_elements_in_2d_mesh,
+                    mesh_corners=xy_mesh_corners
+                )
+                yz_mesh_2d_resolution = find_2d_mesh_resolution(
+                    number_of_elements = self.number_of_elements_in_2d_mesh,
+                    mesh_corners=yz_mesh_corners
+                )
 
-            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
-            mesh_xy.dimension = [
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-                1,
-            ]
+                mesh_xz.dimension = [
+                    xz_mesh_2d_resolution[1],
+                    1,
+                    xz_mesh_2d_resolution[0],
+                ]
 
-            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
-            mesh_yz.dimension = [
-                1,
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-            ]
+                mesh_xy.dimension = [
+                    xy_mesh_2d_resolution[1],
+                    xy_mesh_2d_resolution[0],
+                    1,
+                ]
+
+                mesh_yz.dimension = [
+                    1,
+                    yz_mesh_2d_resolution[1],
+                    yz_mesh_2d_resolution[0],
+                ]
+
+            else:
+
+                mesh_xz.dimension = [
+                    self.mesh_2d_resolution[1],
+                    1,
+                    self.mesh_2d_resolution[0],
+                ]
+
+                mesh_xy.dimension = [
+                    self.mesh_2d_resolution[1],
+                    self.mesh_2d_resolution[0],
+                    1,
+                ]
+
+                mesh_yz.dimension = [
+                    1,
+                    self.mesh_2d_resolution[1],
+                    self.mesh_2d_resolution[0],
+                ]
 
             if self.mesh_2d_corners is None:
 
