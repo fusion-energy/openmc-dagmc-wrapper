@@ -13,7 +13,8 @@ from .neutronics_utils import (
     create_inital_particles,
     extract_points_from_initial_source,
     get_neutronics_results_from_statepoint_file,
-    silently_remove_file, find_3d_mesh_resolution
+    silently_remove_file, find_3d_mesh_resolution,
+    find_2d_mesh_resolution
 )
 
 try:
@@ -529,24 +530,26 @@ class NeutronicsModel:
                 tally.scores = [score]
                 self.tallies.append(tally)
             
-            if self.mesh_3d_resolution is not None:
-                mesh_xyz.dimension = self.mesh_3d_resolution
-            elif self.number_of_elements_in_3d_mesh is not None:
-                mesh_xyz.dimension = find_3d_mesh_resolution(
+            if self.mesh_3d_resolution is None:
+                self.mesh_3d_resolution = find_3d_mesh_resolution(
                     number_of_elements = self.number_of_elements_in_3d_mesh,
                     mesh_corners=self.mesh_3d_corners,
                 )
-            else:
-                msg = ('NeutronicsModel has no mesh_3d_resolution and no '
-                       'number_of_elements_in_3d_mesh so is unable to create '
-                       'the 3d mesh')
-                raise ValueError(msg)
+            
+            mesh_xyz.dimension = self.mesh_3d_resolution
+
 
         if self.mesh_tally_2d is not None:
 
             # Create mesh which will be used for tally
             mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")
 
+            if self.mesh_2d_resolution is None:
+                self.mesh_2d_resolution = find_2d_mesh_resolution(
+                    number_of_elements = self.number_of_elements_in_2d_mesh,
+                    mesh_corners=self.mesh_2d_corners,
+                )
+            
             mesh_xz.dimension = [
                 self.mesh_2d_resolution[1],
                 1,
