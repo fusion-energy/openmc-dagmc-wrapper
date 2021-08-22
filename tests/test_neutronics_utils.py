@@ -184,3 +184,25 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         )
 
         assert mesh_resolution == (4, 4, 4)
+
+    def test_finding_2d_mesh_resolution_regular_square(self):
+        """tests that the function returns equal resolution in each dimention"""
+        number_of_elements = 100
+        mesh_corners = [(0, 0), (10, 10)]
+        mesh_resolution = paramak_neutronics.find_3d_mesh_resolution(
+            number_of_elements=number_of_elements,
+            mesh_corners=mesh_corners
+        )
+
+        assert mesh_resolution == (10, 10)
+
+    def test_finding_2d_mesh_resolution_irregular_square(self):
+        """tests that the function returns equal resolution in each dimention"""
+        number_of_elements = 60
+        mesh_corners = [(0, 0), (20, 10)]
+        mesh_resolution = paramak_neutronics.find_3d_mesh_resolution(
+            number_of_elements=number_of_elements,
+            mesh_corners=mesh_corners
+        )
+
+        assert mesh_resolution == (40, 20)
