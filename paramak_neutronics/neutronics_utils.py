@@ -12,6 +12,68 @@ import matplotlib.pyplot as plt
 import numpy as np
 import openmc
 from pymoab import core, types
+from typing import Tuple
+
+
+
+# def find_2d_mesh_resolution(
+#     number_of_elements: int,
+#     mesh_corners: Tuple[Tuple[float, float, float], Tuple[float, float, float]],
+#     rounding_direction: str='ceiling'
+# ):
+
+#     length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[0][0])
+#     length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[0][1])
+#     length_of_z_edge = abs(mesh_corners[0][2]-mesh_corners[0][2])
+
+#     number_of_elements_in_x = (math.sqrt(length_of_x_edge) * math.sqrt(number_of_elements)) / math.sqrt(length_of_y_edge)
+
+
+
+def find_3d_mesh_resolution(
+    number_of_elements: int,
+    mesh_corners: Tuple[Tuple[float, float, float], Tuple[float, float, float]],
+    rounding_direction: str='ceil'
+) -> List(float, float, float):
+    """Finds the number of mesh elements that fit along each length of the mesh
+    given the mesh size and the number of elements required. Results will be
+    rounded to the closest whole number of elements that fit along each length.
+
+    Arguments:
+        number_of_elements: the number of mesh elements required.
+        mesh_corners: The upper and lower corner locations for the 2d
+            mesh. This sets the location of the mesh. Defaults to None which
+            uses the bounding box of the geometr in the h5m file to set the
+            corners.
+        filename: Choice of rounding method used  up 'ceil' or rounding down
+            'floor' the numbers of elements when a whole number of elements is
+            not possible.
+
+    Returns:
+        The filename of the h5m file created
+
+      """
+    length_of_x_edge = abs(mesh_corners[0][0]-mesh_corners[0][0])
+    length_of_y_edge = abs(mesh_corners[0][1]-mesh_corners[0][1])
+    length_of_z_edge = abs(mesh_corners[0][2]-mesh_corners[0][2])
+
+    volume_of_mesh = length_of_x_edge * length_of_y_edge * length_of_z_edge
+
+    length_of_cube_edge = math.pow(volume_of_mesh / number_of_elements, 1/3)
+
+    print('length_of_cube_edge', length_of_cube_edge)
+
+    number_of_cubes_in_x = length_of_x_edge / length_of_cube_edge
+    number_of_cubes_in_y = length_of_y_edge / length_of_cube_edge
+    number_of_cubes_in_z = length_of_z_edge / length_of_cube_edge
+
+    if rounding_direction == 'floor':
+        return math.floor(number_of_cubes_in_x), math.floor(number_of_cubes_in_y), math.floor(number_of_cubes_in_z)
+    elif rounding_direction == 'ceil':
+        return math.ceil(number_of_cubes_in_x), math.ceil(number_of_cubes_in_y), math.ceil(number_of_cubes_in_z)
+    else:
+        raise ValueError(f'rounding_direction must be either floor or ceiling not {rounding_direction}')
+
 
 
 def load_moab_file(filename: str):
