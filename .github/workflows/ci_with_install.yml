@@ -22,7 +22,34 @@ jobs:
       - name: install package
         run: |
           python setup.py install
-      - name: run tests
+
+      - name: run notebook_testing
         run: |
-          bash run_tests.sh
+          pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_neutronics_model
+        run: |
+          pytest tests/test_neutronics_model.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_reactor_neutronics
+        run: |
+          pytest tests/test_reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_shape_neutronics
+        run: |
+          pytest tests/test_shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_example_neutronics_simulations
+        run: |
+          pytest tests/test_example_neutronics_simulations.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_neutronics_utils
+        run: |
+          pytest tests/test_neutronics_utils.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: upload code coverage
+        run: |
           curl -s https://codecov.io/bash
+
+
+          
