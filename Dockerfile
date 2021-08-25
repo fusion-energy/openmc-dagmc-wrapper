@@ -170,10 +170,11 @@ RUN git clone --shallow-submodules --recurse-submodules --single-branch --branch
     pip install -e .[test]
 
 # installs python packages and nuclear data
-RUN pip install vtk && \
-    pip install neutronics_material_maker && \
-    pip install openmc_data_downloader && \
+RUN pip install openmc_data_downloader && \
     openmc_data_downloader -d nuclear_data -e all -i H3 -l ENDFB-7.1-NNDC TENDL-2019 -p neutron photon
+
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
 # Download Cubit
 RUN wget -O coreform-cubit-2021.5.deb https://f002.backblazeb2.com/file/cubit-downloads/Coreform-Cubit/Releases/Linux/Coreform-Cubit-2021.5%2B15962_5043ef39-Lin64.deb
@@ -184,9 +185,6 @@ RUN dpkg -i coreform-cubit-2021.5.deb
 # installs svalinn plugin for cubit
 RUN wget https://github.com/svalinn/Cubit-plugin/releases/download/0.2.1/svalinn-plugin_debian-10.10_cubit_2021.5.tgz
 RUN tar -xzvf svalinn-plugin_debian-10.10_cubit_2021.5.tgz -C /opt/Coreform-Cubit-2021.5
-
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
 
 # writes a non commercial license file
 RUN mkdir -p /root/.config/Coreform/licenses
