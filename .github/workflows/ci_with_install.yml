@@ -23,17 +23,17 @@ jobs:
         run: |
           python setup.py install
 
-      - name: run notebook_testing
-        run: |
-          pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
-
       - name: run test_neutronics_model
         run: |
           pytest tests/test_neutronics_model.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
-      - name: run test_reactor_neutronics
+      - name: run test_reactor_neutronics_pymoab
         run: |
-          pytest tests/test_reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+          pytest tests/test_reactor_neutronics_pymoab.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - name: run test_reactor_neutronics_cubit
+        run: |
+          pytest tests/test_reactor_neutronics_cubit.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - name: run test_shape_neutronics
         run: |
@@ -46,6 +46,12 @@ jobs:
       - name: run test_neutronics_utils
         run: |
           pytest tests/test_neutronics_utils.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      # todo remove and add to new test yml file #RemiMethod
+      - name: run notebook_testing
+        run: |
+          pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
 
       - name: upload code coverage
         run: |

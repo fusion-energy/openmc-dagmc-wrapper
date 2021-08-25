@@ -22,7 +22,7 @@ class TestShape(unittest.TestCase):
             method="pymoab",
         )
 
-        self.h5m_filename = self.my_shape.export_h5m()
+        self.h5m_filename = self.my_shape.export_h5m_with_pymoab()
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
@@ -501,7 +501,7 @@ class TestShape(unittest.TestCase):
         test_reactor = paramak.Reactor([test_shape, test_shape2])
 
         neutronics_model = paramak_neutronics.NeutronicsModel(
-            h5m_filename=test_reactor.export_h5m(),
+            h5m_filename=test_reactor.export_h5m_with_pymoab(),
             source=self.source,
             materials={
                 "mat1": "copper",
@@ -534,7 +534,7 @@ class TestShape(unittest.TestCase):
         test_reactor = paramak.Reactor([test_shape, test_shape2])
 
         neutronics_model = paramak_neutronics.NeutronicsModel(
-            h5m_filename=test_reactor.export_h5m(),
+            h5m_filename=test_reactor.export_h5m_with_pymoab(),
             source=self.source,
             materials={
                 "mat1": "copper",
@@ -557,18 +557,6 @@ class TestShape(unittest.TestCase):
         assert Path("flux_on_2D_mesh_xz.png").exists() is True
         assert Path("flux_on_2D_mesh_xy.png").exists() is True
         assert Path("flux_on_2D_mesh_yz.png").exists() is True
-
-    def test_export_h5m_error_handling(self):
-        """Makes a reactor from two shapes, then mades a neutronics model
-        and tests the TBR simulation value"""
-        self.my_shape.method = "cubit"
-        paramak_neutronics.NeutronicsModel(
-            h5m_filename=self.h5m_filename,
-            source=self.source,
-            materials={"center_column_shield_mat": "WC"},
-        )
-
-        self.my_shape.export_h5m()
 
     def test_simulations_with_missing_xml_files(self):
         """Creates NeutronicsModel objects and trys to perform simulation

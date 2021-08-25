@@ -23,6 +23,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             ],
             distance=50,
             material_tag="test_shape",
+            method='pymoab'
         )
 
         self.test_shape_2 = paramak.CenterColumnShieldCylinder(
@@ -31,6 +32,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             height=300,
             rotation_angle=360,
             material_tag="test_shape_2",
+            method='pymoab'
         )
 
         self.test_shape_3 = paramak.CenterColumnShieldCylinder(
@@ -40,6 +42,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             rotation_angle=360,
             center_height=625,
             material_tag="test_shape_3",
+            method='pymoab'
         )
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic

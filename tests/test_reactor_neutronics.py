@@ -28,6 +28,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
             outboard_blanket_radial_thickness=30,
             elongation=2.75,
             triangularity=0.5,
+            method='pymoab'
         )
 
     def test_bounding_box_size(self):
