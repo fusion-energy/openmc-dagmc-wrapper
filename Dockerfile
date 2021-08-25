@@ -44,11 +44,8 @@ RUN apt-get install -y libgl1-mesa-glx \
                        apt-get clean
 
 # Installing CadQuery
-RUN conda install -c conda-forge -c python python=3.8 && \
-    conda install -c conda-forge -c cadquery cadquery=2.1 && \
-    pip install jupyter-cadquery==2.1.0 && \
-    conda clean -afy
-
+RUN conda install -c conda-forge -c cadquery cadquery=2.1 && \
+    pip install jupyter-cadquery==2.1.0
 
 # Install neutronics dependencies from Debian package manager
 RUN apt-get install -y \
@@ -71,6 +68,20 @@ RUN apt-get --yes install libeigen3-dev && \
     apt-get --yes install libnetcdf-dev && \
     apt-get --yes install libtbb-dev && \
     apt-get --yes install libglfw3-dev
+
+# install Cubit dependencies
+RUN apt-get install -y libx11-6
+RUN apt-get install -y libxt6
+RUN apt-get install -y libgl1
+RUN apt-get install -y libglu1-mesa
+RUN apt-get install -y libgl1-mesa-glx
+RUN apt-get install -y libxcb-icccm4
+RUN apt-get install -y libxcb-image0
+RUN apt-get install -y libxcb-keysyms1
+RUN apt-get install -y libxcb-render-util0
+RUN apt-get install -y libxkbcommon-x11-0
+RUN apt-get install -y libxcb-randr0
+RUN apt-get install -y libxcb-xinerama0
 
 
 # Clone and install Embree
@@ -164,10 +175,35 @@ RUN pip install vtk && \
     pip install openmc_data_downloader && \
     openmc_data_downloader -d nuclear_data -e all -i H3 -l ENDFB-7.1-NNDC TENDL-2019 -p neutron photon
 
+# Download Cubit
+RUN wget -O coreform-cubit-2021.5.deb https://f002.backblazeb2.com/file/cubit-downloads/Coreform-Cubit/Releases/Linux/Coreform-Cubit-2021.5%2B15962_5043ef39-Lin64.deb
+
+# Install cubit
+RUN dpkg -i coreform-cubit-2021.5.deb
+
+# installs svalinn plugin for cubit
+RUN wget https://github.com/svalinn/Cubit-plugin/releases/download/0.2.1/svalinn-plugin_debian-10.10_cubit_2021.5.tgz
+RUN tar -xzvf svalinn-plugin_debian-10.10_cubit_2021.5.tgz -C /opt/Coreform-Cubit-2021.5
+
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+# writes a non commercial license file
+RUN mkdir -p /root/.config/Coreform/licenses
+RUN printf 'Fri May 28 2021' >> /root/.config/Coreform/licenses/cubit-learn.lic
+
+# helps to identify Cubit related errrors
+ENV CUBIT_VERBOSE=5
+
 # setting enviromental varibles
 ENV OPENMC_CROSS_SECTIONS=/nuclear_data/cross_sections.xml
 ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
+
+RUN mkdir /home/paramak-neutronics
+EXPOSE 8888
+WORKDIR /home/paramak-neutronics
+
 
 
 FROM dependencies as final
@@ -180,3 +216,7 @@ COPY tests tests/
 COPY examples examples/
 
 RUN python setup.py install
+
+# this helps prevent the kernal failing
+RUN echo "#!/bin/bash\n\njupyter lab --notebook-dir=/home/paramak --port=8888 --no-browser --ip=0.0.0.0 --allow-root" >> /home/paramak/docker-cmd.sh
+CMD bash /home/paramak/docker-cmd.sh
