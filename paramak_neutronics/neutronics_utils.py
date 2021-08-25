@@ -11,7 +11,6 @@ import defusedxml.ElementTree as ET
 import matplotlib.pyplot as plt
 import numpy as np
 import openmc
-from pymoab import core, types
 from typing import Tuple
 
 
@@ -20,7 +19,6 @@ def find_2d_mesh_resolution(
     number_of_elements: int,
     mesh_corners: Tuple[Tuple[float, float], Tuple[float, float]],
     rounding_direction: str='ceil',
-
 ) -> List[float, float]:
     """Finds the number of mesh elements that fit along each length of the mesh
     given the mesh size and the number of elements required. Results will be
@@ -109,6 +107,10 @@ def find_3d_mesh_resolution(
 
 def load_moab_file(filename: str):
     """Loads a h5m into a Moab Core object and returns the object"""
+    # this pymoab import is in the function instead of the file header
+    # importing can cause errors due to hdf5 conflict with Cubit
+    # https://forum.coreform.com/t/conflicting-hdf5-libraries/1237/3?u=jshimwell
+    from pymoab import core
     moab_core = core.Core()
     moab_core.load_file(filename)
     return moab_core
@@ -137,6 +139,11 @@ def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
 
     # create a new PyMOAB instance and load the specified DAGMC file
     moab_core = load_moab_file(filename)
+
+    # this pymoab import is in the function instead of the file header
+    # importing can cause errors due to hdf5 conflict with Cubit
+    # https://forum.coreform.com/t/conflicting-hdf5-libraries/1237/3?u=jshimwell
+    from pymoab import types
 
     # retrieve the category tag on the instance
     try:
