@@ -216,5 +216,5 @@ COPY examples examples/
 RUN python setup.py install
 
 # this helps prevent the kernal failing
-RUN echo "#!/bin/bash\n\njupyter lab --notebook-dir=/home/paramak --port=8888 --no-browser --ip=0.0.0.0 --allow-root" >> /home/paramak/docker-cmd.sh
-CMD bash /home/paramak/docker-cmd.sh
+RUN echo "#!/bin/bash\n\njupyter lab --notebook-dir=/home/paramak-neutronics --port=8888 --no-browser --ip=0.0.0.0 --allow-root" >> /home/paramak-neutronics/docker-cmd.sh
+CMD bash /home/paramak-neutronics/docker-cmd.sh
