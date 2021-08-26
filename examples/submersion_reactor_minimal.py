@@ -4,6 +4,7 @@ for a parametric submersion reactor"""
 import neutronics_material_maker as nmm
 import openmc
 import paramak
+import paramak_neutronics
 
 
 def make_model_and_simulate():
@@ -43,7 +44,7 @@ def make_model_and_simulate():
     source.energy = openmc.stats.Discrete([14e6], [1])
 
     # makes the neutronics model from the geometry and material allocations
-    neutronics_model = paramak.NeutronicsModel(
+    neutronics_model = paramak_neutronics.NeutronicsModel(
         h5m_filename=dagmc_filename,
         source=source,
         materials={
