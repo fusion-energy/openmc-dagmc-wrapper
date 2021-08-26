@@ -28,6 +28,8 @@ def make_model_and_simulate():
         triangularity=0.5,
     )
 
+    dagmc_filename = my_reactor.export_h5m()
+
     # this can just be set as a string as temperature is needed for this
     # material
     flibe = nmm.Material.from_library(name="FLiBe", temperature=773.15)
@@ -42,7 +44,7 @@ def make_model_and_simulate():
 
     # makes the neutronics model from the geometry and material allocations
     neutronics_model = paramak.NeutronicsModel(
-        h5m_filename=my_reactor.export_h5m(),
+        h5m_filename=dagmc_filename,
         source=source,
         materials={
             "inboard_tf_coils_mat": "eurofer",

@@ -16,14 +16,14 @@ jobs:
             python setup.py install
 
       - run:
-          name: run test_NeutronicModel
+          name: run test_neutronics_model_cubit
           command: 
-            pytest tests/test_reactor_neutronics_pymoab.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronics_model_cubit.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
-          name: run test_NeutronicModel
+          name: run test_neutronics_model_pymoab
           command: 
-            pytest tests/test_reactor_neutronics_cubit.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronics_model_pymoab.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_shape_neutronics
