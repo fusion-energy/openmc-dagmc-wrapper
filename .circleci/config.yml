@@ -18,7 +18,12 @@ jobs:
       - run:
           name: run test_NeutronicModel
           command: 
-            pytest tests/test_neutronics_model.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_reactor_neutronics_pymoab.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run test_NeutronicModel
+          command: 
+            pytest tests/test_reactor_neutronics_cubit.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_shape_neutronics
@@ -40,11 +45,11 @@ jobs:
           command: 
             pytest tests/test_example_neutronics_simulations.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
 
-      # TODO add example notebooks
-      # - run:
-      #     name: run notebook_testing
-      #     command: 
-      #       pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
+      # todo remove and add to new test yml file #RemiMethod
+      - run:
+          name: run notebook_testing
+          command: 
+            pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
 
 
       - store_test_results:
