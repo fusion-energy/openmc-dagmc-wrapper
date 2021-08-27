@@ -47,7 +47,6 @@ OpenMC sources definitions are used for the particle sources.
 Post processing of results are also carried out to automatically provide images,
 JSON output files and VTK files for convenient access to the results.
 
-
 :point_right: [Documentation](https://openmc-dagmc-wrapper.readthedocs.io)
 
 :point_right: [Docker images](https://github.com/fusion-energy/openmc_dagmc_wrapper/pkgs/container/openmc_dagmc_wrapper)

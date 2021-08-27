@@ -26,7 +26,9 @@ setuptools.setup(
         "remove_dagmc_tags",
         "neutronics_material_maker",
         "vtk",
-        "openmc_data_downloader"
+        "openmc_data_downloader",
+        "matplotlib",
+        "plotly",
     ],
     # openmc, dagmc, moab are also needed and embree and double down are also optionally needed but not avaible on PyPi
 )

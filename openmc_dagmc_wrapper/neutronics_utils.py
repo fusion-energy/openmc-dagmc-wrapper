@@ -1,18 +1,85 @@
-import errno
+
 import math
 import os
 import subprocess
-import warnings
 from collections import defaultdict
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 from xml.etree.ElementTree import SubElement
 
 import defusedxml.ElementTree as ET
 import matplotlib.pyplot as plt
 import numpy as np
 import openmc
+import plotly.graph_objects as go
 from pymoab import core, types
 
+
+def plotly_trace(
+        points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
+        mode: str = "markers+lines",
+        name: str = None,
+        color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None
+) -> Union[go.Scatter, go.Scatter3d]:
+    """Creates a plotly trace representation of the points of the Shape
+    object. This method is intended for internal use by Shape.export_html.
+
+    Args:
+        points: A list of tuples containing the X, Z points of to add to
+            the trace.
+        mode: The mode to use for the Plotly.Scatter graph. Options include
+            "markers", "lines" and "markers+lines". Defaults to
+            "markers+lines"
+        name: The name to use in the graph legend color
+
+    Returns:
+        plotly trace: trace object
+    """
+
+    if color is not None:
+        color_list = [i * 255 for i in color]
+
+        if len(color_list) == 3:
+            color = "rgb(" + str(color_list).strip("[]") + ")"
+        elif len(color_list) == 4:
+            color = "rgba(" + str(color_list).strip("[]") + ")"
+
+    if name is None:
+        name = "Shape not named"
+    else:
+        name = name
+
+    text_values = []
+
+    for i, point in enumerate(points):
+        text = 'point number= {i} <br> x={point[0]} <br> y= {point[1]}'
+        if len(point) == 3:
+            text = text + '<br> z= {point[2]} <br>'
+
+        text_values.append(text)
+
+    if all(len(entry) == 3 for entry in points):
+        trace = go.Scatter3d(
+            x=[row[0] for row in points],
+            y=[row[1] for row in points],
+            z=[row[2] for row in points],
+            mode=mode,
+            marker={"size": 3, "color": color},
+            name=name
+        )
+
+        return trace
+
+    trace = go.Scatter(
+        x=[row[0] for row in points],
+        y=[row[1] for row in points],
+        hoverinfo="text",
+        text=text_values,
+        mode=mode,
+        marker={"size": 5, "color": color},
+        name=name,
+    )
+
+    return trace
 
 def load_moab_file(filename: str):
     """Loads a h5m into a Moab Core object and returns the object"""
