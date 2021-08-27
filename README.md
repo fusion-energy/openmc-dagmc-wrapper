@@ -1,32 +1,57 @@
 
 [![N|Python](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org)
 
-[![CircleCI](https://circleci.com/gh/fusion-energy/paramak-neutronics/tree/main.svg?style=svg)](https://circleci.com/gh/fusion-energy/paramak-neutronics/tree/main)
-[![CI with install](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_install.yml)
-[![CI with docker build](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/ci_with_docker_build.yml)
+[![CircleCI](https://circleci.com/gh/fusion-energy/openmc-dagmc-wrapper/tree/main.svg?style=svg)](https://circleci.com/gh/fusion-energy/openmc-dagmc-wrapper/tree/main)
+[![CI with install](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/ci_with_install.yml/badge.svg)](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/ci_with_install.yml)
+[![CI with docker build](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/ci_with_docker_build.yml/badge.svg)](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/ci_with_docker_build.yml)
 
-[![codecov](https://codecov.io/gh/fusion-energy/paramak-neutronics/branch/main/graph/badge.svg?token=5j7c7eGF6W)](https://codecov.io/gh/fusion-energy/paramak-neutronics)
+[![codecov](https://codecov.io/gh/fusion-energy/openmc-dagmc-wrapper/branch/main/graph/badge.svg?token=5j7c7eGF6W)](https://codecov.io/gh/fusion-energy/openmc-dagmc-wrapper)
 
-[![Code Grade](https://www.code-inspector.com/project/25343/score/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
-[![Code Grade](https://www.code-inspector.com/project/25343/status/svg)](https://frontend.code-inspector.com/public/project/25343/paramak-neutronics/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/25343/score/svg)](https://frontend.code-inspector.com/public/project/25343/openmc-dagmc-wrapper/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/25343/status/svg)](https://frontend.code-inspector.com/public/project/25343/openmc-dagmc-wrapper/dashboard)
 
-[![Documentation Status](https://readthedocs.org/projects/paramak-neutronics/badge/?version=latest)](https://paramak-neutronics.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/openmc-dagmc-wrapper/badge/?version=latest)](https://openmc-dagmc-wrapper.readthedocs.io/en/latest/?badge=latest)
 
-[![Upload Python Package](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/python-publish.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/python-publish.yml)
-[![PyPI](https://img.shields.io/pypi/v/paramak-neutronics?color=brightgreen&label=pypi&logo=grebrightgreenen&logoColor=green)](https://pypi.org/project/paramak-neutronics/)
+[![Upload Python Package](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/python-publish.yml/badge.svg)](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/python-publish.yml)
+[![PyPI](https://img.shields.io/pypi/v/openmc-dagmc-wrapper?color=brightgreen&label=pypi&logo=grebrightgreenen&logoColor=green)](https://pypi.org/project/openmc-dagmc-wrapper/)
 
-[![docker-publish-release](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/fusion-energy/paramak-neutronics/actions/workflows/docker_publish.yml)
-
-
-# Paramak Neutronics
-
-The Paramak-neutronics python package adds support for OpenMC DAGMC neutronics simulations to the [Paramak](https://github.com/fusion-energy/paramak) package. This allows for neutronics responces to be rapidly found for a range of geometries (produced with the paramak), materials and neutronic source definitions. Neutronics responces can be obtained in the form of cell tallies and reglar mesh tallies (2D and 3D). Users can also export the OpenMC input files along with the DAGMC geometry (h5m file) and build upon the simulations provided. Post processing of results are also carried out automatically provide images, JSON output files and VTK files for convenient access to the results.
+[![docker-publish-release](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/docker_publish.yml/badge.svg)](https://github.com/fusion-energy/openmc-dagmc-wrapper/actions/workflows/docker_publish.yml)
 
 
-:point_right: [Documentation](https://paramak-neutronics.readthedocs.io)
+# OpenMC DAGMC Wrapper
 
-:point_right: [Docker images](https://github.com/fusion-energy/paramak-neutronics/pkgs/container/paramak-neutronics)
+The openmc-dagmc-wrapper python package allows convenient access to a series of standard neutronics simulations and post using OpenMC and DAGMC.
 
-:point_right: [Installation](https://paramak-neutronics.readthedocs.io/en/stable/install.html)
+The intended use case is to take DAGMC compatible h5m files generated by 
+[cad_to_h5m](https://github.com/fusion-energy/cad_to_h5m) with CAD file inputs
+from the [Paramak](https://github.com/fusion-energy/paramak) as demonstrated in
+the [neutronics_workflow](https://github.com/fusion-energy/neutronics_workflow). However the package can also be used with h5m files generated in other ways.
 
-:point_right: [Examples](https://paramak-neutronics.readthedocs.io/en/stable/example_neutronics_simulations.html)
+Standard simulations tallies are facilitated:
+- Volume / cell tallies
+- Regular 2D mesh tallies
+- Regular 3D mesh tallies
+- Unstructured mesh tally (on road map)
+
+Neutronics responses can be obtained:
+- Tritium Breeding Ratio (TBR)
+- Heating (photon and neutron)
+- Dose (on road map)
+- Any supported reaction from the standard OpenMC reactions
+
+A standard collection of materials are available by making use of the
+[neutronics_material_maker](https://github.com/fusion-energy/neutronics_material_maker) package.
+
+OpenMC sources definitions are used for the particle sources. 
+ 
+Post processing of results are also carried out to automatically provide images,
+JSON output files and VTK files for convenient access to the results.
+
+
+:point_right: [Documentation](https://openmc-dagmc-wrapper.readthedocs.io)
+
+:point_right: [Docker images](https://github.com/fusion-energy/openmc_dagmc_wrapper/pkgs/container/openmc_dagmc_wrapper)
+
+:point_right: [Installation](https://openmc-dagmc-wrapper.readthedocs.io/en/stable/install.html)
+
+:point_right: [Examples](https://openmc-dagmc-wrapper.readthedocs.io/en/stable/example_neutronics_simulations.html)
