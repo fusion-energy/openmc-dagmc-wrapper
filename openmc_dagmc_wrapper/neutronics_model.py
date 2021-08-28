@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 from utils import plotly_trace
 
-from .neutronics_utils import (create_inital_particles,
+from .neutronics_utils import (create_initial_particles,
                                extract_points_from_initial_source,
                                get_neutronics_results_from_statepoint_file,
                                silently_remove_file)
@@ -82,7 +82,6 @@ class NeutronicsModel:
         fusion_power: Optional[float] = 1e9,
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
-        max_lost_particles: Optional[int] = 10,
         bounding_box: Tuple[
             Tuple[float, float, float], Tuple[float, float, float]
         ] = None,
@@ -93,7 +92,6 @@ class NeutronicsModel:
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
         self.mesh_tally_3d = mesh_tally_3d
-        self.max_lost_particles = max_lost_particles
 
         self.mesh_2d_resolution = mesh_2d_resolution
         self.mesh_3d_resolution = mesh_3d_resolution
@@ -362,7 +360,7 @@ class NeutronicsModel:
         simulation_batches: int,
         simulation_particles_per_batch: int,
         source=None,
-        max_lost_particles: Optional[int] = None,
+        max_lost_particles: Optional[int] = 0,
         mesh_tally_3d: Optional[float] = None,
         mesh_tally_2d: Optional[float] = None,
         cell_tallies: Optional[float] = None,
@@ -384,8 +382,7 @@ class NeutronicsModel:
                 OpenMC simulation. Defaults to NeutronicsModel.source
             max_lost_particles: The maximum number of particles that can be
                 lost during the simulation before terminating the simulation.
-                Defaults to None which uses the
-                NeutronicsModel.max_lost_particles attribute.
+                Defaults to 0.
             mesh_tally_3d: the 3D mesh based tallies to calculate, options
                 include heating and flux , MT numbers and OpenMC standard
                 scores such as (n,Xa) which is helium production are also supported
@@ -427,8 +424,6 @@ class NeutronicsModel:
 
         if source is None:
             source = self.source
-        if max_lost_particles is None:
-            max_lost_particles = self.max_lost_particles
         if mesh_tally_3d is None:
             mesh_tally_3d = self.mesh_tally_3d
         if mesh_tally_2d is None:
@@ -463,7 +458,7 @@ class NeutronicsModel:
 
         settings.photon_transport = self.photon_transport
         settings.source = self.source
-        settings.max_lost_particles = self.max_lost_particles
+        settings.max_lost_particles = max_lost_particles
 
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
@@ -656,7 +651,7 @@ class NeutronicsModel:
         export_xml: Optional[bool] = True,
         simulation_batches: Optional[int] = 100,
         simulation_particles_per_batch: Optional[int] = 10000,
-
+        max_lost_particles: Optional[int] = 0,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -676,6 +671,9 @@ class NeutronicsModel:
                 attributes or set to False and use existing xml files or run
                 the export_xml() method yourself with more
                 direct control over the settings and creation of the xml files.
+            max_lost_particles: The maximum number of particles that can be
+                lost during the simulation before terminating the simulation.
+                Defaults to 0.
 
         Returns:
             The h5 simulation output filename
@@ -683,7 +681,8 @@ class NeutronicsModel:
         if export_xml is True:
             self.export_xml(
                 simulation_batches = simulation_batches,
-                simulation_particles_per_batch = simulation_particles_per_batch
+                simulation_particles_per_batch = simulation_particles_per_batch,
+                max_lost_particles = max_lost_particles,
             )
 
         # checks all the nessecary files are found
@@ -755,7 +754,7 @@ class NeutronicsModel:
         """
 
         if number_of_source_particles != 0:
-            source_filename = create_inital_particles(
+            source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
             points = extract_points_from_initial_source(source_filename, view_plane)
