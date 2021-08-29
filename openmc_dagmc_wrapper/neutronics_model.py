@@ -8,12 +8,10 @@ import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 
-from utils import plotly_trace
-
 from .utils import (create_initial_particles,
                     extract_points_from_initial_source,
                     get_neutronics_results_from_statepoint_file,
-                    silently_remove_file)
+                    silently_remove_file, plotly_trace)
 
 
 class NeutronicsModel:
