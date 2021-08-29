@@ -690,8 +690,8 @@ class NeutronicsModel:
 
 
         if isinstance(simulation_particles_per_batch, float):
-            _simulation_particles_per_batch = int(simulation_particles_per_batch)
-        if not isinstance(_simulation_particles_per_batch, int):
+            simulation_particles_per_batch = int(simulation_particles_per_batch)
+        if not isinstance(simulation_particles_per_batch, int):
             msg = ("NeutronicsModelFromReactor.simulation_particles_per_batch"
                    "should be an int")
             raise TypeError(msg)
