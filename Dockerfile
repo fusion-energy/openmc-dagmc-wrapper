@@ -43,13 +43,6 @@ RUN apt-get install -y libgl1-mesa-glx \
                        curl && \
                        apt-get clean
 
-# Installing CadQuery
-RUN conda install -c conda-forge -c python python=3.8 && \
-    conda install -c conda-forge -c cadquery cadquery=2.1 && \
-    pip install jupyter-cadquery==2.1.0 && \
-    conda clean -afy
-
-
 # Install neutronics dependencies from Debian package manager
 RUN apt-get install -y \
     wget \
@@ -173,7 +166,7 @@ ENV PATH="/DAGMC/bin:${PATH}"
 FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
-COPY paramak_neutronics paramak_neutronics/
+COPY openmc-dagmc-wrapper openmc-dagmc-wrapper/
 COPY setup.py setup.py
 COPY README.md README.md
 COPY tests tests/

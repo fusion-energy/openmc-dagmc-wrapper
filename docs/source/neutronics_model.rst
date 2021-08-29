@@ -2,6 +2,6 @@
 NeutronicsModel()
 ^^^^^^^^^^^^^^^^^
 
-.. automodule:: paramak_neutronics.neutronics_model
+.. automodule:: openmc_dagmc_wrapper.neutronics_model
    :members:
    :show-inheritance:
