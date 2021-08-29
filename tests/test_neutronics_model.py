@@ -123,42 +123,42 @@ class TestShape(unittest.TestCase):
         heat = my_model.results["mat1_heating"]["Watts"]["result"]
         assert heat > 0
 
-    def test_cell_tally_output_file_creation(self):
-        """Performs a neutronics simulation and checks the cell tally output
-        file is created and named correctly"""
+    # def test_cell_tally_output_file_creation(self):
+    #     """Performs a neutronics simulation and checks the cell tally output
+    #     file is created and named correctly"""
 
-        os.system("rm custom_name.json")
-        os.system("rm results.json")
+    #     os.system("rm custom_name.json")
+    #     os.system("rm results.json")
 
-        test_mat = openmc.Material()
-        test_mat.add_element("Fe", 1.0)
-        test_mat.set_density(units="g/cm3", density=4.2)
+    #     test_mat = openmc.Material()
+    #     test_mat.add_element("Fe", 1.0)
+    #     test_mat.set_density(units="g/cm3", density=4.2)
 
-        # converts the geometry into a neutronics geometry
-        # this simulation has no tally to test this edge case
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller,
-            source=self.source,
-            materials={"mat1": test_mat},
-        )
+    #     # converts the geometry into a neutronics geometry
+    #     # this simulation has no tally to test this edge case
+    #     my_model = openmc_dagmc_wrapper.NeutronicsModel(
+    #         h5m_filename=self.h5m_filename_smaller,
+    #         source=self.source,
+    #         materials={"mat1": test_mat},
+    #     )
 
-        # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
-            cell_tally_results_filename="custom_name.json"
-        )
+    #     # performs an openmc simulation on the model
+    #     output_filename = my_model.simulate(
+    #         simulation_batches=2,
+    #         simulation_particles_per_batch=2,
+    #         cell_tally_results_filename="custom_name.json"
+    #     )
 
-        assert output_filename.name == "statepoint.2.h5"
-        assert Path("custom_name.json").exists() is True
+    #     assert output_filename.name == "statepoint.2.h5"
+    #     assert Path("custom_name.json").exists() is True
 
-        assert Path("results.json").exists() is False
-        output_filename = my_model.simulate(
-            simulation_batches=3,
-            simulation_particles_per_batch=2,
-        )
-        assert output_filename.name == "statepoint.3.h5"
-        assert Path("results.json").exists() is True
+    #     assert Path("results.json").exists() is False
+    #     output_filename = my_model.simulate(
+    #         simulation_batches=3,
+    #         simulation_particles_per_batch=2,
+    #     )
+    #     assert output_filename.name == "statepoint.3.h5"
+    #     assert Path("results.json").exists() is True
 
     def test_incorrect_faceting_tolerance(self):
         def incorrect_faceting_tolerance():
