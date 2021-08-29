@@ -1,21 +1,23 @@
 # This Dockerfile creates an enviroment / dependancies needed to run the 
-# paramank_neutronics package.
+# openmc-dagmc-wrapper package.
 
 # This dockerfile provides an API endpoint that accepts arguments to drive
 # the neutronics model production and subsequent simulation
 
 # To build this Dockerfile into a docker image:
-# docker build -t paramank_neutronics .
+# docker build -t openmc-dagmc-wrapper .
 
 # To build this Dockerfile and use multiple cores to compile:
-# docker build -t paramank_neutronics --build-arg compile_cores=7 .
+# docker build -t openmc-dagmc-wrapper --build-arg compile_cores=7 .
 
 # To run the resulting Docker image:
-# docker run -it paramank_neutronics
+# docker run -it openmc-dagmc-wrapper
 
 # Run with the following command for a jupyter notebook interface
-# docker run -p 8888:8888 paramank_neutronics /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
+# docker run -p 8888:8888 openmc-dagmc-wrapper /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
 
+# run the tests inside the docker container
+# docker run --rm openmc-dagmc-wrapper  /bin/bash -c "bash run_tests.sh"
 
 # TODO save build time by basing this on FROM ghcr.io/fusion-energy/paramak:latest
 # This can't be done currently as the base images uses conda installs for moab / dagmc which don't compile with OpenMC
