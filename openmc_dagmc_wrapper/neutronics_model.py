@@ -678,6 +678,25 @@ class NeutronicsModel:
         Returns:
             The h5 simulation output filename
         """
+
+        if isinstance(simulation_batches, float):
+            simulation_batches = int(simulation_batches)
+        if not isinstance(simulation_batches, int):
+            raise TypeError(
+                "The simulation_batches argument must be an int"
+            )
+        if simulation_batches < 2:
+            raise ValueError("The minimum of setting for simulation_batches is 2")
+
+
+        if isinstance(simulation_particles_per_batch, float):
+            _simulation_particles_per_batch = int(simulation_particles_per_batch)
+        if not isinstance(_simulation_particles_per_batch, int):
+            msg = ("NeutronicsModelFromReactor.simulation_particles_per_batch"
+                   "should be an int")
+            raise TypeError(msg)
+
+
         if export_xml is True:
             self.export_xml(
                 simulation_batches = simulation_batches,

@@ -283,11 +283,13 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_batches_to_small(self):
         def incorrect_simulation_batches_to_small():
             """Sets simulation batch below 2 which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = openmc_dagmc_wrapper.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
-                simulation_batches=1,
+            )
+            my_model.simulate(
+                simulation_batches=1
             )
 
         self.assertRaises(ValueError, incorrect_simulation_batches_to_small)
