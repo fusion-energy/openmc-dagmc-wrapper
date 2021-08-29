@@ -24,7 +24,7 @@ class TestShape(unittest.TestCase):
                 if chunk:
                     f.write(chunk)
                     
-        self.h5m_filename_smaller_bigger = local_filename
+        self.h5m_filename_bigger = local_filename
 
         self.material_description={
                 "tungsten": "tungsten",
@@ -43,7 +43,7 @@ class TestShape(unittest.TestCase):
                 if chunk: # filter out keep-alive new chunks
                     f.write(chunk)
                     #f.flush() commented by recommendation from J.F.Sebastian
-        self.h5m_filename_smaller_smaller = local_filename
+        self.h5m_filename_smaller = local_filename
 
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
@@ -594,8 +594,6 @@ class TestShape(unittest.TestCase):
                 materials={"mat1": "WC"},
             )
 
-            # creates h5m files so that the code passes the h5m file check
-            os.system("touch dagmc_smaller.h5m")
             os.system("rm *.xml")
 
             my_model.simulate(export_xml=False)
@@ -668,8 +666,6 @@ class TestNeutronicsBallReactor(unittest.TestCase):
                 "blanket_rear_wall_mat": "eurofer",
             },
             cell_tallies=["TBR", "flux", "heating"],
-            simulation_batches=42,
-            simulation_particles_per_batch=12,
         )
 
         assert neutronics_model.h5m_filename == "placeholder.h5m"
@@ -684,12 +680,6 @@ class TestNeutronicsBallReactor(unittest.TestCase):
         }
 
         assert neutronics_model.cell_tallies == ["TBR", "flux", "heating"]
-
-        assert neutronics_model.simulation_batches == 42
-        assert isinstance(neutronics_model.simulation_batches, int)
-
-        assert neutronics_model.simulation_particles_per_batch == 12
-        assert isinstance(neutronics_model.simulation_particles_per_batch, int)
 
 
 if __name__ == "__main__":
