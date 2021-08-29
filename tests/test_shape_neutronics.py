@@ -58,8 +58,6 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
             materials=self.material_description,
-            simulation_batches=3,
-            simulation_particles_per_batch=2,
         )
 
         bounding_box = my_model.find_bounding_box()
@@ -76,17 +74,10 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        h5m_filename = self.test_shape_2.export_h5m_with_pymoab(
-            include_graveyard=False, faceting_tolerance=1e-1
-        )
-
-        h5m_filename = "dagmc_smaller.h5m"
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=h5m_filename,
+            h5m_filename="dagmc_smaller.h5m",
             source=self.source,
             materials=self.material_description,
-            simulation_batches=3,
-            simulation_particles_per_batch=2,
         )
 
         bounding_box = my_model.find_bounding_box()

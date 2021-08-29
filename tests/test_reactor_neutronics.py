@@ -25,8 +25,6 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-
-
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
         source = openmc.Source()
@@ -46,9 +44,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
                 "supports_mat": "Be",
                 "blanket_rear_wall_mat": "Be",
                 "inboard_tf_coils_mat": "Be",
-            },
-            simulation_batches=3,
-            simulation_particles_per_batch=2,
+            }
         )
 
         bounding_box = my_model.find_bounding_box()

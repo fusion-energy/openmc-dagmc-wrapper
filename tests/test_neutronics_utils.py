@@ -91,7 +91,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             filename="dagmc_bigger.h5m"
         )
 
-        assert len(list_of_mats) == 2
+        assert len(list_of_mats) == 6
         assert "mat:tungsten" in list_of_mats
         assert "mat:steel" in list_of_mats
         assert "mat:flibe" in list_of_mats
@@ -105,7 +105,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
         list_of_mats = openmc_dagmc_wrapper.find_volume_ids_in_h5m(filename="dagmc_bigger.h5m")
 
-        assert len(list_of_mats) == 5
+        assert len(list_of_mats) == 22
         assert 1 in list_of_mats
 
     def test_create_initial_particles(self):
