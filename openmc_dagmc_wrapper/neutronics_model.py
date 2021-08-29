@@ -457,7 +457,8 @@ class NeutronicsModel:
 
         settings.photon_transport = self.photon_transport
         settings.source = self.source
-        settings.max_lost_particles = max_lost_particles
+        if max_lost_particles > 0:
+            settings.max_lost_particles = max_lost_particles
 
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
