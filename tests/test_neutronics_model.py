@@ -144,6 +144,8 @@ class TestShape(unittest.TestCase):
 
         # performs an openmc simulation on the model
         output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
             cell_tally_results_filename="custom_name.json"
         )
 
@@ -152,9 +154,10 @@ class TestShape(unittest.TestCase):
 
         assert Path("results.json").exists() is False
         output_filename = my_model.simulate(
-            simulation_batches=2,
+            simulation_batches=3,
             simulation_particles_per_batch=2,
         )
+        assert output_filename.name == "statepoint.3.h5"
         assert Path("results.json").exists() is True
 
     def test_incorrect_faceting_tolerance(self):
