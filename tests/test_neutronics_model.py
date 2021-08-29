@@ -561,25 +561,6 @@ class TestShape(unittest.TestCase):
         assert Path("flux_on_2D_mesh_xy.png").exists() is True
         assert Path("flux_on_2D_mesh_yz.png").exists() is True
 
-    def test_cubit_run_without_cubit(self):
-        """Creates NeutronicsModel objects and checks errors are
-        raised correctly when arguments are incorrect."""
-
-        # If cubit is in the CI then this should work
-        def test_export_h5m_error_handling():
-            """Makes a reactor from two shapes, then mades a neutronics model
-            and tests the TBR simulation value"""
-            self.my_shape.method = "cubit"
-            openmc_dagmc_wrapper.NeutronicsModel(
-                h5m_filename=self.h5m_filename_smaller,
-                source=self.source,
-                materials={"mat1": "WC"},
-            )
-
-            self.my_shape.export_h5m()
-
-        self.assertRaises(FileNotFoundError, test_export_h5m_error_handling)
-
     def test_simulations_with_missing_xml_files(self):
         """Creates NeutronicsModel objects and trys to perform simulation
         without necessary input files to check if error handeling is working"""
