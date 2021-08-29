@@ -80,12 +80,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
 
         assert output_filename.name == "statepoint.2.h5"
 
@@ -107,12 +108,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
 
         results = openmc.StatePoint(output_filename)
         assert len(results.tallies.items()) == 1
@@ -138,8 +140,6 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": test_mat},
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
@@ -151,7 +151,10 @@ class TestShape(unittest.TestCase):
         assert Path("custom_name.json").exists() is True
 
         assert Path("results.json").exists() is False
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
         assert Path("results.json").exists() is True
 
     def test_incorrect_faceting_tolerance(self):
@@ -301,10 +304,12 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_particles_per_batch_wrong_type(self):
         def incorrect_simulation_particles_per_batch_wrong_type():
             """Sets simulation_particles_per_batch below 2 which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = openmc_dagmc_wrapper.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
+            )
+            my_model.simulate(
                 simulation_particles_per_batch="one",
             )
 
@@ -326,12 +331,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": mat},
             cell_tallies=["heating", "flux", "TBR", "spectra"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
 
         results = openmc.StatePoint(output_filename)
         # spectra add two tallies in this case (photons and neutrons)
@@ -377,12 +383,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": "Be"},
             mesh_tally_2d=["heating"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
 
         results = openmc.StatePoint(output_filename)
         assert len(results.meshes) == 3
@@ -404,12 +411,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": "Be"},
             mesh_tally_3d=["heating", "(n,Xt)"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
 
         results = openmc.StatePoint(output_filename)
         assert len(results.meshes) == 1
@@ -419,26 +427,27 @@ class TestShape(unittest.TestCase):
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("n-Xt_on_3D_mesh.vtk").exists() is True
 
-    def test_batches_and_particles_convert_to_int(self):
-        """Makes a neutronics model and simulates with a 3D and 2D mesh tally
-        and checks that the vtk and png files are produced. This checks the
-        mesh ID values don't overlap"""
+#  Todo refactor now that simulate takes batchs and particles
+    # def test_batches_and_particles_convert_to_int(self):
+    #     """Makes a neutronics model and simulates with a 3D and 2D mesh tally
+    #     and checks that the vtk and png files are produced. This checks the
+    #     mesh ID values don't overlap"""
 
-        os.system("rm *.h5")
+    #     os.system("rm *.h5")
 
-        # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller,
-            source=self.source,
-            materials={"mat1": "Be"},
-            simulation_batches=3.1,
-            simulation_particles_per_batch=2.1,
-        )
+    #     # converts the geometry into a neutronics geometry
+    #     my_model = openmc_dagmc_wrapper.NeutronicsModel(
+    #         h5m_filename=self.h5m_filename_smaller,
+    #         source=self.source,
+    #         materials={"mat1": "Be"},
+    #         simulation_batches=3.1,
+    #         simulation_particles_per_batch=2.1,
+    #     )
 
-        assert isinstance(my_model.simulation_batches, int)
-        assert my_model.simulation_batches == 3
-        assert isinstance(my_model.simulation_particles_per_batch, int)
-        assert my_model.simulation_particles_per_batch == 2
+    #     assert isinstance(my_model.simulation_batches, int)
+    #     assert my_model.simulation_batches == 3
+    #     assert isinstance(my_model.simulation_particles_per_batch, int)
+    #     assert my_model.simulation_particles_per_batch == 2
 
     def test_neutronics_component_3d_and_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
@@ -454,12 +463,13 @@ class TestShape(unittest.TestCase):
             materials={"mat1": "Be"},
             mesh_tally_3d=["heating"],
             mesh_tally_2d=["heating"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
         results = openmc.StatePoint(output_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
@@ -484,8 +494,6 @@ class TestShape(unittest.TestCase):
             materials={"mat1": "Be"},
             mesh_tally_3d=["heating"],
             mesh_tally_2d=["heating"],
-            simulation_batches=2,
-            simulation_particles_per_batch=2,
             mesh_3d_corners=[(0, 0, 0), (10, 10, 10)],
             mesh_2d_corners=[(5, 5, 5), (15, 15, 15)],
         )
@@ -493,7 +501,10 @@ class TestShape(unittest.TestCase):
         assert my_model.mesh_3d_corners == [(0, 0, 0), (10, 10, 10)]
         assert my_model.mesh_2d_corners == [(5, 5, 5), (15, 15, 15)]
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate()
+        output_filename = my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=2,
+        )
         results = openmc.StatePoint(output_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
@@ -513,12 +524,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials=self.material_description,
             cell_tallies=["TBR", "heating", "flux"],
-            simulation_batches=2,
-            simulation_particles_per_batch=10,
         )
 
         # starts the neutronics simulation
-        neutronics_model.simulate()
+        neutronics_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=10,
+        )
 
     def test_reactor_from_shapes_2d_mesh_tallies(self):
         """Makes a reactor from two shapes, then mades a neutronics model
@@ -531,12 +543,13 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials=self.material_description,
             mesh_tally_2d=["(n,Xt)", "heating", "flux"],
-            simulation_batches=2,
-            simulation_particles_per_batch=10,
         )
 
         # starts the neutronics simulation
-        neutronics_model.simulate()
+        neutronics_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=10,
+        )
 
         assert Path("n-Xt_on_2D_mesh_xz.png").exists() is True
         assert Path("n-Xt_on_2D_mesh_xy.png").exists() is True
