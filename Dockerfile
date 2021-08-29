@@ -168,10 +168,10 @@ ENV PATH="/DAGMC/bin:${PATH}"
 FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
-COPY openmc-dagmc-wrapper openmc-dagmc-wrapper/
-COPY setup.py setup.py
-COPY README.md README.md
-COPY tests tests/
 COPY examples examples/
+COPY openmc_dagmc_wrapper openmc_dagmc_wrapper/
+COPY tests tests/
+COPY README.md README.md
+COPY setup.py setup.py
 
 RUN python setup.py install

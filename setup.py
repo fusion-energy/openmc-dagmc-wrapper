@@ -21,6 +21,8 @@ setuptools.setup(
     tests_require=[
         "pytest-cov",
         "pytest-runner",
+        "nbformat",
+        "nbconvert"
     ],
     install_requires=[
         "remove_dagmc_tags",
@@ -29,6 +31,9 @@ setuptools.setup(
         "openmc_data_downloader",
         "matplotlib",
         "plotly",
+        "defusedxml",
+        "nbformat",
+        "nbconvert"
     ],
     # openmc, dagmc, moab are also needed and embree and double down are also optionally needed but not avaible on PyPi
 )

@@ -28,8 +28,8 @@ class TestShape(unittest.TestCase):
 
         self.material_description={
                 "tungsten": "tungsten",
-                "steel": "steel",
-                "flibe": "flibe",
+                "steel": "Steel, Carbon",
+                "flibe": "FLiNaBe",
                 "copper": "copper",
             }
 
