@@ -4,14 +4,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="paramak_neutronics",
+    name="openmc_dagmc_wrapper",
     version="develop",
-    author="The Paramak Neutronics Development Team",
+    author="The openmc_dagmc_wrapper Development Team",
     author_email="mail@jshimwell.com",
-    description="Perform neutronics simulations on models generated with the Paramak",
+    description="Perform a set of standard neutronics simulations with OpenMC and DAGMC",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/fusion-energy/paramak-neutronics",
+    url="https://github.com/fusion-energy/openmc_dagmc_wrapper",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -21,13 +21,19 @@ setuptools.setup(
     tests_require=[
         "pytest-cov",
         "pytest-runner",
+        "nbformat",
+        "nbconvert"
     ],
     install_requires=[
-        "paramak",
         "remove_dagmc_tags",
         "neutronics_material_maker",
         "vtk",
-        "neutronics_material_maker",
+        "openmc_data_downloader",
+        "matplotlib",
+        "plotly",
+        "defusedxml",
+        "nbformat",
+        "nbconvert"
     ],
-    # openmc, dagmc, pymoab are also needed but not avaible on PyPi
+    # openmc, dagmc, moab are also needed and embree and double down are also optionally needed but not avaible on PyPi
 )
