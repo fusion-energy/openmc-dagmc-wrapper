@@ -14,6 +14,9 @@ printf '\nexport PATH="/opt/MOAB/bin:$PATH"' >> ~/.bashrc
 printf '\nexport LD_LIBRARY_PATH="/opt/openmc/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
 printf '\nexport LD_LIBRARY_PATH="/opt/MOAB/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
 
+export CC=/usr/bin/mpicc
+export CXX=/usr/bin/mpicxx
+
 CC=/usr/bin/mpicc
 CXX=/usr/bin/mpicxx
 
@@ -119,7 +122,6 @@ make -j"$compile_cores"
 make -j"$compile_cores" install
 
 
-
 # Clone and install DAGMC
 # TODO change to tagged release
 # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git
@@ -137,6 +139,8 @@ cmake ../DAGMC -DBUILD_TALLY=ON \
 make -j"$compile_cores" install
 # optional space saving to delete files
 rm -rf /opt/DAGMC/DAGMC /opt/DAGMC/build
+
+
 
 # Clone and install OpenMC with DAGMC
 git clone --recurse-submodules --branch develop https://github.com/openmc-dev/openmc.git /opt/openmc

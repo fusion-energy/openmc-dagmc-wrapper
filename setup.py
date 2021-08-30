@@ -22,7 +22,8 @@ setuptools.setup(
         "pytest-cov",
         "pytest-runner",
         "nbformat",
-        "nbconvert"
+        "nbconvert",
+        "requests"
     ],
     install_requires=[
         "remove_dagmc_tags",

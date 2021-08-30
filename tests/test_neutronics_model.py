@@ -33,7 +33,7 @@ class TestShape(unittest.TestCase):
                 "copper": "copper",
             }
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/blob/c40324f1895a0d865ee585b3f5a4465b547a71c9/example_01_single_volume_cell_tally/stage_2_output/dagmc_smaller.h5m"
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_smaller.h5m'
         # NOTE the stream=True parameter
