@@ -525,17 +525,20 @@ class TestShape(unittest.TestCase):
         and tests the TBR simulation value"""
 
         neutronics_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller_bigger,
+            h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials=self.material_description,
             cell_tallies=["TBR", "heating", "flux"],
         )
 
         # starts the neutronics simulation
-        neutronics_model.simulate(
+        results = neutronics_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
+
+        assert isinstance(neutronics_model.results["TBR"]["result"], float)
+        assert isinstance(results["TBR"]["result"], float)
 
     def test_reactor_from_shapes_2d_mesh_tallies(self):
         """Makes a reactor from two shapes, then mades a neutronics model
@@ -544,7 +547,7 @@ class TestShape(unittest.TestCase):
         os.system("rm *_on_2D_mesh_*.png")
 
         neutronics_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller_bigger,
+            h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials=self.material_description,
             mesh_tally_2d=["(n,Xt)", "heating", "flux"],
