@@ -85,7 +85,7 @@ class TestShape(unittest.TestCase):
         # performs an openmc simulation on the model
         output_filename = my_model.simulate(
             simulation_batches=2,
-            simulation_particles_per_batch=2,
+            simulation_particles_per_batch=20,
         )
 
         assert output_filename.name == "statepoint.2.h5"
@@ -113,7 +113,7 @@ class TestShape(unittest.TestCase):
         # performs an openmc simulation on the model
         output_filename = my_model.simulate(
             simulation_batches=2,
-            simulation_particles_per_batch=2,
+            simulation_particles_per_batch=20,
         )
 
         results = openmc.StatePoint(output_filename)
@@ -338,10 +338,11 @@ class TestShape(unittest.TestCase):
             cell_tallies=["heating", "flux", "TBR", "spectra"],
         )
 
+
         # performs an openmc simulation on the model
         output_filename = my_model.simulate(
             simulation_batches=2,
-            simulation_particles_per_batch=2,
+            simulation_particles_per_batch=20,
         )
 
         results = openmc.StatePoint(output_filename)
@@ -393,7 +394,7 @@ class TestShape(unittest.TestCase):
         # performs an openmc simulation on the model
         output_filename = my_model.simulate(
             simulation_batches=2,
-            simulation_particles_per_batch=2,
+            simulation_particles_per_batch=20,
         )
 
         results = openmc.StatePoint(output_filename)
@@ -524,10 +525,13 @@ class TestShape(unittest.TestCase):
         """Makes a reactor from two shapes, then mades a neutronics model
         and tests the TBR simulation value"""
 
+        os.system("rm results.json")
+
         neutronics_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
-            materials=self.material_description,
+            materials={"mat1": "Be"},
+            # materials=self.material_description,
             cell_tallies=["TBR", "heating", "flux"],
         )
 
@@ -538,7 +542,7 @@ class TestShape(unittest.TestCase):
         )
 
         assert isinstance(neutronics_model.results["TBR"]["result"], float)
-        assert isinstance(results["TBR"]["result"], float)
+        assert Path("results.json").exists() is True
 
     def test_reactor_from_shapes_2d_mesh_tallies(self):
         """Makes a reactor from two shapes, then mades a neutronics model
@@ -549,7 +553,8 @@ class TestShape(unittest.TestCase):
         neutronics_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
-            materials=self.material_description,
+            # materials=self.material_description,
+            materials={"mat1": "Be"},
             mesh_tally_2d=["(n,Xt)", "heating", "flux"],
         )
 
