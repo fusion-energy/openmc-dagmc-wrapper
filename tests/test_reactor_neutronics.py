@@ -13,7 +13,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
     def setUp(self):
         
-        url = "https://github.com/Shimwell/fusion_example_for_openmc_using_paramak/blob/main/dagmc.h5m?raw=true"
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_bigger.h5m'
 

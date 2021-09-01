@@ -14,7 +14,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def setUp(self):
         
-        url = "https://github.com/Shimwell/fusion_example_for_openmc_using_paramak/blob/main/dagmc.h5m?raw=true"
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_bigger.h5m'
 
@@ -31,7 +31,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
                 "copper": "copper",
             }
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/blob/c40324f1895a0d865ee585b3f5a4465b547a71c9/example_01_single_volume_cell_tally/stage_2_output/dagmc_smaller.h5m"
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_smaller.h5m'
         # NOTE the stream=True parameter
