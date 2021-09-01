@@ -18,32 +18,44 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         local_filename = 'dagmc_bigger.h5m'
 
-        r = requests.get(url, stream=True)
-        with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024): 
-                if chunk:
-                    f.write(chunk)
+        if not Path(local_filename).is_file():
+
+            r = requests.get(url, stream=True)
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024): 
+                    if chunk:
+                        f.write(chunk)
         
-        self.material_description={
-                "tungsten": "tungsten",
-                "steel": "Steel, Carbon",
-                "flibe": "FLiNaBe",
-                "copper": "copper",
-            }
+        self.material_description_bigger={
+            'pf_coil_case_mat': 'Be',
+            'center_column_shield_mat': 'Be',
+            'blanket_rear_wall_mat': 'Be',
+            'divertor_mat': 'Be',
+            'graveyard': 'Be',
+            'tf_coil_mat': 'Be',
+            'pf_coil_mat': 'Be',
+            'inboard_tf_coils_mat': 'Be',
+            'blanket_mat': 'Be',
+            'firstwall_mat': 'Be',
+        }
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_smaller.h5m'
-        # NOTE the stream=True parameter
-        r = requests.get(url, stream=True)
-        with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024): 
-                if chunk: # filter out keep-alive new chunks
-                    f.write(chunk)
-                    #f.flush() commented by recommendation from J.F.Sebastian
+
+        if not Path(local_filename).is_file():
+
+            r = requests.get(url, stream=True)
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024): 
+                    if chunk: # filter out keep-alive new chunks
+                        f.write(chunk)
+
         self.h5m_filename_smaller_smaller = local_filename
 
-
+        self.material_description_smaller={
+            'mat1': 'Be',
+        }
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
@@ -52,45 +64,66 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         self.source.angle = openmc.stats.Isotropic()
         self.source.energy = openmc.stats.Discrete([14e6], [1])
 
+    def test_cell_tally_simulation(self):
+
+        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            h5m_filename="dagmc_bigger.h5m",
+            source=self.source,
+            materials=self.material_description_bigger,
+            cell_tallies = ['TBR']
+        )
+
+        my_model.simulate(
+            simulation_batches = 2,
+            simulation_particles_per_batch = 20,
+        )
+
+        assert my_model.results['TBR']['result'] > 0.
+
+
     def test_bounding_box_size(self):
 
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
-            materials=self.material_description,
+            materials=self.material_description_bigger,
         )
 
         bounding_box = my_model.find_bounding_box()
 
+
+        print(bounding_box)
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(50, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-25, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(0, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(70, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(25, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(70, abs=0.1)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
+
 
     def test_bounding_box_size_2(self):
 
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename="dagmc_smaller.h5m",
             source=self.source,
-            materials=self.material_description,
+            materials=self.material_description_smaller,
         )
 
         bounding_box = my_model.find_bounding_box()
+        print(bounding_box)
 
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-100, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-100, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-150, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(100, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(100, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(150, abs=0.1)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
 
 # # move to neutronics_workflow
 # class TestSimulationResultsVsCsg(unittest.TestCase):

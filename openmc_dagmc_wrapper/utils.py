@@ -460,6 +460,7 @@ def create_initial_particles(source, number_of_source_particles: int = 2000) -> 
 
     # This will crash hence the try except loop, but it writes the
     # initial_source.h5
+    openmc.run(output=False)
     try:
         openmc.run(output=False)
     except BaseException:
