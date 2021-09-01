@@ -59,9 +59,9 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-540, abs=0.2)
-        assert bounding_box[0][1] == pytest.approx(0, abs=0.2)
-        assert bounding_box[0][2] == pytest.approx(-415, abs=0.2)
-        assert bounding_box[1][0] == pytest.approx(540, abs=0.2)
-        assert bounding_box[1][1] == pytest.approx(540, abs=0.2)
-        assert bounding_box[1][2] == pytest.approx(415, abs=0.2)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.2)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.2)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.2)
