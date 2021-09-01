@@ -113,14 +113,7 @@ def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     moab_core = load_moab_file(filename)
 
     # retrieve the category tag on the instance
-    try:
-        cat_tag = moab_core.tag_get_handle(types.CATEGORY_TAG_NAME)
-    except types.MB_ENTITY_NOT_FOUND:
-        msg = (
-            "The category tag could not be found in the PyMOAB instance."
-            "Please check that the DAGMC file has been loaded."
-        )
-        raise RuntimeError(msg)
+    cat_tag = moab_core.tag_get_handle(types.CATEGORY_TAG_NAME)
 
     # get the id tag
     gid_tag = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)

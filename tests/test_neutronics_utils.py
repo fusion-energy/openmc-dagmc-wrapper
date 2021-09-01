@@ -91,12 +91,17 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             filename="dagmc_bigger.h5m"
         )
 
-        assert len(list_of_mats) == 6
-        assert "mat:tungsten" in list_of_mats
-        assert "mat:steel" in list_of_mats
-        assert "mat:flibe" in list_of_mats
-        assert "mat:copper" in list_of_mats
-        assert "mat:graveyard" in list_of_mats
+        assert len(list_of_mats) == 10
+        assert 'mat:pf_coil_case_mat' in list_of_mats
+        assert 'mat:center_column_shield_mat' in list_of_mats
+        assert 'mat:blanket_rear_wall_mat' in list_of_mats
+        assert 'mat:divertor_mat' in list_of_mats
+        assert 'mat:graveyard' in list_of_mats
+        assert 'mat:tf_coil_mat' in list_of_mats
+        assert 'mat:pf_coil_mat' in list_of_mats
+        assert 'mat:inboard_tf_coils_mat' in list_of_mats
+        assert 'mat:blanket_mat' in list_of_mats
+        assert 'mat:firstwall_mat'] in list_of_mats
 
     def test_find_volume_ids_in_h5_file(self):
         """exports a h5m with a known number of volumes and checks they are
@@ -105,7 +110,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
         list_of_mats = openmc_dagmc_wrapper.find_volume_ids_in_h5m(filename="dagmc_bigger.h5m")
 
-        assert len(list_of_mats) == 22
+        assert len(list_of_mats) == len([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
         assert 1 in list_of_mats
 
     def test_create_initial_particles(self):
