@@ -1,31 +1,17 @@
 import json
-import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+import neutronics_material_maker as nmm
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
-from paramak.utils import plotly_trace
 
-from .neutronics_utils import (
-    create_inital_particles,
-    extract_points_from_initial_source,
-    get_neutronics_results_from_statepoint_file,
-    silently_remove_file,
-    load_moab_file,
-)
-
-try:
-    import neutronics_material_maker as nmm
-except ImportError:
-    warnings.warn(
-        "neutronics_material_maker not found, \
-            NeutronicsModelFromReactor.materials can't accept strings or \
-            neutronics_material_maker objects",
-        UserWarning,
-    )
+from .utils import (create_initial_particles,
+                    extract_points_from_initial_source,
+                    get_neutronics_results_from_statepoint_file,
+                    silently_remove_file, plotly_trace)
 
 
 class NeutronicsModel:
@@ -33,9 +19,6 @@ class NeutronicsModel:
     materials, source and neutronics tallies.
 
     Arguments:
-        geometry: The geometry to convert to a neutronics model. e.g.
-            geometry=paramak.RotateMixedShape() or
-            geometry=paramak.BallReactor().
         source (openmc.Source()): the particle source to use during the
             OpenMC simulation.
         materials: Where the dictionary keys are the material tag
@@ -45,8 +28,6 @@ class NeutronicsModel:
             geometry object must be accounted for. Material tags required
             for a Reactor or Shape can be obtained with .material_tags() and
             material_tag respectively.
-        simulation_batches: the number of batch to simulate.
-        simulation_particles_per_batch: particles per batch.
         cell_tallies: the cell based tallies to calculate, options include
             spectra, TBR, heating, flux, MT numbers and OpenMC standard scores
             such as (n,Xa) which is helium production are also supported
@@ -68,24 +49,24 @@ class NeutronicsModel:
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the bounding box of the geometr in the h5m file to set the
+            corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the NeutronicsModel.largest_dimension property to set
-            the corners.
+            uses the geometry in the h5m file to set the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emitts 17.6 MeV or
             2.819831e-12 Joules
+        bounding_box: the lower left and upper right corners of the geometry
+            used by the 2d and 3d mesh when no corners are specified. Can be
+            found with NeutronicsModel.find_bounding_box but includes graveyard
     """
 
     def __init__(
         self,
         h5m_filename: str,
-        source,
+        source: openmc.Source(),
         materials: dict,
-        simulation_batches: Optional[int] = 100,
-        simulation_particles_per_batch: Optional[int] = 10000,
         cell_tallies: Optional[List[str]] = None,
         mesh_tally_2d: Optional[List[str]] = None,
         mesh_tally_3d: Optional[List[str]] = None,
@@ -100,19 +81,16 @@ class NeutronicsModel:
         fusion_power: Optional[float] = 1e9,
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
-        max_lost_particles: Optional[int] = 10,
-        largest_dimension: Optional[float] = 1000,
+        bounding_box: Tuple[
+            Tuple[float, float, float], Tuple[float, float, float]
+        ] = None,
     ):
-        self.largest_dimension = largest_dimension
         self.materials = materials
         self.h5m_filename = h5m_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
         self.mesh_tally_3d = mesh_tally_3d
-        self.simulation_batches = simulation_batches
-        self.simulation_particles_per_batch = simulation_particles_per_batch
-        self.max_lost_particles = max_lost_particles
 
         self.mesh_2d_resolution = mesh_2d_resolution
         self.mesh_3d_resolution = mesh_3d_resolution
@@ -126,6 +104,9 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
+
+        # find_bounding_box can be used to populate this
+        self.bounding_box = bounding_box
 
     @property
     def h5m_filename(self):
@@ -245,21 +226,21 @@ class NeutronicsModel:
             )
         self._materials = value
 
-    @property
-    def simulation_batches(self):
-        return self._simulation_batches
+    # @property
+    # def simulation_batches(self):
+    #     return self._simulation_batches
 
-    @simulation_batches.setter
-    def simulation_batches(self, value):
-        if isinstance(value, float):
-            value = int(value)
-        if not isinstance(value, int):
-            raise TypeError(
-                "NeutronicsModelFromReactor.simulation_batches should be an int"
-            )
-        if value < 2:
-            raise ValueError("The minimum of setting for simulation_batches is 2")
-        self._simulation_batches = value
+    # @simulation_batches.setter
+    # def simulation_batches(self, value):
+    #     if isinstance(value, float):
+    #         value = int(value)
+    #     if not isinstance(value, int):
+    #         raise TypeError(
+    #             "NeutronicsModelFromReactor.simulation_batches should be an int"
+    #         )
+    #     if value < 2:
+    #         raise ValueError("The minimum of setting for simulation_batches is 2")
+    #     self._simulation_batches = value
 
     @property
     def simulation_particles_per_batch(self):
@@ -331,7 +312,7 @@ class NeutronicsModel:
         """Computes the bounding box of the DAGMC geometry"""
 
         if not Path(self.h5m_filename).is_file:
-            msg = f'h5m file with filename {self.h5m_filename} not found'
+            msg = f"h5m file with filename {self.h5m_filename} not found"
             raise FileNotFoundError(msg)
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename, auto_geom_ids=False)
 
@@ -365,16 +346,20 @@ class NeutronicsModel:
         silently_remove_file("plots.xml")
         silently_remove_file("geometry.xml")
         silently_remove_file("materials.xml")
-        return bbox
+
+        return (
+            (bbox[0][0], bbox[0][1], bbox[0][2]),
+            (bbox[1][0], bbox[1][1], bbox[1][2]),
+        )
 
     # def build_csg_graveyard(self):
 
     def export_xml(
         self,
-        simulation_batches: Optional[int] = None,
+        simulation_batches: int,
+        simulation_particles_per_batch: int,
         source=None,
-        max_lost_particles: Optional[int] = None,
-        simulation_particles_per_batch: Optional[int] = None,
+        max_lost_particles: Optional[int] = 0,
         mesh_tally_3d: Optional[float] = None,
         mesh_tally_2d: Optional[float] = None,
         cell_tallies: Optional[float] = None,
@@ -392,16 +377,11 @@ class NeutronicsModel:
         particles per batch).
 
         Arguments:
-            simulation_batches: the number of batch to simulate.
             source: (openmc.Source): the particle source to use during the
                 OpenMC simulation. Defaults to NeutronicsModel.source
             max_lost_particles: The maximum number of particles that can be
-                lost during the simuation before terminating the simulation.
-                Defaults to None which uses the
-                NeutronicsModel.max_lost_particles attribute.
-            simulation_particles_per_batch: particles simulated per batch.
-                Defaults to None which uses the
-                NeutronicsModel.simulation_particles_per_batch attribute.
+                lost during the simulation before terminating the simulation.
+                Defaults to 0.
             mesh_tally_3d: the 3D mesh based tallies to calculate, options
                 include heating and flux , MT numbers and OpenMC standard
                 scores such as (n,Xa) which is helium production are also supported
@@ -441,14 +421,8 @@ class NeutronicsModel:
             openmc.model.Model(): The openmc model object created
         """
 
-        if simulation_batches is None:
-            simulation_batches = self.simulation_batches
         if source is None:
             source = self.source
-        if max_lost_particles is None:
-            max_lost_particles = self.max_lost_particles
-        if simulation_particles_per_batch is None:
-            simulation_particles_per_batch = self.simulation_particles_per_batch
         if mesh_tally_3d is None:
             mesh_tally_3d = self.mesh_tally_3d
         if mesh_tally_2d is None:
@@ -469,24 +443,22 @@ class NeutronicsModel:
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
 
-        # materials.xml is removed in this function
-        self.create_openmc_materials()
-
         # this is the underlying geometry container that is filled with the
-        # faceteted DAGMC CAD model
+        # faceted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
         geom = openmc.Geometry(root=dag_univ)
 
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
-        settings.batches = self.simulation_batches
+        settings.batches = simulation_batches
         settings.inactive = 0
-        settings.particles = self.simulation_particles_per_batch
+        settings.particles = simulation_particles_per_batch
         settings.run_mode = "fixed source"
 
         settings.photon_transport = self.photon_transport
         settings.source = self.source
-        settings.max_lost_particles = self.max_lost_particles
+        if max_lost_particles > 0:
+            settings.max_lost_particles = max_lost_particles
 
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
@@ -495,17 +467,12 @@ class NeutronicsModel:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
             mesh_xyz.dimension = self.mesh_3d_resolution
             if self.mesh_3d_corners is None:
-                mesh_xyz.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                ]
 
-                mesh_xyz.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
-                    self.largest_dimension,
-                ]
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
+                mesh_xyz.lower_left = self.bounding_box[0]
+                mesh_xyz.upper_right = self.bounding_box[1]
             else:
                 mesh_xyz.lower_left = self.mesh_3d_corners[0]
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
@@ -530,44 +497,12 @@ class NeutronicsModel:
                 self.mesh_2d_resolution[0],
             ]
 
-            if self.mesh_2d_corners is None:
-                mesh_xz.lower_left = [
-                    -self.largest_dimension,
-                    -1,
-                    -self.largest_dimension,
-                ]
-
-                mesh_xz.upper_right = [
-                    self.largest_dimension,
-                    1,
-                    self.largest_dimension,
-                ]
-            else:
-                mesh_xz.lower_left = self.mesh_2d_corners[0]
-                mesh_xz.upper_right = self.mesh_2d_corners[1]
-
             mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
             mesh_xy.dimension = [
                 self.mesh_2d_resolution[1],
                 self.mesh_2d_resolution[0],
                 1,
             ]
-
-            if self.mesh_2d_corners is None:
-                mesh_xy.lower_left = [
-                    -self.largest_dimension,
-                    -self.largest_dimension,
-                    -1,
-                ]
-
-                mesh_xy.upper_right = [
-                    self.largest_dimension,
-                    self.largest_dimension,
-                    1,
-                ]
-            else:
-                mesh_xy.lower_left = self.mesh_2d_corners[0]
-                mesh_xy.upper_right = self.mesh_2d_corners[1]
 
             mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
             mesh_yz.dimension = [
@@ -577,20 +512,56 @@ class NeutronicsModel:
             ]
 
             if self.mesh_2d_corners is None:
+
+                if self.bounding_box is None:
+                    self.bounding_box = self.find_bounding_box()
+
+                mesh_xz.lower_left = [
+                    self.bounding_box[0][0],
+                    -1,
+                    self.bounding_box[0][2],
+                ]
+
+                mesh_xz.upper_right = [
+                    self.bounding_box[1][0],
+                    1,
+                    self.bounding_box[1][2],
+                ]
+
+                mesh_xy.lower_left = [
+                    self.bounding_box[0][0],
+                    self.bounding_box[0][1],
+                    -1,
+                ]
+
+                mesh_xy.upper_right = [
+                    self.bounding_box[1][0],
+                    self.bounding_box[1][1],
+                    1,
+                ]
+
                 mesh_yz.lower_left = [
                     -1,
-                    -self.largest_dimension,
-                    -self.largest_dimension,
+                    self.bounding_box[0][1],
+                    self.bounding_box[0][2],
                 ]
 
                 mesh_yz.upper_right = [
                     1,
-                    self.largest_dimension,
-                    self.largest_dimension,
+                    self.bounding_box[1][1],
+                    self.bounding_box[1][2],
                 ]
+
             else:
+                mesh_xz.lower_left = self.mesh_2d_corners[0]
+                mesh_xz.upper_right = self.mesh_2d_corners[1]
+
+                mesh_xy.lower_left = self.mesh_2d_corners[0]
+                mesh_xy.upper_right = self.mesh_2d_corners[1]
+
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
                 mesh_yz.upper_right = self.mesh_2d_corners[1]
+
 
             for standard_tally in self.mesh_tally_2d:
                 score = standard_tally
@@ -604,6 +575,9 @@ class NeutronicsModel:
                     tally.filters = [mesh_filter]
                     tally.scores = [score]
                     self.tallies.append(tally)
+
+        # materials.xml is removed in this function
+        self.create_openmc_materials()
 
         if self.cell_tallies is not None:
 
@@ -674,8 +648,10 @@ class NeutronicsModel:
         verbose: Optional[bool] = True,
         cell_tally_results_filename: Optional[str] = "results.json",
         threads: Optional[int] = None,
-        export_h5m: Optional[bool] = True,
         export_xml: Optional[bool] = True,
+        simulation_batches: Optional[int] = 100,
+        simulation_particles_per_batch: Optional[int] = 10000,
+        max_lost_particles: Optional[int] = 0,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -687,24 +663,46 @@ class NeutronicsModel:
                 cell tallies to file.
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
-            export_h5m: controls the creation of the DAGMC geometry
-                file (dagmc.h5m). Set to True to create the DAGMC geometry
-                file with the default settings as determined by the
-                NeutronicsModel.geometry.method attributes or set to False and
-                run the export_h5m() method yourself with more
-                direct control over the settings.
+            simulation_batches: the number of batch to simulate.
+            simulation_particles_per_batch: particles per batch.
             export_xml: controls the creation of the OpenMC model
                 files (xml files). Set to True to create the OpenMC files with
                 the default settings as determined by the NeutronicsModel
                 attributes or set to False and use existing xml files or run
                 the export_xml() method yourself with more
                 direct control over the settings and creation of the xml files.
+            max_lost_particles: The maximum number of particles that can be
+                lost during the simulation before terminating the simulation.
+                Defaults to 0.
 
         Returns:
             The h5 simulation output filename
         """
+
+        if isinstance(simulation_batches, float):
+            simulation_batches = int(simulation_batches)
+        if not isinstance(simulation_batches, int):
+            raise TypeError(
+                "The simulation_batches argument must be an int"
+            )
+        if simulation_batches < 2:
+            raise ValueError("The minimum of setting for simulation_batches is 2")
+
+
+        if isinstance(simulation_particles_per_batch, float):
+            simulation_particles_per_batch = int(simulation_particles_per_batch)
+        if not isinstance(simulation_particles_per_batch, int):
+            msg = ("NeutronicsModelFromReactor.simulation_particles_per_batch"
+                   "should be an int")
+            raise TypeError(msg)
+
+
         if export_xml is True:
-            self.export_xml()
+            self.export_xml(
+                simulation_batches = simulation_batches,
+                simulation_particles_per_batch = simulation_particles_per_batch,
+                max_lost_particles = max_lost_particles,
+            )
 
         # checks all the nessecary files are found
         for required_file in [
@@ -730,7 +728,7 @@ class NeutronicsModel:
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")
-        silently_remove_file("statepoint." + str(self.simulation_batches) + ".h5")
+        silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
 
         self.statepoint_filename = self.model.run(output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
@@ -760,7 +758,7 @@ class NeutronicsModel:
 
         Args:
             figure: The Plotly figure to add the source points to.
-                Paramak.export_html() returns a go.Figure() objct that can be
+                Paramak.export_html() returns a go.Figure() object that can be
                 passed in here and have source points added to it. Otherwise
                 this defaults to plotly.graph_objects.Figure() which provides
                 an empty figure for source points.
@@ -775,7 +773,7 @@ class NeutronicsModel:
         """
 
         if number_of_source_particles != 0:
-            source_filename = create_inital_particles(
+            source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
             points = extract_points_from_initial_source(source_filename, view_plane)

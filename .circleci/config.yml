@@ -18,33 +18,33 @@ jobs:
       - run:
           name: run test_NeutronicModel
           command: 
-            pytest tests/test_neutronic_model.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronics_model.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_shape_neutronics
           command: 
-            pytest tests/test_shape_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_shape_neutronics.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_reactor_neutronics
           command: 
-            pytest tests/test_reactor_neutronics.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_reactor_neutronics.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_neutronics_utils
           command: 
-            pytest tests/test_neutronics_utils.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronics_utils.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_example_neutronics_simulations
           command: 
-            pytest tests/test_example_neutronics_simulations.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml
+            pytest tests/test_example_neutronics_simulations.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       # TODO add example notebooks
       # - run:
       #     name: run notebook_testing
       #     command: 
-      #       pytest tests/notebook_testing.py -v --cov=paramak_neutronics --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
+      #       pytest tests/notebook_testing.py -v --cov=openmc-dagmc_wrapper --cov-append --cov-report term --cov-report xml --junitxml=test-reports/junit.xml
 
 
       - store_test_results:

@@ -1,21 +1,23 @@
 # This Dockerfile creates an enviroment / dependancies needed to run the 
-# paramank_neutronics package.
+# openmc-dagmc-wrapper package.
 
 # This dockerfile provides an API endpoint that accepts arguments to drive
 # the neutronics model production and subsequent simulation
 
 # To build this Dockerfile into a docker image:
-# docker build -t paramank_neutronics .
+# docker build -t openmc-dagmc-wrapper .
 
 # To build this Dockerfile and use multiple cores to compile:
-# docker build -t paramank_neutronics --build-arg compile_cores=7 .
+# docker build -t openmc-dagmc-wrapper --build-arg compile_cores=7 .
 
 # To run the resulting Docker image:
-# docker run -it paramank_neutronics
+# docker run -it openmc-dagmc-wrapper
 
 # Run with the following command for a jupyter notebook interface
-# docker run -p 8888:8888 paramank_neutronics /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
+# docker run -p 8888:8888 openmc-dagmc-wrapper /bin/bash -c "jupyter notebook --notebook-dir=/examples --ip='*' --port=8888 --no-browser --allow-root"
 
+# run the tests inside the docker container
+# docker run --rm openmc-dagmc-wrapper  /bin/bash -c "bash run_tests.sh"
 
 # TODO save build time by basing this on FROM ghcr.io/fusion-energy/paramak:latest
 # This can't be done currently as the base images uses conda installs for moab / dagmc which don't compile with OpenMC
@@ -43,18 +45,13 @@ RUN apt-get install -y libgl1-mesa-glx \
                        curl && \
                        apt-get clean
 
-# Installing CadQuery
-RUN conda install -c conda-forge -c python python=3.8 && \
-    conda install -c conda-forge -c cadquery cadquery=2.1 && \
-    pip install jupyter-cadquery==2.1.0 && \
-    conda clean -afy
-
-
 # Install neutronics dependencies from Debian package manager
 RUN apt-get install -y \
     wget \
     git \
-    gfortran g++ cmake \
+    gfortran \
+    g++ \
+    cmake \
     mpich \
     libmpich-dev \
     libhdf5-serial-dev \
@@ -126,9 +123,9 @@ RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https
 # Clone and install DAGMC
 RUN mkdir DAGMC && \
     cd DAGMC && \
-    # git clone --single-branch --branch 3.2.0 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    # git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --shallow-submodules --single-branch --branch dd_bbox --depth 1 https://github.com/pshriwise/DAGMC.git && \
+    # change to version 3.2.1 when released
+    # git clone --single-branch --branch 3.2.1 --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -171,10 +168,10 @@ ENV PATH="/DAGMC/bin:${PATH}"
 FROM dependencies as final
 
 COPY run_tests.sh run_tests.sh
-COPY paramak_neutronics paramak_neutronics/
-COPY setup.py setup.py
-COPY README.md README.md
-COPY tests tests/
 COPY examples examples/
+COPY openmc_dagmc_wrapper openmc_dagmc_wrapper/
+COPY tests tests/
+COPY README.md README.md
+COPY setup.py setup.py
 
 RUN python setup.py install

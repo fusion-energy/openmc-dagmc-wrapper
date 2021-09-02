@@ -3,39 +3,42 @@ import unittest
 from pathlib import Path
 
 import openmc
-import paramak
-import paramak_neutronics
+import openmc_dagmc_wrapper
 import pytest
+import requests
 
 
 class TestNeutronicsModelWithReactor(unittest.TestCase):
     """Tests Shape object arguments that involve neutronics usage"""
 
     def setUp(self):
-        self.test_reactor = paramak.SubmersionTokamak(
-            inner_bore_radial_thickness=30,
-            inboard_tf_leg_radial_thickness=30,
-            center_column_shield_radial_thickness=30,
-            divertor_radial_thickness=80,
-            inner_plasma_gap_radial_thickness=50,
-            plasma_radial_thickness=200,
-            outer_plasma_gap_radial_thickness=50,
-            firstwall_radial_thickness=30,
-            blanket_rear_wall_radial_thickness=30,
-            rotation_angle=180,
-            support_radial_thickness=50,
-            inboard_blanket_radial_thickness=30,
-            outboard_blanket_radial_thickness=30,
-            elongation=2.75,
-            triangularity=0.5,
-        )
+        
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+
+
+        local_filename = 'dagmc_bigger.h5m'
+        if not Path(local_filename).is_file():
+
+            r = requests.get(url, stream=True)
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024): 
+                    if chunk:
+                        f.write(chunk)
+
+        self.material_description_bigger={
+            'pf_coil_case_mat': 'Be',
+            'center_column_shield_mat': 'Be',
+            'blanket_rear_wall_mat': 'Be',
+            'divertor_mat': 'Be',
+            'graveyard': 'Be',
+            'tf_coil_mat': 'Be',
+            'pf_coil_mat': 'Be',
+            'inboard_tf_coils_mat': 'Be',
+            'blanket_mat': 'Be',
+            'firstwall_mat': 'Be',
+        }
 
     def test_bounding_box_size(self):
-
-        h5m_filename = self.test_reactor.export_h5m_with_pymoab(
-            include_graveyard=False,
-            faceting_tolerance=1e-1
-        )
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
@@ -43,32 +46,22 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         source.space = openmc.stats.Point((0, 0, 0))
         source.angle = openmc.stats.Isotropic()
         source.energy = openmc.stats.Discrete([14e6], [1])
-                
-        h5m_filename='dagmc.h5m'
-        my_model = paramak_neutronics.NeutronicsModel(
+
+        h5m_filename = "dagmc_bigger.h5m"
+        my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=source,
-            materials={
-                'center_column_shield_mat': 'Be',
-                'firstwall_mat': 'Be',
-                'blanket_mat': 'Be',
-                'divertor_mat': 'Be',
-                'supports_mat': 'Be',
-                'blanket_rear_wall_mat': 'Be',
-                'inboard_tf_coils_mat': 'Be'
-            },
-            simulation_batches=3,
-            simulation_particles_per_batch=2
+            materials=self.material_description_bigger
         )
 
-        bounding_box=my_model.find_bounding_box()
+        bounding_box = my_model.find_bounding_box()
 
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-540, abs=0.2)
-        assert bounding_box[0][1] == pytest.approx(0, abs=0.2)
-        assert bounding_box[0][2] == pytest.approx(-415, abs=0.2)
-        assert bounding_box[1][0] == pytest.approx(540, abs=0.2)
-        assert bounding_box[1][1] == pytest.approx(540, abs=0.2)
-        assert bounding_box[1][2] == pytest.approx(415, abs=0.2)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.2)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.2)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.2)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.2)
