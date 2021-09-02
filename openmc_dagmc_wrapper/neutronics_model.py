@@ -19,8 +19,9 @@ class NeutronicsModel:
     materials, source and neutronics tallies.
 
     Arguments:
-        source (openmc.Source()): the particle source to use during the
-            OpenMC simulation.
+        h5m_filename: the name of the faceted h5m DAGMC geometry file.
+        exo_filename: the name of the tet mesh in Exodus format.
+        source: the particle source to use during the OpenMC simulation.
         materials: Where the dictionary keys are the material tag
             and the dictionary values are either a string, openmc.Material,
             neutronics-material-maker.Material or
@@ -68,6 +69,7 @@ class NeutronicsModel:
         source: openmc.Source(),
         materials: dict,
         cell_tallies: Optional[List[str]] = None,
+        exo_filename: Optional[str] = None,
         mesh_tally_2d: Optional[List[str]] = None,
         mesh_tally_3d: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = (400, 400),
@@ -87,6 +89,7 @@ class NeutronicsModel:
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
+        self.exo_filename = exo_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
@@ -117,7 +120,17 @@ class NeutronicsModel:
         if isinstance(value, str):
             self._h5m_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.geometry should be a string")
+            raise TypeError("NeutronicsModelFromReactor.h5m_filename should be a string")
+    @property
+    def exo_filename(self):
+        return self._exo_filename
+
+    @exo_filename.setter
+    def exo_filename(self, value):
+        if isinstance(value, (str, type(None))):
+            self._exo_filename = value
+        else:
+            raise TypeError("NeutronicsModelFromReactor.exo_filename should be a string")
 
     @property
     def source(self):
@@ -126,10 +139,8 @@ class NeutronicsModel:
     @source.setter
     def source(self, value):
         if not isinstance(value, (openmc.Source, type(None))):
-            raise TypeError(
-                "NeutronicsModelFromReactor.source should be an \
-                openmc.Source() object"
-            )
+            msg = "NeutronicsModelFromReactor.source should be an openmc.Source() object"
+            raise TypeError(msg)
         self._source = value
 
     @property
@@ -141,8 +152,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.cell_tallies should be a\
-                    list"
+                    "NeutronicsModelFromReactor.cell_tallies should be a list"
                 )
             output_options = (
                 ["TBR", "heating", "flux", "spectra", "absorption"]
@@ -242,20 +252,20 @@ class NeutronicsModel:
     #         raise ValueError("The minimum of setting for simulation_batches is 2")
     #     self._simulation_batches = value
 
-    @property
-    def simulation_particles_per_batch(self):
-        return self._simulation_particles_per_batch
+    # @property
+    # def simulation_particles_per_batch(self):
+    #     return self._simulation_particles_per_batch
 
-    @simulation_particles_per_batch.setter
-    def simulation_particles_per_batch(self, value):
-        if isinstance(value, float):
-            value = int(value)
-        if not isinstance(value, int):
-            raise TypeError(
-                "NeutronicsModelFromReactor.simulation_particles_per_batch\
-                    should be an int"
-            )
-        self._simulation_particles_per_batch = value
+    # @simulation_particles_per_batch.setter
+    # def simulation_particles_per_batch(self, value):
+    #     if isinstance(value, float):
+    #         value = int(value)
+    #     if not isinstance(value, int):
+    #         raise TypeError(
+    #             "NeutronicsModelFromReactor.simulation_particles_per_batch\
+    #                 should be an int"
+    #         )
+    #     self._simulation_particles_per_batch = value
 
     def create_material(self, material_tag: str, material_entry):
         if isinstance(material_entry, str):
@@ -448,6 +458,7 @@ class NeutronicsModel:
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
         geom = openmc.Geometry(root=dag_univ)
 
+
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
         settings.batches = simulation_batches
@@ -462,6 +473,20 @@ class NeutronicsModel:
 
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
+
+        if self.exo_filename is not None:
+            # moab would require a cub file export and mbconvert to h5 format
+            # umesh = openmc.UnstructuredMesh(self.exo_filename, library='moab')
+            umesh = openmc.UnstructuredMesh(self.exo_filename, library='libmesh')
+            mesh_filter = openmc.MeshFilter(umesh)
+
+            for standard_tally in self.mesh_tally_3d:
+                score = standard_tally
+                prefix = standard_tally
+                tally = openmc.Tally(name=prefix + "_on_3D_u_mesh")
+                tally.filters = [mesh_filter]
+                tally.scores = [score]
+                self.tallies.append(tally)
 
         if self.mesh_tally_3d is not None:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
