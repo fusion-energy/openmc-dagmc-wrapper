@@ -761,7 +761,7 @@ class NeutronicsModel:
 
     def export_html(
         self,
-        figure = go.Figure(),
+        figure=go.Figure(),
         filename: Optional[str] = "neutronics_model.html",
         # facet_splines: Optional[bool] = True,
         # facet_circles: Optional[bool] = True,
