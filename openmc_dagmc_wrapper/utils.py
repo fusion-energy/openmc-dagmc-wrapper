@@ -210,7 +210,7 @@ def get_neutronics_results_from_statepoint_file(
 
     # access the tallies
     for tally in statepoint.tallies.values():
-
+        print(f'processing {tally.name}')
         if tally.name.endswith("TBR"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -306,6 +306,9 @@ def get_neutronics_results_from_statepoint_file(
                 + ".vtk",
             )
 
+        elif "_on_3D_u_mesh" in tally.name:
+            pass
+            # openmc makes vtk files for unstructured mesh files automatically
         else:
             # this must be a standard score cell tally
             data_frame = tally.get_pandas_dataframe()

@@ -20,7 +20,7 @@ class NeutronicsModel:
 
     Arguments:
         h5m_filename: the name of the faceted h5m DAGMC geometry file.
-        exo_filename: the name of the tet mesh in Exodus format.
+        tet_mesh_filename: the name of the tet mesh in Exodus format.
         source: the particle source to use during the OpenMC simulation.
         materials: Where the dictionary keys are the material tag
             and the dictionary values are either a string, openmc.Material,
@@ -69,9 +69,10 @@ class NeutronicsModel:
         source: openmc.Source(),
         materials: dict,
         cell_tallies: Optional[List[str]] = None,
-        exo_filename: Optional[str] = None,
+        tet_mesh_filename: Optional[str] = None,
         mesh_tally_2d: Optional[List[str]] = None,
         mesh_tally_3d: Optional[List[str]] = None,
+        mesh_tally_tet: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = (400, 400),
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = (100, 100, 100),
         mesh_2d_corners: Optional[
@@ -89,11 +90,12 @@ class NeutronicsModel:
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
-        self.exo_filename = exo_filename
+        self.tet_mesh_filename = tet_mesh_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
         self.mesh_tally_3d = mesh_tally_3d
+        self.mesh_tally_tet = mesh_tally_tet
 
         self.mesh_2d_resolution = mesh_2d_resolution
         self.mesh_3d_resolution = mesh_3d_resolution
@@ -122,15 +124,15 @@ class NeutronicsModel:
         else:
             raise TypeError("NeutronicsModelFromReactor.h5m_filename should be a string")
     @property
-    def exo_filename(self):
-        return self._exo_filename
+    def tet_mesh_filename(self):
+        return self._tet_mesh_filename
 
-    @exo_filename.setter
-    def exo_filename(self, value):
+    @tet_mesh_filename.setter
+    def tet_mesh_filename(self, value):
         if isinstance(value, (str, type(None))):
-            self._exo_filename = value
+            self._tet_mesh_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.exo_filename should be a string")
+            raise TypeError("NeutronicsModelFromReactor.tet_mesh_filename should be a string")
 
     @property
     def source(self):
@@ -370,9 +372,10 @@ class NeutronicsModel:
         simulation_particles_per_batch: int,
         source=None,
         max_lost_particles: Optional[int] = 0,
-        mesh_tally_3d: Optional[float] = None,
-        mesh_tally_2d: Optional[float] = None,
-        cell_tallies: Optional[float] = None,
+        mesh_tally_3d: Optional[List[str]] = None,
+        mesh_tally_tet: Optional[List[str]] = None,
+        mesh_tally_2d: Optional[List[str]] = None,
+        cell_tallies: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_2d_corners: Optional[
@@ -435,6 +438,8 @@ class NeutronicsModel:
             source = self.source
         if mesh_tally_3d is None:
             mesh_tally_3d = self.mesh_tally_3d
+        if mesh_tally_tet is None:
+            mesh_tally_tet = self.mesh_tally_tet
         if mesh_tally_2d is None:
             mesh_tally_2d = self.mesh_tally_2d
         if cell_tallies is None:
@@ -474,17 +479,23 @@ class NeutronicsModel:
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
 
-        if self.exo_filename is not None:
-            # moab would require a cub file export and mbconvert to h5 format
-            # umesh = openmc.UnstructuredMesh(self.exo_filename, library='moab')
-            umesh = openmc.UnstructuredMesh(self.exo_filename, library='libmesh')
-            mesh_filter = openmc.MeshFilter(umesh)
+        if self.tet_mesh_filename is not None:
+            if self.tet_mesh_filename.endswith('.exo'):
+                # requires a exo file export from cubit
+                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library='libmesh')
+            elif self.tet_mesh_filename.endswith('.h5m'):
+                # requires a .cub file export from cubit and mbconvert to h5m format
+                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library='moab')
+            else:
+                raise ValueError('only h5m or exo files are accepted as valid tet_mesh_filename values')
 
-            for standard_tally in self.mesh_tally_3d:
+            umesh_filter = openmc.MeshFilter(umesh)
+
+            for standard_tally in self.mesh_tally_tet:
                 score = standard_tally
                 prefix = standard_tally
                 tally = openmc.Tally(name=prefix + "_on_3D_u_mesh")
-                tally.filters = [mesh_filter]
+                tally.filters = [umesh_filter]
                 tally.scores = [score]
                 self.tallies.append(tally)
 
