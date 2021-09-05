@@ -20,7 +20,8 @@ class NeutronicsModel:
 
     Arguments:
         h5m_filename: the name of the faceted h5m DAGMC geometry file.
-        tet_mesh_filename: the name of the tet mesh in Exodus format.
+        tet_mesh_filename: the name of the tet mesh in h5m (DAGMC) or Exodus
+            format.
         source: the particle source to use during the OpenMC simulation.
         materials: Where the dictionary keys are the material tag
             and the dictionary values are either a string, openmc.Material,
@@ -41,6 +42,10 @@ class NeutronicsModel:
             options include heating and flux , MT numbers and OpenMC standard
             scores such as (n,Xa) which is helium production are also supported
             https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
+        mesh_tally_tet: the tallies to calculate on the tet mesh, options
+            include heating and flux , MT numbers and OpenMC standard
+            scores such as (n,Xa) which is helium production are also supported
+            https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
         mesh_3d_resolution: The 3D mesh resolution in the height, width and
             depth directions. The larger the resolution the finer the mesh and
             the more computational intensity is required to converge each mesh
@@ -122,7 +127,8 @@ class NeutronicsModel:
         if isinstance(value, str):
             self._h5m_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.h5m_filename should be a string")
+            msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
+            raise TypeError(msg)
     @property
     def tet_mesh_filename(self):
         return self._tet_mesh_filename
@@ -132,7 +138,8 @@ class NeutronicsModel:
         if isinstance(value, (str, type(None))):
             self._tet_mesh_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.tet_mesh_filename should be a string")
+            msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
+            raise TypeError(msg)
 
     @property
     def source(self):
@@ -180,8 +187,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.mesh_tally_2d should be a\
-                    list"
+                    "NeutronicsModelFromReactor.mesh_tally_2d should be a list"
                 )
             output_options = (
                 ["heating", "flux", "absorption"]
@@ -207,8 +213,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.mesh_tally_3d should be a\
-                    list"
+                    "NeutronicsModelFromReactor.mesh_tally_3d should be a list"
                 )
             output_options = (
                 ["heating", "flux", "absorption"]
@@ -233,41 +238,10 @@ class NeutronicsModel:
     def materials(self, value):
         if not isinstance(value, dict):
             raise TypeError(
-                "NeutronicsModelFromReactor.materials should be a\
-                dictionary"
+                "NeutronicsModelFromReactor.materials should be a dictionary"
             )
         self._materials = value
 
-    # @property
-    # def simulation_batches(self):
-    #     return self._simulation_batches
-
-    # @simulation_batches.setter
-    # def simulation_batches(self, value):
-    #     if isinstance(value, float):
-    #         value = int(value)
-    #     if not isinstance(value, int):
-    #         raise TypeError(
-    #             "NeutronicsModelFromReactor.simulation_batches should be an int"
-    #         )
-    #     if value < 2:
-    #         raise ValueError("The minimum of setting for simulation_batches is 2")
-    #     self._simulation_batches = value
-
-    # @property
-    # def simulation_particles_per_batch(self):
-    #     return self._simulation_particles_per_batch
-
-    # @simulation_particles_per_batch.setter
-    # def simulation_particles_per_batch(self, value):
-    #     if isinstance(value, float):
-    #         value = int(value)
-    #     if not isinstance(value, int):
-    #         raise TypeError(
-    #             "NeutronicsModelFromReactor.simulation_particles_per_batch\
-    #                 should be an int"
-    #         )
-    #     self._simulation_particles_per_batch = value
 
     def create_material(self, material_tag: str, material_entry):
         if isinstance(material_entry, str):
@@ -364,8 +338,6 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
-    # def build_csg_graveyard(self):
-
     def export_xml(
         self,
         simulation_batches: int,
@@ -400,6 +372,12 @@ class NeutronicsModel:
                 scores such as (n,Xa) which is helium production are also supported
                 https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
                 Defaults to None which uses the NeutronicsModel.mesh_tally_3d
+                attribute.
+            mesh_tally_tet: the tallies to calculate on the tet mesh, options
+                include heating and flux , MT numbers and OpenMC standard
+                scores such as (n,Xa) which is helium production are also supported
+                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
+                Defaults to None which uses the NeutronicsModel.mesh_tally_tet
                 attribute.
             mesh_tally_2d: . the 2D mesh based tallies to calculate, options
                 include heating and flux , MT numbers and OpenMC standard
@@ -487,7 +465,8 @@ class NeutronicsModel:
                 # requires a .cub file export from cubit and mbconvert to h5m format
                 umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library='moab')
             else:
-                raise ValueError('only h5m or exo files are accepted as valid tet_mesh_filename values')
+                msg = 'only h5m or exo files are accepted as valid tet_mesh_filename values'
+                raise ValueError(msg)
 
             umesh_filter = openmc.MeshFilter(umesh)
 
@@ -722,8 +701,8 @@ class NeutronicsModel:
                 "The simulation_batches argument must be an int"
             )
         if simulation_batches < 2:
-            raise ValueError("The minimum of setting for simulation_batches is 2")
-
+            msg = "The minimum of setting for simulation_batches is 2"
+            raise ValueError(msg)
 
         if isinstance(simulation_particles_per_batch, float):
             simulation_particles_per_batch = int(simulation_particles_per_batch)
