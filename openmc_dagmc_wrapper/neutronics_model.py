@@ -129,6 +129,7 @@ class NeutronicsModel:
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
             raise TypeError(msg)
+
     @property
     def tet_mesh_filename(self):
         return self._tet_mesh_filename
@@ -241,7 +242,6 @@ class NeutronicsModel:
                 "NeutronicsModelFromReactor.materials should be a dictionary"
             )
         self._materials = value
-
 
     def create_material(self, material_tag: str, material_entry):
         if isinstance(material_entry, str):
