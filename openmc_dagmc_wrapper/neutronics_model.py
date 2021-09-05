@@ -19,8 +19,10 @@ class NeutronicsModel:
     materials, source and neutronics tallies.
 
     Arguments:
-        source (openmc.Source()): the particle source to use during the
-            OpenMC simulation.
+        h5m_filename: the name of the faceted h5m DAGMC geometry file.
+        tet_mesh_filename: the name of the tet mesh in h5m (DAGMC) or Exodus
+            format.
+        source: the particle source to use during the OpenMC simulation.
         materials: Where the dictionary keys are the material tag
             and the dictionary values are either a string, openmc.Material,
             neutronics-material-maker.Material or
@@ -40,6 +42,10 @@ class NeutronicsModel:
             options include heating and flux , MT numbers and OpenMC standard
             scores such as (n,Xa) which is helium production are also supported
             https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
+        mesh_tally_tet: the tallies to calculate on the tet mesh, options
+            include heating and flux , MT numbers and OpenMC standard
+            scores such as (n,Xa) which is helium production are also supported
+            https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
         mesh_3d_resolution: The 3D mesh resolution in the height, width and
             depth directions. The larger the resolution the finer the mesh and
             the more computational intensity is required to converge each mesh
@@ -68,8 +74,10 @@ class NeutronicsModel:
         source: openmc.Source(),
         materials: dict,
         cell_tallies: Optional[List[str]] = None,
+        tet_mesh_filename: Optional[str] = None,
         mesh_tally_2d: Optional[List[str]] = None,
         mesh_tally_3d: Optional[List[str]] = None,
+        mesh_tally_tet: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = (400, 400),
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = (100, 100, 100),
         mesh_2d_corners: Optional[
@@ -87,10 +95,12 @@ class NeutronicsModel:
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
+        self.tet_mesh_filename = tet_mesh_filename
         self.source = source
         self.cell_tallies = cell_tallies
         self.mesh_tally_2d = mesh_tally_2d
         self.mesh_tally_3d = mesh_tally_3d
+        self.mesh_tally_tet = mesh_tally_tet
 
         self.mesh_2d_resolution = mesh_2d_resolution
         self.mesh_3d_resolution = mesh_3d_resolution
@@ -117,7 +127,20 @@ class NeutronicsModel:
         if isinstance(value, str):
             self._h5m_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.geometry should be a string")
+            msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
+            raise TypeError(msg)
+
+    @property
+    def tet_mesh_filename(self):
+        return self._tet_mesh_filename
+
+    @tet_mesh_filename.setter
+    def tet_mesh_filename(self, value):
+        if isinstance(value, (str, type(None))):
+            self._tet_mesh_filename = value
+        else:
+            msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
+            raise TypeError(msg)
 
     @property
     def source(self):
@@ -126,10 +149,8 @@ class NeutronicsModel:
     @source.setter
     def source(self, value):
         if not isinstance(value, (openmc.Source, type(None))):
-            raise TypeError(
-                "NeutronicsModelFromReactor.source should be an \
-                openmc.Source() object"
-            )
+            msg = "NeutronicsModelFromReactor.source should be an openmc.Source() object"
+            raise TypeError(msg)
         self._source = value
 
     @property
@@ -141,8 +162,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.cell_tallies should be a\
-                    list"
+                    "NeutronicsModelFromReactor.cell_tallies should be a list"
                 )
             output_options = (
                 ["TBR", "heating", "flux", "spectra", "absorption"]
@@ -168,8 +188,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.mesh_tally_2d should be a\
-                    list"
+                    "NeutronicsModelFromReactor.mesh_tally_2d should be a list"
                 )
             output_options = (
                 ["heating", "flux", "absorption"]
@@ -195,8 +214,7 @@ class NeutronicsModel:
         if value is not None:
             if not isinstance(value, list):
                 raise TypeError(
-                    "NeutronicsModelFromReactor.mesh_tally_3d should be a\
-                    list"
+                    "NeutronicsModelFromReactor.mesh_tally_3d should be a list"
                 )
             output_options = (
                 ["heating", "flux", "absorption"]
@@ -221,41 +239,9 @@ class NeutronicsModel:
     def materials(self, value):
         if not isinstance(value, dict):
             raise TypeError(
-                "NeutronicsModelFromReactor.materials should be a\
-                dictionary"
+                "NeutronicsModelFromReactor.materials should be a dictionary"
             )
         self._materials = value
-
-    # @property
-    # def simulation_batches(self):
-    #     return self._simulation_batches
-
-    # @simulation_batches.setter
-    # def simulation_batches(self, value):
-    #     if isinstance(value, float):
-    #         value = int(value)
-    #     if not isinstance(value, int):
-    #         raise TypeError(
-    #             "NeutronicsModelFromReactor.simulation_batches should be an int"
-    #         )
-    #     if value < 2:
-    #         raise ValueError("The minimum of setting for simulation_batches is 2")
-    #     self._simulation_batches = value
-
-    @property
-    def simulation_particles_per_batch(self):
-        return self._simulation_particles_per_batch
-
-    @simulation_particles_per_batch.setter
-    def simulation_particles_per_batch(self, value):
-        if isinstance(value, float):
-            value = int(value)
-        if not isinstance(value, int):
-            raise TypeError(
-                "NeutronicsModelFromReactor.simulation_particles_per_batch\
-                    should be an int"
-            )
-        self._simulation_particles_per_batch = value
 
     def create_material(self, material_tag: str, material_entry):
         if isinstance(material_entry, str):
@@ -298,7 +284,8 @@ class NeutronicsModel:
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
-            openmc_material = self.create_material(material_tag, material_entry)
+            openmc_material = self.create_material(
+                material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -352,17 +339,16 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
-    # def build_csg_graveyard(self):
-
     def export_xml(
         self,
         simulation_batches: int,
         simulation_particles_per_batch: int,
         source=None,
         max_lost_particles: Optional[int] = 0,
-        mesh_tally_3d: Optional[float] = None,
-        mesh_tally_2d: Optional[float] = None,
-        cell_tallies: Optional[float] = None,
+        mesh_tally_3d: Optional[List[str]] = None,
+        mesh_tally_tet: Optional[List[str]] = None,
+        mesh_tally_2d: Optional[List[str]] = None,
+        cell_tallies: Optional[List[str]] = None,
         mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
         mesh_2d_corners: Optional[
@@ -387,6 +373,12 @@ class NeutronicsModel:
                 scores such as (n,Xa) which is helium production are also supported
                 https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
                 Defaults to None which uses the NeutronicsModel.mesh_tally_3d
+                attribute.
+            mesh_tally_tet: the tallies to calculate on the tet mesh, options
+                include heating and flux , MT numbers and OpenMC standard
+                scores such as (n,Xa) which is helium production are also supported
+                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
+                Defaults to None which uses the NeutronicsModel.mesh_tally_tet
                 attribute.
             mesh_tally_2d: . the 2D mesh based tallies to calculate, options
                 include heating and flux , MT numbers and OpenMC standard
@@ -425,6 +417,8 @@ class NeutronicsModel:
             source = self.source
         if mesh_tally_3d is None:
             mesh_tally_3d = self.mesh_tally_3d
+        if mesh_tally_tet is None:
+            mesh_tally_tet = self.mesh_tally_tet
         if mesh_tally_2d is None:
             mesh_tally_2d = self.mesh_tally_2d
         if cell_tallies is None:
@@ -462,6 +456,30 @@ class NeutronicsModel:
 
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
+
+        if self.tet_mesh_filename is not None:
+            if self.tet_mesh_filename.endswith('.exo'):
+                # requires a exo file export from cubit
+                umesh = openmc.UnstructuredMesh(
+                    self.tet_mesh_filename, library='libmesh')
+            elif self.tet_mesh_filename.endswith('.h5m'):
+                # requires a .cub file export from cubit and mbconvert to h5m
+                # format
+                umesh = openmc.UnstructuredMesh(
+                    self.tet_mesh_filename, library='moab')
+            else:
+                msg = 'only h5m or exo files are accepted as valid tet_mesh_filename values'
+                raise ValueError(msg)
+
+            umesh_filter = openmc.MeshFilter(umesh)
+
+            for standard_tally in self.mesh_tally_tet:
+                score = standard_tally
+                prefix = standard_tally
+                tally = openmc.Tally(name=prefix + "_on_3D_u_mesh")
+                tally.filters = [umesh_filter]
+                tally.scores = [score]
+                self.tallies.append(tally)
 
         if self.mesh_tally_3d is not None:
             mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
@@ -562,7 +580,6 @@ class NeutronicsModel:
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
                 mesh_yz.upper_right = self.mesh_2d_corners[1]
 
-
             for standard_tally in self.mesh_tally_2d:
                 score = standard_tally
                 prefix = standard_tally
@@ -595,14 +612,16 @@ class NeutronicsModel:
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
                     self._add_tally_for_every_material(
                         "neutron_spectra",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
                         self._add_tally_for_every_material(
                             "photon_spectra",
                             "flux",
@@ -686,22 +705,22 @@ class NeutronicsModel:
                 "The simulation_batches argument must be an int"
             )
         if simulation_batches < 2:
-            raise ValueError("The minimum of setting for simulation_batches is 2")
-
+            msg = "The minimum of setting for simulation_batches is 2"
+            raise ValueError(msg)
 
         if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(simulation_particles_per_batch)
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
         if not isinstance(simulation_particles_per_batch, int):
             msg = ("NeutronicsModelFromReactor.simulation_particles_per_batch"
                    "should be an int")
             raise TypeError(msg)
 
-
         if export_xml is True:
             self.export_xml(
-                simulation_batches = simulation_batches,
-                simulation_particles_per_batch = simulation_particles_per_batch,
-                max_lost_particles = max_lost_particles,
+                simulation_batches=simulation_batches,
+                simulation_particles_per_batch=simulation_particles_per_batch,
+                max_lost_particles=max_lost_particles,
             )
 
         # checks all the nessecary files are found
@@ -720,8 +739,8 @@ class NeutronicsModel:
                 raise FileNotFoundError(msg)
 
         if not Path(self.h5m_filename).is_file():
-            msg = f"""{self.h5m_filename} file was not found. Please set 
-                  export_h5m to True or use the export_h5m() methods to create 
+            msg = f"""{self.h5m_filename} file was not found. Please set
+                  export_h5m to True or use the export_h5m() methods to create
                   the dagmc.h5m file"""
             raise FileNotFoundError(msg)
 
@@ -730,10 +749,10 @@ class NeutronicsModel:
         silently_remove_file("summary.h5")
         silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
 
-        self.statepoint_filename = self.model.run(output=verbose, threads=threads)
+        self.statepoint_filename = self.model.run(
+            output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power
-        )
+            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power)
 
         with open(cell_tally_results_filename, "w") as outfile:
             json.dump(self.results, outfile, indent=4, sort_keys=True)
@@ -776,9 +795,14 @@ class NeutronicsModel:
             source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
-            points = extract_points_from_initial_source(source_filename, view_plane)
+            points = extract_points_from_initial_source(
+                source_filename, view_plane)
 
-            figure.add_trace(plotly_trace(points=points, mode="markers", name="source"))
+            figure.add_trace(
+                plotly_trace(
+                    points=points,
+                    mode="markers",
+                    name="source"))
 
         if filename is not None:
 
