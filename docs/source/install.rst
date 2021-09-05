@@ -6,7 +6,7 @@ Installation
 Install
 -------
 
-To use the paramak-neutronics module you will need the Python, Paramak, DAGMC
+To use the OpenMC-DAGMC-Wrapper package you will need the Python, Paramak, DAGMC
 and OpenMC installed.
 
 The recommended method is to install Python 3 using Anaconda or Miniconda
@@ -21,34 +21,27 @@ First create a new Conda environment.
 
 .. code-block:: python
 
-   conda create -n paramak_env
+   conda create -n my_env
 
 
 Then activated the conda environment.
 
 .. code-block:: python
 
-   conda activate paramak_env
+   conda activate my_env
 
 
-Then install the Paramak.
-
-.. code-block:: python
-
-   conda install -c fusion-energy -c cadquery -c conda-forge paramak
-
-
-Then install the paramak-neutronics package using Pip.
+Then install the OpenMC-DAGMC-Wrapper package using Pip.
 
 .. code-block:: python
 
-   pip install paramak-neutronics
+   pip install openmc-dagmc-wrapper
 
 
 To complete the software stack OpenMC, DAGMC, Cubit and the DAGMC/Cubit plugin
 will also need installing. We don't have simple instructions for these packages
-yet but one option is to duplicate the stages in the `Dockerfile <https://github.com/fusion-energy/paramak-neutronics/blob/main/Dockerfile>`_
-or to make use of the `install scripts <https://github.com/fusion-energy/paramak-neutronics/blob/main/install_scripts/`_
+yet but one option is to duplicate the stages in the `Dockerfile <https://github.com/fusion-energy/neutronics_workflow/blob/main/Dockerfile>`_
+or to make use of the `install scripts <https://github.com/fusion-energy/neutronics_workflow/blob/main/install_scripts/`_
 
 Docker Image Installation
 -------------------------
@@ -66,7 +59,7 @@ terminal window, or Windows users might prefer PowerShell.
 
 .. code-block:: bash
 
-   docker pull ghcr.io/fusion-energy/paramak-neutronics
+   docker pull ghcr.io/fusion-energy/openmc-dagmc-wrapper
 
 3. Now that you have the docker image you can enable graphics linking between
 your os and docker, and then run the docker container by typing the following
@@ -74,7 +67,7 @@ commands in a terminal window.
 
 .. code-block:: bash
 
-   sudo docker run -p 8888:8888 ghcr.io/fusion-energy/paramak-neutronics
+   sudo docker run -p 8888:8888 ghcr.io/fusion-energy/openmc-dagmc-wrapper
 
 4. A URL should be displayed in the terminal and can now be opened in the
 internet browser of your choice. This will load up the examples folder where
@@ -84,7 +77,7 @@ Alternatively the Docker image can be run in terminal mode .
 
 .. code-block:: bash
 
-   docker run -it ghcr.io/fusion-energy/paramak-neutronics
+   docker run -it ghcr.io/fusion-energy/openmc-dagmc-wrapper
 
 You may also want to make use of the
 `--volume <https://docs.docker.com/storage/volumes/>`_

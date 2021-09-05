@@ -21,9 +21,9 @@ sys.path.insert(0, os.path.abspath("../../examples"))
 
 # -- Project information -----------------------------------------------------
 
-project = "Paramak-neutronics"
-copyright = "Paramak-neutronics contributors"
-author = "Paramak contributors"
+project = "OpenMC-DAGMC-Wrapper"
+copyright = "OpenMC-DAGMC-Wrapper contributors"
+author = "OpenMC-DAGMC-Wrapper contributors"
 
 # The short X.Y version
 version = ""
@@ -137,9 +137,9 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc,
-     "Paramak-neutronics.tex",
-     "Paramak Neutronics Documentation",
-     "Paramak neutronics contributors",
+     "OpenMC-DAGMC-Wrapper.tex",
+     "OpenMC-DAGMC-Wrapper Documentation",
+     "OpenMC-DAGMC-Wrapper contributors",
      "manual"),
 ]
 
@@ -150,8 +150,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc,
-     "paramak-neutronics",
-     "Paramak Documentation",
+     "OpenMC-DAGMC-Wrapper",
+     "OpenMC-DAGMC-Wrapper Documentation",
      [author],
      1)]
 
@@ -164,10 +164,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "Paramak-neutronics",
-        "Paramak Neutronics Documentation",
+        "OpenMC-DAGMC-Wrapper",
+        "OpenMC-DAGMC-Wrapper Documentation",
         author,
-        "Paramak Neutronics",
+        "OpenMC-DAGMC-Wrapper",
         "One line description of project.",
         "Miscellaneous",
     ),
