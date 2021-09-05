@@ -14,4 +14,4 @@ possible by running pytest from the paramak based directory.
    pytest tests
 
 The test suite can be explored on the
-`Gihub source code repository. <https://github.com/fusion-energy/paramak-neutronics/tree/main/tests>`_ 
+`Gihub source code repository. <https://github.com/fusion-energy/openmc-dagmc-wrapper/tree/main/tests>`_ 
