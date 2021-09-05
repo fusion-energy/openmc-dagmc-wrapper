@@ -122,7 +122,9 @@ class NeutronicsModel:
         if isinstance(value, str):
             self._h5m_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.h5m_filename should be a string")
+            raise TypeError(
+                "NeutronicsModelFromReactor.h5m_filename should be a string")
+
     @property
     def tet_mesh_filename(self):
         return self._tet_mesh_filename
@@ -132,7 +134,8 @@ class NeutronicsModel:
         if isinstance(value, (str, type(None))):
             self._tet_mesh_filename = value
         else:
-            raise TypeError("NeutronicsModelFromReactor.tet_mesh_filename should be a string")
+            raise TypeError(
+                "NeutronicsModelFromReactor.tet_mesh_filename should be a string")
 
     @property
     def source(self):
@@ -310,7 +313,8 @@ class NeutronicsModel:
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
-            openmc_material = self.create_material(material_tag, material_entry)
+            openmc_material = self.create_material(
+                material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -463,7 +467,6 @@ class NeutronicsModel:
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
         geom = openmc.Geometry(root=dag_univ)
 
-
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
         settings.batches = simulation_batches
@@ -482,12 +485,16 @@ class NeutronicsModel:
         if self.tet_mesh_filename is not None:
             if self.tet_mesh_filename.endswith('.exo'):
                 # requires a exo file export from cubit
-                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library='libmesh')
+                umesh = openmc.UnstructuredMesh(
+                    self.tet_mesh_filename, library='libmesh')
             elif self.tet_mesh_filename.endswith('.h5m'):
-                # requires a .cub file export from cubit and mbconvert to h5m format
-                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library='moab')
+                # requires a .cub file export from cubit and mbconvert to h5m
+                # format
+                umesh = openmc.UnstructuredMesh(
+                    self.tet_mesh_filename, library='moab')
             else:
-                raise ValueError('only h5m or exo files are accepted as valid tet_mesh_filename values')
+                raise ValueError(
+                    'only h5m or exo files are accepted as valid tet_mesh_filename values')
 
             umesh_filter = openmc.MeshFilter(umesh)
 
@@ -598,7 +605,6 @@ class NeutronicsModel:
                 mesh_yz.lower_left = self.mesh_2d_corners[0]
                 mesh_yz.upper_right = self.mesh_2d_corners[1]
 
-
             for standard_tally in self.mesh_tally_2d:
                 score = standard_tally
                 prefix = standard_tally
@@ -631,14 +637,16 @@ class NeutronicsModel:
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
                     self._add_tally_for_every_material(
                         "neutron_spectra",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
                         self._add_tally_for_every_material(
                             "photon_spectra",
                             "flux",
@@ -722,22 +730,22 @@ class NeutronicsModel:
                 "The simulation_batches argument must be an int"
             )
         if simulation_batches < 2:
-            raise ValueError("The minimum of setting for simulation_batches is 2")
-
+            raise ValueError(
+                "The minimum of setting for simulation_batches is 2")
 
         if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(simulation_particles_per_batch)
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
         if not isinstance(simulation_particles_per_batch, int):
             msg = ("NeutronicsModelFromReactor.simulation_particles_per_batch"
                    "should be an int")
             raise TypeError(msg)
 
-
         if export_xml is True:
             self.export_xml(
-                simulation_batches = simulation_batches,
-                simulation_particles_per_batch = simulation_particles_per_batch,
-                max_lost_particles = max_lost_particles,
+                simulation_batches=simulation_batches,
+                simulation_particles_per_batch=simulation_particles_per_batch,
+                max_lost_particles=max_lost_particles,
             )
 
         # checks all the nessecary files are found
@@ -756,8 +764,8 @@ class NeutronicsModel:
                 raise FileNotFoundError(msg)
 
         if not Path(self.h5m_filename).is_file():
-            msg = f"""{self.h5m_filename} file was not found. Please set 
-                  export_h5m to True or use the export_h5m() methods to create 
+            msg = f"""{self.h5m_filename} file was not found. Please set
+                  export_h5m to True or use the export_h5m() methods to create
                   the dagmc.h5m file"""
             raise FileNotFoundError(msg)
 
@@ -766,10 +774,10 @@ class NeutronicsModel:
         silently_remove_file("summary.h5")
         silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
 
-        self.statepoint_filename = self.model.run(output=verbose, threads=threads)
+        self.statepoint_filename = self.model.run(
+            output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power
-        )
+            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power)
 
         with open(cell_tally_results_filename, "w") as outfile:
             json.dump(self.results, outfile, indent=4, sort_keys=True)
@@ -812,9 +820,14 @@ class NeutronicsModel:
             source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
-            points = extract_points_from_initial_source(source_filename, view_plane)
+            points = extract_points_from_initial_source(
+                source_filename, view_plane)
 
-            figure.add_trace(plotly_trace(points=points, mode="markers", name="source"))
+            figure.add_trace(
+                plotly_trace(
+                    points=points,
+                    mode="markers",
+                    name="source"))
 
         if filename is not None:
 

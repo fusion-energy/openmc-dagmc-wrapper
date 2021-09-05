@@ -81,6 +81,7 @@ def plotly_trace(
 
     return trace
 
+
 def load_moab_file(filename: str):
     """Loads a h5m into a Moab Core object and returns the object"""
     moab_core = core.Core()
@@ -130,7 +131,8 @@ def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     return sorted(list(ids))
 
 
-def find_material_groups_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
+def find_material_groups_in_h5m(
+        filename: Optional[str] = "dagmc.h5m") -> List[str]:
     """Reads in a DAGMC h5m file and uses mbsize to find the names of the
     material groups in the file
 
@@ -266,7 +268,13 @@ def get_neutronics_results_from_statepoint_file(
             _save_2d_mesh_tally_as_png(
                 score=score,
                 tally=tally,
-                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
+                filename=tally.name.replace(
+                    "(",
+                    "").replace(
+                    ")",
+                    "").replace(
+                    ",",
+                    "-"),
             )
 
         elif "_on_3D_mesh" in tally.name:
@@ -302,8 +310,14 @@ def get_neutronics_results_from_statepoint_file(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
-                + ".vtk",
+                outfile=tally.name.replace(
+                    "(",
+                    "").replace(
+                    ")",
+                    "").replace(
+                    ",",
+                    "-") +
+                ".vtk",
             )
 
         elif "_on_3D_u_mesh" in tally.name:
@@ -406,7 +420,9 @@ def write_3d_mesh_tally_to_vtk(
     return outfile
 
 
-def create_initial_particles(source, number_of_source_particles: int = 2000) -> str:
+def create_initial_particles(
+        source,
+        number_of_source_particles: int = 2000) -> str:
     """Accepts an openmc source and creates an initial_source.h5 that can be
     used to find intial xyz, direction and energy of the partice source.
 
@@ -509,10 +525,14 @@ def extract_points_from_initial_source(
         elif view_plane == "ZX":
             points.append((particle[0][2], particle[0][0]))
         elif view_plane == "RZ":
-            xy_coord = math.pow(particle[0][0], 2) + math.pow(particle[0][1], 2)
+            xy_coord = math.pow(particle[0][0], 2) + \
+                math.pow(particle[0][1], 2)
             points.append((math.sqrt(xy_coord), particle[0][2]))
         elif view_plane == "XYZ":
             points.append((particle[0][0], particle[0][1], particle[0][2]))
         else:
-            raise ValueError("view_plane value of ", view_plane, " is not supported")
+            raise ValueError(
+                "view_plane value of ",
+                view_plane,
+                " is not supported")
     return points
