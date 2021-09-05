@@ -12,20 +12,19 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
     """Tests Shape object arguments that involve neutronics usage"""
 
     def setUp(self):
-        
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
+        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_bigger.h5m'
         if not Path(local_filename).is_file():
 
             r = requests.get(url, stream=True)
             with open(local_filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024): 
+                for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
 
-        self.material_description_bigger={
+        self.material_description_bigger = {
             'pf_coil_case_mat': 'Be',
             'center_column_shield_mat': 'Be',
             'blanket_rear_wall_mat': 'Be',
