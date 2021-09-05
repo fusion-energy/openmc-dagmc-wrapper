@@ -59,7 +59,8 @@ def make_model_and_simulate():
                 temperature=blanket_rear_wall_coolant_temperature,
                 pressure=blanket_rear_wall_coolant_pressure,
             ),
-            nmm.Material.from_library(name=blanket_rear_wall_structural_material),
+            nmm.Material.from_library(
+                name=blanket_rear_wall_structural_material),
         ],
         fracs=[
             blanket_rear_wall_coolant_fraction,
@@ -156,7 +157,8 @@ def make_model_and_simulate():
                 temperature=center_column_shield_coolant_temperature_k,
                 pressure=center_column_shield_coolant_pressure_Pa,
             ),
-            nmm.Material.from_library(name=center_column_shield_structural_material),
+            nmm.Material.from_library(
+                name=center_column_shield_structural_material),
         ],
         fracs=[
             center_column_shield_coolant_fraction,
@@ -184,8 +186,10 @@ def make_model_and_simulate():
                 temperature=inboard_tf_coils_coolant_temperature_k,
                 pressure=inboard_tf_coils_coolant_pressure_Pa,
             ),
-            nmm.Material.from_library(name=inboard_tf_coils_conductor_material),
-            nmm.Material.from_library(name=inboard_tf_coils_structure_material),
+            nmm.Material.from_library(
+                name=inboard_tf_coils_conductor_material),
+            nmm.Material.from_library(
+                name=inboard_tf_coils_structure_material),
         ],
         fracs=[
             inboard_tf_coils_coolant_fraction,

@@ -11,9 +11,8 @@ import requests
 class TestObjectNeutronicsArguments(unittest.TestCase):
     """Tests Shape object arguments that involve neutronics usage"""
 
-
     def setUp(self):
-        
+
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         local_filename = 'dagmc_bigger.h5m'
@@ -22,11 +21,11 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
             r = requests.get(url, stream=True)
             with open(local_filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024): 
+                for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
-        
-        self.material_description_bigger={
+
+        self.material_description_bigger = {
             'pf_coil_case_mat': 'Be',
             'center_column_shield_mat': 'Be',
             'blanket_rear_wall_mat': 'Be',
@@ -47,13 +46,13 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
             r = requests.get(url, stream=True)
             with open(local_filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024): 
-                    if chunk: # filter out keep-alive new chunks
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
 
         self.h5m_filename_smaller_smaller = local_filename
 
-        self.material_description_smaller={
+        self.material_description_smaller = {
             'mat1': 'Be',
         }
 
@@ -70,16 +69,15 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
             materials=self.material_description_bigger,
-            cell_tallies = ['TBR']
+            cell_tallies=['TBR']
         )
 
         my_model.simulate(
-            simulation_batches = 2,
-            simulation_particles_per_batch = 20,
+            simulation_batches=2,
+            simulation_particles_per_batch=20,
         )
 
         assert my_model.results['TBR']['result'] > 0.
-
 
     def test_bounding_box_size(self):
 
@@ -91,7 +89,6 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         bounding_box = my_model.find_bounding_box()
 
-
         print(bounding_box)
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
@@ -102,7 +99,6 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
         assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
         assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
-
 
     def test_bounding_box_size_2(self):
 

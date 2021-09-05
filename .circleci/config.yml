@@ -7,7 +7,7 @@ jobs:
   # test:
   build:
     docker:
-      - image: ghcr.io/fusion-energy/paramak-neutronics:dependencies
+      - image: ghcr.io/fusion-energy/openmc-dagmc-wrapper:dependencies
     steps:
       - checkout
       - run:

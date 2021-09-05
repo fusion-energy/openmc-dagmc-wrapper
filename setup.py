@@ -36,5 +36,6 @@ setuptools.setup(
         "nbformat",
         "nbconvert"
     ],
-    # openmc, dagmc, moab are also needed and embree and double down are also optionally needed but not avaible on PyPi
+    # openmc, dagmc, moab are also needed and embree and double down are also
+    # optionally needed but not avaible on PyPi
 )
