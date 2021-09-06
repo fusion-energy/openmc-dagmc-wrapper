@@ -165,7 +165,7 @@ class NeutronicsModel:
                     "NeutronicsModelFromReactor.cell_tallies should be a list"
                 )
             output_options = (
-                ["TBR", "heating", "flux", "spectra", "absorption"]
+                ["TBR", "heating", "flux", "spectra", "absorption", "effective_dose"]
                 + list(REACTION_MT.keys())
                 + list(REACTION_NAME.keys())
             )
@@ -387,8 +387,9 @@ class NeutronicsModel:
                 Defaults to None which uses the NeutronicsModel.mesh_tally_2d
                 attribute.
             cell_tallies: the cell based tallies to calculate, options include
-                TBR, heating, flux, MT numbers and OpenMC standard scores such
-                as (n,Xa) which is helium production are also supported
+                TBR, heating, flux, MT numbers, effective_dose and OpenMC
+                standard scores such as (n,Xa) which is helium production are
+                also supported
                 https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
                 Defaults to None which uses the NeutronicsModel.cell_tallies
                 attribute.
@@ -627,6 +628,13 @@ class NeutronicsModel:
                             "flux",
                             [photon_particle_filter, energy_filter],
                         )
+                if standard_tally == 'effective_dose':
+
+
+https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
+energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
+energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+
                 else:
                     score = standard_tally
                     sufix = standard_tally
@@ -651,6 +659,7 @@ class NeutronicsModel:
             sufix: the string to append to the end of the tally name to help
                 identify the tally later.
             score: the openmc.Tally().scores value that contribute to the tally
+            additional_filters: A list of  filters to ad
         """
         if additional_filters is None:
             additional_filters = []
