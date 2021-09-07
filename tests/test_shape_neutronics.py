@@ -77,6 +77,8 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             simulation_particles_per_batch=20,
         )
 
+        my_model.process_results()
+
         assert my_model.results["TBR"]["result"] > 0.0
 
     def test_bounding_box_size(self):

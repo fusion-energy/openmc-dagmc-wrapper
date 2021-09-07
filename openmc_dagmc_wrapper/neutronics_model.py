@@ -63,16 +63,6 @@ class NeutronicsModel:
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
             uses the geometry in the h5m file to set the corners.
-        fusion_power: the power in watts emitted by the fusion reaction
-            recalling that each DT fusion reaction emits 17.6 MeV or
-            2.819831e-12 Joules. Intended use for steady state reactors.
-            Providing an input can result in additional entries in the post
-            processed tally results. e.g heating tallies are extended to include
-            rate of heating deposited in Watts.
-        fusion_energy_per_pulse: the amount of energy released by the pulse.
-            Intended use for pulsed machines. Providing an input can result in
-            additional entries in the post processed tally results. e.g heating
-            tallies are extended to include Joules deposited for the pulse.
         bounding_box: the lower left and upper right corners of the geometry
             used by the 2d and 3d mesh when no corners are specified. Can be
             found with NeutronicsModel.find_bounding_box but includes graveyard
@@ -96,8 +86,6 @@ class NeutronicsModel:
         mesh_3d_corners: Optional[
             Tuple[Tuple[float, float, float], Tuple[float, float, float]]
         ] = None,
-        fusion_power: Optional[float] = None,
-        fusion_energy_per_pulse: Optional[float] = None,
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         bounding_box: Tuple[
@@ -118,8 +106,6 @@ class NeutronicsModel:
         self.mesh_2d_corners = mesh_2d_corners
         self.mesh_3d_corners = mesh_3d_corners
         self.photon_transport = photon_transport
-        self.fusion_power = fusion_power
-        self.fusion_energy_per_pulse = fusion_energy_per_pulse
 
         self.model = None
         self.results = None
@@ -779,7 +765,6 @@ class NeutronicsModel:
     def simulate(
         self,
         verbose: Optional[bool] = True,
-        cell_tally_results_filename: Optional[str] = "results.json",
         threads: Optional[int] = None,
         export_xml: Optional[bool] = True,
         simulation_batches: Optional[int] = 100,
@@ -792,8 +777,6 @@ class NeutronicsModel:
         Arguments:
             verbose: Print the output from OpenMC (True) to the terminal or
                 don't print the OpenMC output (False).
-            cell_tally_results_filename: the filename to use when saving the
-                cell tallies to file.
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
             simulation_batches: the number of batch to simulate.
@@ -865,16 +848,65 @@ class NeutronicsModel:
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)
-        self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename,
-            fusion_power=self.fusion_power,
-            fusion_energy_per_pulse=self.fusion_energy_per_pulse,
-        )
-
-        with open(cell_tally_results_filename, "w") as outfile:
-            json.dump(self.results, outfile, indent=4, sort_keys=True)
 
         return self.statepoint_filename
+
+    def process_results(
+        self,
+        fusion_power: Optional[float] = None,
+        fusion_energy_per_pulse: Optional[float] = None,
+        cell_tally_results_filename: Optional[str] = "results.json",
+        statepoint_filename: Optional[str] = None,
+    ) -> dict:
+        """Extracts simulation results from the statepoint file. Applies post
+        processing to the results taking into account user specified fusion
+        power or fusion energy per pulse. If 3d mesh tallies are specified then
+        vtk files will be produced. If 2d mesh tallies are specified then png
+        images will be produced. The cell tallies results will be output to
+        a json file.
+
+        Args:
+            fusion_power: the power in watts emitted by the fusion reaction
+                recalling that each DT fusion reaction emits 17.6 MeV or
+                2.819831e-12 Joules. Intended use for steady state reactors.
+                Providing an input can result in additional entries in the post
+                processed tally results. e.g heating tallies are extended to include
+                rate of heating deposited in Watts.
+            fusion_energy_per_pulse: the amount of energy released by the pulse.
+                Intended use for pulsed machines. Providing an input can result in
+                additional entries in the post processed tally results. e.g heating
+                tallies are extended to include Joules deposited for the pulse.
+            cell_tally_results_filename: the filename to use when saving the
+                cell tallies to file.
+            statepoint_filename: the name of the statepoint file to extract
+                results from and process. Defaults to None which makes use of
+                NeutronicsModel.statepoint_filename which is set when the
+                NeutronicsModel.simulate method is called.
+
+        Returns:
+            A dictionary of results
+        """
+
+        if statepoint_filename is None:
+            statepoint_filename = self.statepoint_filename
+        if statepoint_filename is None:
+            msg = ("statepoint_filename was not provided and "
+                   "NeutronicsModel.statepoint_filename has not been set. Try "
+                   "simulating the model first with NeutronicsModel.simulate")
+            raise ValueError(msg)
+
+        self.results = get_neutronics_results_from_statepoint_file(
+            statepoint_filename=statepoint_filename,
+            fusion_power=fusion_power,
+            fusion_energy_per_pulse=fusion_energy_per_pulse,
+        )
+
+        # outputs the cell tally results as a json file
+        if cell_tally_results_filename is not None:
+            with open(cell_tally_results_filename, "w") as outfile:
+                json.dump(self.results, outfile, indent=4, sort_keys=True)
+
+        return self.results
 
     def export_html(
         self,
