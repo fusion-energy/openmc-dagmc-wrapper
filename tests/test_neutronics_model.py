@@ -16,11 +16,11 @@ class TestShape(unittest.TestCase):
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = 'dagmc_bigger.h5m'
+        local_filename = "dagmc_bigger.h5m"
 
         if not Path(local_filename).is_file():
             r = requests.get(url, stream=True)
-            with open(local_filename, 'wb') as f:
+            with open(local_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
@@ -36,11 +36,11 @@ class TestShape(unittest.TestCase):
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = 'dagmc_smaller.h5m'
+        local_filename = "dagmc_smaller.h5m"
 
         if not Path(local_filename).is_file():
             r = requests.get(url, stream=True)
-            with open(local_filename, 'wb') as f:
+            with open(local_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
@@ -81,6 +81,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
+            fusion_power=1e9,
         )
 
         # performs an openmc simulation on the model
@@ -95,8 +96,7 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 1
 
         # extracts the heat from the results dictionary
-        heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        assert heat > 0
+        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
 
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -109,6 +109,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
+            fusion_power=1e9,
         )
 
         # performs an openmc simulation on the model
@@ -121,8 +122,7 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 1
 
         # extracts the heat from the results dictionary
-        heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        assert heat > 0
+        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
 
     # def test_cell_tally_output_file_creation(self):
     #     """Performs a neutronics simulation and checks the cell tally output
@@ -289,9 +289,7 @@ class TestShape(unittest.TestCase):
                 source=self.source,
                 materials={"mat1": "eurofer"},
             )
-            my_model.simulate(
-                simulation_batches=1
-            )
+            my_model.simulate(simulation_batches=1)
 
         self.assertRaises(ValueError, incorrect_simulation_batches_to_small)
 
@@ -337,6 +335,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": mat},
             cell_tallies=["heating", "flux", "TBR", "spectra"],
+            fusion_power=1e9,
         )
 
         # performs an openmc simulation on the model
@@ -353,9 +352,7 @@ class TestShape(unittest.TestCase):
 
         # extracts the heat from the results dictionary
         heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        flux = my_model.results["mat1_flux"][
-            "Flux per source particle"
-        ]["result"]
+        flux = my_model.results["mat1_flux"]["Flux per source particle"]["result"]
         mat_tbr = my_model.results["mat1_TBR"]["result"]
         tbr = my_model.results["TBR"]["result"]
         spectra_neutrons = my_model.results["mat1_neutron_spectra"][
@@ -364,9 +361,9 @@ class TestShape(unittest.TestCase):
         spectra_photons = my_model.results["mat1_photon_spectra"][
             "Flux per source particle"
         ]["result"]
-        energy = my_model.results["mat1_photon_spectra"][
-            "Flux per source particle"
-        ]["energy"]
+        energy = my_model.results["mat1_photon_spectra"]["Flux per source particle"][
+            "energy"
+        ]
 
         assert heat > 0
         assert flux > 0
@@ -433,7 +430,7 @@ class TestShape(unittest.TestCase):
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("n-Xt_on_3D_mesh.vtk").exists() is True
 
-#  Todo refactor now that simulate takes batchs and particles
+    #  Todo refactor now that simulate takes batchs and particles
     # def test_batches_and_particles_convert_to_int(self):
     #     """Makes a neutronics model and simulates with a 3D and 2D mesh tally
     #     and checks that the vtk and png files are produced. This checks the
@@ -523,7 +520,7 @@ class TestShape(unittest.TestCase):
         assert Path("heating_on_2D_mesh_yz.png").exists() is True
 
     def test_reactor_from_shapes_cell_tallies(self):
-        """Makes a reactor from two shapes, then mades a neutronics model
+        """Makes a reactor from two shapes, then makes a neutronics model
         and tests the TBR simulation value"""
 
         os.system("rm results.json")
@@ -545,8 +542,108 @@ class TestShape(unittest.TestCase):
         assert isinstance(neutronics_model.results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
 
+    def test_cell_tallies_simulation_effective_dose(self):
+        """Performs simulation with h5m file and tallies neutron and photon
+        dose. Checks that entries exist in the results."""
+
+        os.system("rm results.json")
+
+        neutronics_model = openmc_dagmc_wrapper.NeutronicsModel(
+            h5m_filename=self.h5m_filename_smaller,
+            source=self.source,
+            materials={"mat1": "Be"},
+            cell_tallies=["effective_dose"],
+            fusion_energy_per_pulse=1.2e6,
+            fusion_power=1e9,
+            photon_transport=True,
+        )
+
+        # starts the neutronics simulation
+        neutronics_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=10,
+        )
+
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "effective dose per source particle pSv cm3"
+            ]["result"],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "pSv cm3 per pulse"
+            ]["result"],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "pSv cm3 per second"
+            ]["result"],
+            float,
+        )
+
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "effective dose per source particle pSv cm3"
+            ]["std. dev."],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "pSv cm3 per pulse"
+            ]["std. dev."],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"][
+                "pSv cm3 per second"
+            ]["std. dev."],
+            float,
+        )
+
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"][
+                "effective dose per source particle pSv cm3"
+            ]["result"],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
+                "result"
+            ],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"][
+                "pSv cm3 per second"
+            ]["result"],
+            float,
+        )
+
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"][
+                "effective dose per source particle pSv cm3"
+            ]["std. dev."],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
+                "std. dev."
+            ],
+            float,
+        )
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"][
+                "pSv cm3 per second"
+            ]["std. dev."],
+            float,
+        )
+
+        assert Path("results.json").exists() is True
+
     def test_reactor_from_shapes_2d_mesh_tallies(self):
-        """Makes a reactor from two shapes, then mades a neutronics model
+        """Makes a reactor from two shapes, then makes a neutronics model
         and tests the TBR simulation value"""
 
         os.system("rm *_on_2D_mesh_*.png")
@@ -576,11 +673,11 @@ class TestShape(unittest.TestCase):
         assert Path("flux_on_2D_mesh_yz.png").exists() is True
 
     def test_simulations_with_missing_xml_files(self):
-        """Creates NeutronicsModel objects and trys to perform simulation
+        """Creates NeutronicsModel objects and tries to perform simulation
         without necessary input files to check if error handeling is working"""
 
         def test_missing_xml_file_error_handling():
-            """Attemps to simulate without OpenMC xml files which should fail
+            """Attempts to simulate without OpenMC xml files which should fail
             with a FileNotFoundError"""
 
             my_model = openmc_dagmc_wrapper.NeutronicsModel(
@@ -598,11 +695,11 @@ class TestShape(unittest.TestCase):
             test_missing_xml_file_error_handling)
 
     def test_simulations_with_missing_h5m_files(self):
-        """Creates NeutronicsModel objects and trys to perform simulation
+        """Creates NeutronicsModel objects and tries to perform simulation
         without necessary input files to check if error handeling is working"""
 
         def test_missing_h5m_file_error_handling():
-            """Attemps to simulate without a dagmc_smaller.h5m file which should fail
+            """Attempts to simulate without a dagmc_smaller.h5m file which should fail
             with a FileNotFoundError"""
 
             my_model = openmc_dagmc_wrapper.NeutronicsModel(

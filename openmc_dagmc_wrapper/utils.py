@@ -1,4 +1,3 @@
-
 import math
 import os
 import subprocess
@@ -15,10 +14,10 @@ from pymoab import core, types
 
 
 def plotly_trace(
-        points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
-        mode: str = "markers+lines",
-        name: str = None,
-        color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None
+    points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
+    mode: str = "markers+lines",
+    name: str = None,
+    color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None,
 ) -> Union[go.Scatter, go.Scatter3d]:
     """Creates a plotly trace representation of the points of the Shape
     object. This method is intended for internal use by Shape.export_html.
@@ -51,9 +50,9 @@ def plotly_trace(
     text_values = []
 
     for i, point in enumerate(points):
-        text = 'point number= {i} <br> x={point[0]} <br> y= {point[1]}'
+        text = "point number= {i} <br> x={point[0]} <br> y= {point[1]}"
         if len(point) == 3:
-            text = text + '<br> z= {point[2]} <br>'
+            text = text + "<br> z= {point[2]} <br>"
 
         text_values.append(text)
 
@@ -64,7 +63,7 @@ def plotly_trace(
             z=[row[2] for row in points],
             mode=mode,
             marker={"size": 3, "color": color},
-            name=name
+            name=name,
         )
 
         return trace
@@ -191,7 +190,10 @@ def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
 
 
 def get_neutronics_results_from_statepoint_file(
-    statepoint_filename: str, fusion_power: Optional[float] = None
+    statepoint_filename: str,
+    fusion_power: Optional[float] = None,
+    fusion_energy_per_pulse: Optional[float] = None,
+    fusion_fuel="DT",
 ) -> dict:
     """Reads the statepoint file from the neutronics simulation
     and extracts the tally results.
@@ -205,6 +207,29 @@ def get_neutronics_results_from_statepoint_file(
         dict: a dictionary of the simulation results
     """
 
+    if fusion_fuel == "DT":
+        fusion_energy_of_neutron_ev = 14.06 * 1e6
+        fusion_energy_of_alpha_ev = 3.52 * 1e6
+        fusion_energy_per_reaction_ev = (
+            fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
+        )
+    elif fusion_fuel == "DD":
+        fusion_energy_of_trition_ev = 1.01 * 1e6
+        fusion_energy_of_proton_ev = 3.02 * 1e6
+        fusion_energy_of_he3_ev = 0.82 * 1e6
+        fusion_energy_of_neutron_ev = 2.45 * 1e6
+        fusion_energy_per_reaction_ev = (
+            0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
+        ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
+
+    fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
+    if fusion_power is not None:
+        number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
+    if fusion_energy_per_pulse is not None:
+        number_of_neutrons_in_pulse = (
+            fusion_energy_per_pulse / fusion_energy_per_reaction_j
+        )
+
     # open the results file
     statepoint = openmc.StatePoint(statepoint_filename)
 
@@ -212,7 +237,7 @@ def get_neutronics_results_from_statepoint_file(
 
     # access the tallies
     for tally in statepoint.tallies.values():
-        print(f'processing {tally.name}')
+        print(f"processing {tally.name}")
         if tally.name.endswith("TBR"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -236,13 +261,26 @@ def get_neutronics_results_from_statepoint_file(
             if fusion_power is not None:
                 results[tally.name]["Watts"] = {
                     "result": tally_result
-                    * 1.602176487e-19
-                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                    * 1.602176487e-19  # converts tally from eV to Joules
+                    * number_of_neutrons_per_second,
                     "std. dev.": tally_std_dev
-                    * 1.602176487e-19
-                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                    * 1.602176487e-19  # converts tally from eV to Joules
+                    * number_of_neutrons_per_second,
                 }
 
+            if fusion_energy_per_pulse is not None:
+                results[tally.name]["Joules"] = {
+                    "result": tally_result
+                    * 1.602176487e-19  # converts tally from eV to Joules
+                    * number_of_neutrons_in_pulse,
+                    "std. dev.": tally_std_dev
+                    * 1.602176487e-19  # converts tally from eV to Joules
+                    * number_of_neutrons_in_pulse,
+                }
+
+        # todo add fast flux tally
+        # energies = [0.1e6, 100e6] 0.1MeV to 100MeV
+        # energy_filter = openmc.EnergyFilter(energies)
         elif tally.name.endswith("flux"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -263,6 +301,27 @@ def get_neutronics_results_from_statepoint_file(
                 "std. dev.": tally_std_dev.tolist(),
             }
 
+        elif tally.name.endswith("effective_dose"):
+            data_frame = tally.get_pandas_dataframe()
+            tally_result = data_frame["mean"].sum()
+            tally_std_dev = data_frame["std. dev."].sum()
+            # flux is in units of cm per source particle
+            # dose coefficients have units of pico Sv cm^2
+            results[tally.name]["effective dose per source particle pSv cm3"] = {
+                "result": tally_result, "std. dev.": tally_std_dev, }
+
+            if fusion_power is not None:
+                results[tally.name]["pSv cm3 per second"] = {
+                    "result": tally_result * number_of_neutrons_per_second,
+                    "std. dev.": tally_std_dev * number_of_neutrons_per_second,
+                }
+
+            if fusion_energy_per_pulse is not None:
+                results[tally.name]["pSv cm3 per pulse"] = {
+                    "result": tally_result * number_of_neutrons_in_pulse,
+                    "std. dev.": tally_std_dev * number_of_neutrons_in_pulse,
+                }
+
         elif "_on_2D_mesh" in tally.name:
             score = tally.name.split("_")[0]
             _save_2d_mesh_tally_as_png(
@@ -278,8 +337,18 @@ def get_neutronics_results_from_statepoint_file(
             )
 
         elif "_on_3D_mesh" in tally.name:
+            print(f"processing {tally.name}")
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
+
+            # TODO method to calculate
+            # import math
+            # print('width', mesh.width)
+            # print('dimension', mesh.dimension)
+            # element_lengths = [w/d for w,d in zip(mesh.width, mesh.dimension)]
+            # print('element_lengths', element_lengths)
+            # element_volume = math.prod(element_lengths)
+            # print('element_volume', element_volume)
 
             xs = np.linspace(
                 mesh.lower_left[0], mesh.upper_right[0], mesh.dimension[0] + 1
