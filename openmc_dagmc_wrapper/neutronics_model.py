@@ -905,9 +905,8 @@ class NeutronicsModel:
         if cell_tally_results_filename is not None:
             with open(cell_tally_results_filename, "w") as outfile:
                 json.dump(self.results, outfile, indent=4, sort_keys=True)
-        
-        return self.results
 
+        return self.results
 
     def export_html(
         self,
