@@ -857,7 +857,7 @@ class NeutronicsModel:
         fusion_energy_per_pulse: Optional[float] = None,
         cell_tally_results_filename: Optional[str] = "results.json",
         statepoint_filename: Optional[str] = None,
-        ) -> dict:
+    ) -> dict:
         """Extracts simulation results from the statepoint file. Applies post
         processing to the results taking into account user specified fusion
         power or fusion energy per pulse. If 3d mesh tallies are specified then
@@ -879,7 +879,7 @@ class NeutronicsModel:
             cell_tally_results_filename: the filename to use when saving the
                 cell tallies to file.
             statepoint_filename: the name of the statepoint file to extract
-                results from and process. Defaults to None which makes use of 
+                results from and process. Defaults to None which makes use of
                 NeutronicsModel.statepoint_filename which is set when the
                 NeutronicsModel.simulate method is called.
 
