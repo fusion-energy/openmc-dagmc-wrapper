@@ -559,21 +559,41 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=10,
         )
 
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["effective dose per source particle pSv cm3"]["result"], float)
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per pulse"]["result"], float)
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per second"]["result"], float)
+        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"][
+                          "effective dose per source particle pSv cm3"]["result"], float)
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per pulse"]["result"],
+            float)
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per second"]["result"],
+            float)
 
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["effective dose per source particle pSv cm3"]["std. dev."], float)
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per pulse"]["std. dev."], float)
-        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per second"]["std. dev."], float)
+        assert isinstance(neutronics_model.results["mat1_neutron_effective_dose"][
+                          "effective dose per source particle pSv cm3"]["std. dev."], float)
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per pulse"]["std. dev."],
+            float)
+        assert isinstance(
+            neutronics_model.results["mat1_neutron_effective_dose"]["pSv cm3 per second"]["std. dev."],
+            float)
 
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["effective dose per source particle pSv cm3"]["result"], float)
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"]["result"], float)
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per second"]["result"], float)
+        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"][
+                          "effective dose per source particle pSv cm3"]["result"], float)
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"]["result"],
+            float)
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per second"]["result"],
+            float)
 
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["effective dose per source particle pSv cm3"]["std. dev."], float)
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"]["std. dev."], float)
-        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per second"]["std. dev."], float)
+        assert isinstance(neutronics_model.results["mat1_photon_effective_dose"][
+                          "effective dose per source particle pSv cm3"]["std. dev."], float)
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"]["std. dev."],
+            float)
+        assert isinstance(
+            neutronics_model.results["mat1_photon_effective_dose"]["pSv cm3 per second"]["std. dev."],
+            float)
 
         assert Path("results.json").exists() is True
 

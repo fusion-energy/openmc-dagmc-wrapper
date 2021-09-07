@@ -217,8 +217,9 @@ def get_neutronics_results_from_statepoint_file(
         fusion_energy_of_proton_ev = 3.02 * 1e6
         fusion_energy_of_he3_ev = 0.82 * 1e6
         fusion_energy_of_neutron_ev = 2.45 * 1e6
-        fusion_energy_per_reaction_ev = (0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)) +  (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
-    
+        fusion_energy_per_reaction_ev = (0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)) + (
+            0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
+
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
     if fusion_power is not None:
         number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
@@ -256,20 +257,20 @@ def get_neutronics_results_from_statepoint_file(
             if fusion_power is not None:
                 results[tally.name]["Watts"] = {
                     "result": tally_result
-                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * 1.602176487e-19  # converts tally from eV to Joules
                     * number_of_neutrons_per_second,
                     "std. dev.": tally_std_dev
-                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * 1.602176487e-19  # converts tally from eV to Joules
                     * number_of_neutrons_per_second,
                 }
 
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["Joules"] = {
                     "result": tally_result
-                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * 1.602176487e-19  # converts tally from eV to Joules
                     * number_of_neutrons_in_pulse,
                     "std. dev.": tally_std_dev
-                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * 1.602176487e-19  # converts tally from eV to Joules
                     * number_of_neutrons_in_pulse,
                 }
 
@@ -303,9 +304,7 @@ def get_neutronics_results_from_statepoint_file(
             # flux is in units of cm per source particle
             # dose coefficients have units of pico Sv cm^2
             results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result,
-                "std. dev.": tally_std_dev,
-            }
+                "result": tally_result, "std. dev.": tally_std_dev, }
 
             if fusion_power is not None:
                 results[tally.name]["pSv cm3 per second"] = {
