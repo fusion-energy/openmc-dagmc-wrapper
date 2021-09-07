@@ -81,6 +81,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
+            fusion_power=1e9
         )
 
         # performs an openmc simulation on the model
@@ -95,8 +96,7 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 1
 
         # extracts the heat from the results dictionary
-        heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        assert heat > 0
+        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
 
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -109,6 +109,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": test_mat},
             cell_tallies=["heating"],
+            fusion_power=1e9,
         )
 
         # performs an openmc simulation on the model
@@ -121,8 +122,7 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 1
 
         # extracts the heat from the results dictionary
-        heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        assert heat > 0
+        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
 
     # def test_cell_tally_output_file_creation(self):
     #     """Performs a neutronics simulation and checks the cell tally output
@@ -337,6 +337,7 @@ class TestShape(unittest.TestCase):
             source=self.source,
             materials={"mat1": mat},
             cell_tallies=["heating", "flux", "TBR", "spectra"],
+            fusion_power=1e9,
         )
 
         # performs an openmc simulation on the model
