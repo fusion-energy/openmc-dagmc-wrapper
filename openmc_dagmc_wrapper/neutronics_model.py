@@ -55,13 +55,13 @@ class NeutronicsModel:
             computational intensity is required to converge each mesh element.
         mesh_2d_corners: The upper and lower corner locations for the 2d
             mesh. This sets the location of the mesh. Defaults to None which
-            uses the bounding box of the geometr in the h5m file to set the
+            uses the bounding box of the geometry in the h5m file to set the
             corners.
         mesh_3d_corners: The upper and lower corner locations for the 3d
             mesh. This sets the location of the mesh. Defaults to None which
             uses the geometry in the h5m file to set the corners.
         fusion_power: the power in watts emitted by the fusion reaction
-            recalling that each DT fusion reaction emitts 17.6 MeV or
+            recalling that each DT fusion reaction emits 17.6 MeV or
             2.819831e-12 Joules
         bounding_box: the lower left and upper right corners of the geometry
             used by the 2d and 3d mesh when no corners are specified. Can be
@@ -630,10 +630,22 @@ class NeutronicsModel:
                         )
                 if standard_tally == 'effective_dose':
 
+                    # a few more details on dose tallies can be found here
+                    # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
+                    energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+                        particle='neutron',
+                        geometry='AP'  # AP defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+                    )
 
-https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
-energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
-energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
+                    # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+
+                    self._add_tally_for_every_material(
+                        "neutron_effective_dose",
+                        "flux",
+                        [energy_function_filter_n, neutron_particle_filter],
+                    )
 
                 else:
                     score = standard_tally
