@@ -174,10 +174,17 @@ class NeutronicsModel:
                     "NeutronicsModelFromReactor.cell_tallies should be a list"
                 )
             output_options = (
-                ["TBR", "heating", "flux", "spectra", "absorption", "effective_dose"]
-                + list(REACTION_MT.keys())
-                + list(REACTION_NAME.keys())
-            )
+                [
+                    "TBR",
+                    "heating",
+                    "flux",
+                    "spectra",
+                    "absorption",
+                    "effective_dose"] +
+                list(
+                    REACTION_MT.keys()) +
+                list(
+                    REACTION_NAME.keys()))
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
@@ -512,33 +519,44 @@ class NeutronicsModel:
                         geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
-                    energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
+                    energy_function_filter_n = openmc.EnergyFunctionFilter(
+                        energy_bins_n, dose_coeffs_n)
 
                     score = 'flux'
                     prefix = standard_tally
                     mesh_filter = openmc.MeshFilter(mesh_xyz)
-                    tally = openmc.Tally(name= f"{prefix}_neutron_on_3D_mesh")
-                    tally.filters = [mesh_filter, neutron_particle_filter, energy_function_filter_n]
+                    tally = openmc.Tally(name=f"{prefix}_neutron_on_3D_mesh")
+                    tally.filters = [
+                        mesh_filter,
+                        neutron_particle_filter,
+                        energy_function_filter_n]
                     tally.scores = [score]
-                    self.tallies.append(tally) 
+                    self.tallies.append(tally)
 
-                    if self.photon_transport == True:
+                    if self.photon_transport:
                         energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
                             particle='photon',
                             geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
-                        energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
+                        energy_function_filter_p = openmc.EnergyFunctionFilter(
+                            energy_bins_p, dose_coeffs_p)
 
                         score = 'flux'
                         prefix = standard_tally
                         mesh_filter = openmc.MeshFilter(mesh_xyz)
-                        tally = openmc.Tally(name= f"{prefix}_photon_on_3D_mesh")
-                        tally.filters = [mesh_filter, photon_particle_filter, energy_function_filter_p]
+                        tally = openmc.Tally(
+                            name=f"{prefix}_photon_on_3D_mesh")
+                        tally.filters = [
+                            mesh_filter,
+                            photon_particle_filter,
+                            energy_function_filter_p]
                         tally.scores = [score]
-                        self.tallies.append(tally) 
+                        self.tallies.append(tally)
                 else:
                     score = standard_tally
                     prefix = standard_tally
@@ -547,7 +565,6 @@ class NeutronicsModel:
                     tally.filters = [mesh_filter]
                     tally.scores = [score]
                     self.tallies.append(tally)
-
 
         if self.mesh_tally_2d is not None:
 
@@ -681,8 +698,10 @@ class NeutronicsModel:
                         geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
-                    energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
+                    energy_function_filter_n = openmc.EnergyFunctionFilter(
+                        energy_bins_n, dose_coeffs_n)
                     # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
 
                     self._add_tally_for_every_material(
@@ -691,14 +710,16 @@ class NeutronicsModel:
                         [energy_function_filter_n, neutron_particle_filter],
                     )
 
-                    if self.photon_transport == True:
+                    if self.photon_transport:
                         energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
                             particle='photon',
                             geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
-                        energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
+                        energy_function_filter_p = openmc.EnergyFunctionFilter(
+                            energy_bins_p, dose_coeffs_p)
                         # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
 
                         self._add_tally_for_every_material(
