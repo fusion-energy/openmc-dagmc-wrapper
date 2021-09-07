@@ -341,7 +341,7 @@ def get_neutronics_results_from_statepoint_file(
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
 
-            # TODO method to calculate 
+            # TODO method to calculate
             # import math
             # print('width', mesh.width)
             # print('dimension', mesh.dimension)
