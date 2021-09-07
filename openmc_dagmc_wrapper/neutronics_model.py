@@ -856,6 +856,7 @@ class NeutronicsModel:
         fusion_power: Optional[float] = None,
         fusion_energy_per_pulse: Optional[float] = None,
         cell_tally_results_filename: Optional[str] = "results.json",
+        statepoint_filename: Optional[str] = None,
         ) -> dict:
         """Extracts simulation results from the statepoint file. Applies post
         processing to the results taking into account user specified fusion
@@ -877,13 +878,25 @@ class NeutronicsModel:
                 tallies are extended to include Joules deposited for the pulse.
             cell_tally_results_filename: the filename to use when saving the
                 cell tallies to file.
+            statepoint_filename: the name of the statepoint file to extract
+                results from and process. Defaults to None which makes use of 
+                NeutronicsModel.statepoint_filename which is set when the
+                NeutronicsModel.simulate method is called.
 
         Returns:
             A dictionary of results
         """
 
+        if statepoint_filename is None:
+            statepoint_filename = self.statepoint_filename
+        if statepoint_filename is None:
+            msg = ("statepoint_filename was not provided and 
+                   "NeutronicsModel.statepoint_filename has not been set. Try"
+                   "simulating the model first with NeutronicsModel.simulate")
+            raise ValueError(msg)
+
         self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename,
+            statepoint_filename=statepoint_filename,
             fusion_power=fusion_power,
             fusion_energy_per_pulse=fusion_energy_per_pulse,
         )
