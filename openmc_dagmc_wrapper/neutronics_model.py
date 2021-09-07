@@ -62,7 +62,14 @@ class NeutronicsModel:
             uses the geometry in the h5m file to set the corners.
         fusion_power: the power in watts emitted by the fusion reaction
             recalling that each DT fusion reaction emits 17.6 MeV or
-            2.819831e-12 Joules
+            2.819831e-12 Joules. Intended use for steady state reactors.
+            Providing an input can result in additional entries in the post
+            processed tally results. e.g heating tallies are extended to include
+            rate of heating deposited in Watts.
+        fusion_energy_per_pulse: the amount of energy released by the pulse.
+            Intended use for pulsed machines. Providing an input can result in
+            additional entries in the post processed tally results. e.g heating
+            tallies are extended to include Joules deposited for the pulse.
         bounding_box: the lower left and upper right corners of the geometry
             used by the 2d and 3d mesh when no corners are specified. Can be
             found with NeutronicsModel.find_bounding_box but includes graveyard
@@ -86,7 +93,8 @@ class NeutronicsModel:
         mesh_3d_corners: Optional[
             Tuple[Tuple[float, float, float], Tuple[float, float, float]]
         ] = None,
-        fusion_power: Optional[float] = 1e9,
+        fusion_power: Optional[float] = None,
+        fusion_energy_per_pulse: Optional[float] = None,
         photon_transport: Optional[bool] = True,
         # convert from watts to activity source_activity
         bounding_box: Tuple[
@@ -108,6 +116,7 @@ class NeutronicsModel:
         self.mesh_3d_corners = mesh_3d_corners
         self.photon_transport = photon_transport
         self.fusion_power = fusion_power
+        self.fusion_energy_per_pulse = fusion_energy_per_pulse
 
         self.model = None
         self.results = None
@@ -217,7 +226,7 @@ class NeutronicsModel:
                     "NeutronicsModelFromReactor.mesh_tally_3d should be a list"
                 )
             output_options = (
-                ["heating", "flux", "absorption"]
+                ["heating", "flux", "absorption", "effective_dose"]
                 + list(REACTION_MT.keys())
                 + list(REACTION_NAME.keys())
             )
@@ -497,13 +506,48 @@ class NeutronicsModel:
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
 
             for standard_tally in self.mesh_tally_3d:
-                score = standard_tally
-                prefix = standard_tally
-                mesh_filter = openmc.MeshFilter(mesh_xyz)
-                tally = openmc.Tally(name=prefix + "_on_3D_mesh")
-                tally.filters = [mesh_filter]
-                tally.scores = [score]
-                self.tallies.append(tally)
+                if standard_tally == "effective_dose":
+                    energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+                        particle='neutron',
+                        geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+                    )
+
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    energy_function_filter_n = openmc.EnergyFunctionFilter(energy_bins_n, dose_coeffs_n)
+
+                    score = 'flux'
+                    prefix = standard_tally
+                    mesh_filter = openmc.MeshFilter(mesh_xyz)
+                    tally = openmc.Tally(name= f"{prefix}_neutron_on_3D_mesh")
+                    tally.filters = [mesh_filter, neutron_particle_filter, energy_function_filter_n]
+                    tally.scores = [score]
+                    self.tallies.append(tally) 
+
+                    if self.photon_transport == True:
+                        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+                            particle='photon',
+                            geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+                        )
+
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+
+                        score = 'flux'
+                        prefix = standard_tally
+                        mesh_filter = openmc.MeshFilter(mesh_xyz)
+                        tally = openmc.Tally(name= f"{prefix}_photon_on_3D_mesh")
+                        tally.filters = [mesh_filter, photon_particle_filter, energy_function_filter_p]
+                        tally.scores = [score]
+                        self.tallies.append(tally) 
+                else:
+                    score = standard_tally
+                    prefix = standard_tally
+                    mesh_filter = openmc.MeshFilter(mesh_xyz)
+                    tally = openmc.Tally(name=prefix + "_on_3D_mesh")
+                    tally.filters = [mesh_filter]
+                    tally.scores = [score]
+                    self.tallies.append(tally)
+
 
         if self.mesh_tally_2d is not None:
 
@@ -634,7 +678,7 @@ class NeutronicsModel:
                     # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
                     energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
                         particle='neutron',
-                        geometry='AP'  # AP defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+                        geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
                     neutron_particle_filter = openmc.ParticleFilter(["neutron"])
@@ -646,6 +690,22 @@ class NeutronicsModel:
                         "flux",
                         [energy_function_filter_n, neutron_particle_filter],
                     )
+
+                    if self.photon_transport == True:
+                        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+                            particle='photon',
+                            geometry='ISO'  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+                        )
+
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+                        # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
+
+                        self._add_tally_for_every_material(
+                            "photon_effective_dose",
+                            "flux",
+                            [energy_function_filter_p, photon_particle_filter],
+                        )
 
                 else:
                     score = standard_tally
@@ -773,7 +833,10 @@ class NeutronicsModel:
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=self.statepoint_filename, fusion_power=self.fusion_power)
+            statepoint_filename=self.statepoint_filename,
+            fusion_power=self.fusion_power,
+            fusion_energy_per_pulse=self.fusion_energy_per_pulse
+        )
 
         with open(cell_tally_results_filename, "w") as outfile:
             json.dump(self.results, outfile, indent=4, sort_keys=True)
