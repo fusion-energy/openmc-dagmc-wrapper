@@ -646,11 +646,11 @@ class NeutronicsModel:
             for standard_tally in self.cell_tallies:
                 if standard_tally == "TBR":
                     score = "(n,Xt)"  # where X is a wild card
-                    sufix = "TBR"
+                    suffix = "TBR"
                     tally = openmc.Tally(name="TBR")
                     tally.scores = [score]
                     self.tallies.append(tally)
-                    self._add_tally_for_every_material(sufix, score)
+                    self._add_tally_for_every_material(suffix, score)
 
                 elif standard_tally == "spectra":
 
@@ -672,7 +672,7 @@ class NeutronicsModel:
                             "flux",
                             [photon_particle_filter, energy_filter],
                         )
-                if standard_tally == 'effective_dose':
+                elif standard_tally == 'effective_dose':
 
                     # a few more details on dose tallies can be found here
                     # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
@@ -709,8 +709,8 @@ class NeutronicsModel:
 
                 else:
                     score = standard_tally
-                    sufix = standard_tally
-                    self._add_tally_for_every_material(sufix, score)
+                    suffix = standard_tally
+                    self._add_tally_for_every_material(suffix, score)
 
         # make the model from geometry, materials, settings and tallies
         model = openmc.model.Model(geom, self.mats, settings, self.tallies)
@@ -723,12 +723,12 @@ class NeutronicsModel:
         return model
 
     def _add_tally_for_every_material(
-        self, sufix: str, score: str, additional_filters: List = None
+        self, suffix: str, score: str, additional_filters: List = None
     ) -> None:
         """Adds a tally to self.tallies for every material.
 
         Arguments:
-            sufix: the string to append to the end of the tally name to help
+            suffix: the string to append to the end of the tally name to help
                 identify the tally later.
             score: the openmc.Tally().scores value that contribute to the tally
             additional_filters: A list of  filters to ad
@@ -738,7 +738,7 @@ class NeutronicsModel:
         for key, value in self.openmc_materials.items():
             if key != "DT_plasma":
                 material_filter = openmc.MaterialFilter(value)
-                tally = openmc.Tally(name=key + "_" + sufix)
+                tally = openmc.Tally(name=key + "_" + suffix)
                 tally.filters = [material_filter] + additional_filters
                 tally.scores = [score]
                 self.tallies.append(tally)

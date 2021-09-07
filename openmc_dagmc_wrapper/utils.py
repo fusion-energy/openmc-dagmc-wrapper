@@ -342,6 +342,15 @@ def get_neutronics_results_from_statepoint_file(
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
 
+            # TODO method to calculate 
+            # import math
+            # print('width', mesh.width)
+            # print('dimension', mesh.dimension)
+            # element_lengths = [w/d for w,d in zip(mesh.width, mesh.dimension)]
+            # print('element_lengths', element_lengths)
+            # element_volume = math.prod(element_lengths)
+            # print('element_volume', element_volume)
+
             xs = np.linspace(
                 mesh.lower_left[0], mesh.upper_right[0], mesh.dimension[0] + 1
             )
