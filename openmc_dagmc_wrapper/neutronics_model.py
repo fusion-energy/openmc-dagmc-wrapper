@@ -179,10 +179,17 @@ class NeutronicsModel:
                     "NeutronicsModelFromReactor.cell_tallies should be a list"
                 )
             output_options = (
-                ["TBR", "heating", "flux", "spectra", "absorption", "effective_dose"]
-                + list(REACTION_MT.keys())
-                + list(REACTION_NAME.keys())
-            )
+                [
+                    "TBR",
+                    "heating",
+                    "flux",
+                    "spectra",
+                    "absorption",
+                    "effective_dose"] +
+                list(
+                    REACTION_MT.keys()) +
+                list(
+                    REACTION_NAME.keys()))
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
@@ -298,7 +305,8 @@ class NeutronicsModel:
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
-            openmc_material = self.create_material(material_tag, material_entry)
+            openmc_material = self.create_material(
+                material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -480,7 +488,8 @@ class NeutronicsModel:
             elif self.tet_mesh_filename.endswith(".h5m"):
                 # requires a .cub file export from cubit and mbconvert to h5m
                 # format
-                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library="moab")
+                umesh = openmc.UnstructuredMesh(
+                    self.tet_mesh_filename, library="moab")
             else:
                 msg = "only h5m or exo files are accepted as valid tet_mesh_filename values"
                 raise ValueError(msg)
@@ -516,7 +525,8 @@ class NeutronicsModel:
                         geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -539,7 +549,8 @@ class NeutronicsModel:
                             geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
@@ -547,7 +558,8 @@ class NeutronicsModel:
                         score = "flux"
                         prefix = standard_tally
                         mesh_filter = openmc.MeshFilter(mesh_xyz)
-                        tally = openmc.Tally(name=f"{prefix}_photon_on_3D_mesh")
+                        tally = openmc.Tally(
+                            name=f"{prefix}_photon_on_3D_mesh")
                         tally.filters = [
                             mesh_filter,
                             photon_particle_filter,
@@ -672,14 +684,16 @@ class NeutronicsModel:
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
                     self._add_tally_for_every_material(
                         "neutron_spectra",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
                         self._add_tally_for_every_material(
                             "photon_spectra",
                             "flux",
@@ -694,7 +708,8 @@ class NeutronicsModel:
                         geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -712,7 +727,8 @@ class NeutronicsModel:
                             geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter(["photon"])
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
@@ -805,7 +821,8 @@ class NeutronicsModel:
             raise ValueError(msg)
 
         if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(simulation_particles_per_batch)
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
         if not isinstance(simulation_particles_per_batch, int):
             msg = (
                 "NeutronicsModelFromReactor.simulation_particles_per_batch"
@@ -846,7 +863,8 @@ class NeutronicsModel:
         silently_remove_file("summary.h5")
         silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
 
-        self.statepoint_filename = self.model.run(output=verbose, threads=threads)
+        self.statepoint_filename = self.model.run(
+            output=verbose, threads=threads)
         self.results = get_neutronics_results_from_statepoint_file(
             statepoint_filename=self.statepoint_filename,
             fusion_power=self.fusion_power,
@@ -894,9 +912,14 @@ class NeutronicsModel:
             source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
-            points = extract_points_from_initial_source(source_filename, view_plane)
+            points = extract_points_from_initial_source(
+                source_filename, view_plane)
 
-            figure.add_trace(plotly_trace(points=points, mode="markers", name="source"))
+            figure.add_trace(
+                plotly_trace(
+                    points=points,
+                    mode="markers",
+                    name="source"))
 
         if filename is not None:
 
