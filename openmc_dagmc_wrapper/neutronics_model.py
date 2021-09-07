@@ -856,7 +856,7 @@ class NeutronicsModel:
         fusion_power: Optional[float] = None,
         fusion_energy_per_pulse: Optional[float] = None,
         cell_tally_results_filename: Optional[str] = "results.json",
-        ) -> dict:
+    ) -> dict:
         """Extracts simulation results from the statepoint file. Applies post
         processing to the results taking into account user specified fusion
         power or fusion energy per pulse. If 3d mesh tallies are specified then
@@ -892,9 +892,8 @@ class NeutronicsModel:
         if cell_tally_results_filename is not None:
             with open(cell_tally_results_filename, "w") as outfile:
                 json.dump(self.results, outfile, indent=4, sort_keys=True)
-        
-        return self.results
 
+        return self.results
 
     def export_html(
         self,
