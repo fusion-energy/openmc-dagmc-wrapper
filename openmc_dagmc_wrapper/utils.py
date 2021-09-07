@@ -191,7 +191,10 @@ def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
 
 
 def get_neutronics_results_from_statepoint_file(
-    statepoint_filename: str, fusion_power: Optional[float] = None
+    statepoint_filename: str,
+    fusion_power: Optional[float] = None,
+    fusion_energy: Optional[float] = None,
+    fusion_fuel='DT'
 ) -> dict:
     """Reads the statepoint file from the neutronics simulation
     and extracts the tally results.
@@ -204,6 +207,23 @@ def get_neutronics_results_from_statepoint_file(
     Returns:
         dict: a dictionary of the simulation results
     """
+
+    if fusion_fuel == 'DT':
+        fusion_energy_of_neutron_ev = 14.06 * 1e6
+        fusion_energy_of_alpha_ev = 3.52 * 1e6
+        fusion_energy_per_reaction_ev = fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
+    elif fusion_fuel == 'DD':
+        fusion_energy_of_trition_ev = 1.01 * 1e6
+        fusion_energy_of_proton_ev = 3.02 * 1e6
+        fusion_energy_of_he3_ev = 0.82 * 1e6
+        fusion_energy_of_neutron_ev = 2.45 * 1e6
+        fusion_energy_per_reaction_ev = (0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)) +  (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
+    
+    fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
+    if fusion_power is not None:
+        number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
+    if fusion_energy is not None:
+        number_of_neutrons_in_pulse = 
 
     # open the results file
     statepoint = openmc.StatePoint(statepoint_filename)
@@ -234,13 +254,25 @@ def get_neutronics_results_from_statepoint_file(
             }
 
             if fusion_power is not None:
+                 
                 results[tally.name]["Watts"] = {
                     "result": tally_result
+                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * number_of_neutrons_per_second,
+                    "std. dev.": tally_std_dev
+                    * 1.602176487e-19 # converts tally from eV to Joules
+                    * number_of_neutrons_per_second,
+                }
+
+            if fusion_energy is not None:
+                number_of_neutrons_in_pulse = 
+                results[tally.name]["Joules"] = {
+                    "result": tally_result
                     * 1.602176487e-19
-                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                    * (fusion_energy / ((17.58 * 1e6) / 6.2415090744e18)),
                     "std. dev.": tally_std_dev
                     * 1.602176487e-19
-                    * (fusion_power / ((17.58 * 1e6) / 6.2415090744e18)),
+                    * (fusion_energy / ((17.58 * 1e6) / 6.2415090744e18)),
                 }
 
         elif tally.name.endswith("flux"):
@@ -262,6 +294,16 @@ def get_neutronics_results_from_statepoint_file(
                 "result": tally_result.tolist(),
                 "std. dev.": tally_std_dev.tolist(),
             }
+
+        elif tally.name.endswith("effective_dose"):
+            data_frame = tally.get_pandas_dataframe()
+            tally_result = data_frame["mean"]
+            tally_std_dev = data_frame["std. dev."]
+            results[tally.name]["effective dose per source particle"] = {
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
+
 
         elif "_on_2D_mesh" in tally.name:
             score = tally.name.split("_")[0]
