@@ -15,26 +15,26 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = 'dagmc_bigger.h5m'
+        local_filename = "dagmc_bigger.h5m"
         if not Path(local_filename).is_file():
 
             r = requests.get(url, stream=True)
-            with open(local_filename, 'wb') as f:
+            with open(local_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
 
         self.material_description_bigger = {
-            'pf_coil_case_mat': 'Be',
-            'center_column_shield_mat': 'Be',
-            'blanket_rear_wall_mat': 'Be',
-            'divertor_mat': 'Be',
-            'graveyard': 'Be',
-            'tf_coil_mat': 'Be',
-            'pf_coil_mat': 'Be',
-            'inboard_tf_coils_mat': 'Be',
-            'blanket_mat': 'Be',
-            'firstwall_mat': 'Be',
+            "pf_coil_case_mat": "Be",
+            "center_column_shield_mat": "Be",
+            "blanket_rear_wall_mat": "Be",
+            "divertor_mat": "Be",
+            "graveyard": "Be",
+            "tf_coil_mat": "Be",
+            "pf_coil_mat": "Be",
+            "inboard_tf_coils_mat": "Be",
+            "blanket_mat": "Be",
+            "firstwall_mat": "Be",
         }
 
     def test_bounding_box_size(self):
@@ -50,7 +50,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=source,
-            materials=self.material_description_bigger
+            materials=self.material_description_bigger,
         )
 
         bounding_box = my_model.find_bounding_box()

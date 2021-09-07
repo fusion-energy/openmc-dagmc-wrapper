@@ -1,4 +1,3 @@
-
 import math
 import os
 import subprocess
@@ -15,10 +14,10 @@ from pymoab import core, types
 
 
 def plotly_trace(
-        points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
-        mode: str = "markers+lines",
-        name: str = None,
-        color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None
+    points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
+    mode: str = "markers+lines",
+    name: str = None,
+    color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None,
 ) -> Union[go.Scatter, go.Scatter3d]:
     """Creates a plotly trace representation of the points of the Shape
     object. This method is intended for internal use by Shape.export_html.
@@ -51,9 +50,9 @@ def plotly_trace(
     text_values = []
 
     for i, point in enumerate(points):
-        text = 'point number= {i} <br> x={point[0]} <br> y= {point[1]}'
+        text = "point number= {i} <br> x={point[0]} <br> y= {point[1]}"
         if len(point) == 3:
-            text = text + '<br> z= {point[2]} <br>'
+            text = text + "<br> z= {point[2]} <br>"
 
         text_values.append(text)
 
@@ -64,7 +63,7 @@ def plotly_trace(
             z=[row[2] for row in points],
             mode=mode,
             marker={"size": 3, "color": color},
-            name=name
+            name=name,
         )
 
         return trace
@@ -131,8 +130,7 @@ def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     return sorted(list(ids))
 
 
-def find_material_groups_in_h5m(
-        filename: Optional[str] = "dagmc.h5m") -> List[str]:
+def find_material_groups_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
     """Reads in a DAGMC h5m file and uses mbsize to find the names of the
     material groups in the file
 
@@ -194,7 +192,7 @@ def get_neutronics_results_from_statepoint_file(
     statepoint_filename: str,
     fusion_power: Optional[float] = None,
     fusion_energy_per_pulse: Optional[float] = None,
-    fusion_fuel='DT'
+    fusion_fuel="DT",
 ) -> dict:
     """Reads the statepoint file from the neutronics simulation
     and extracts the tally results.
@@ -208,23 +206,28 @@ def get_neutronics_results_from_statepoint_file(
         dict: a dictionary of the simulation results
     """
 
-    if fusion_fuel == 'DT':
+    if fusion_fuel == "DT":
         fusion_energy_of_neutron_ev = 14.06 * 1e6
         fusion_energy_of_alpha_ev = 3.52 * 1e6
-        fusion_energy_per_reaction_ev = fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
-    elif fusion_fuel == 'DD':
+        fusion_energy_per_reaction_ev = (
+            fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
+        )
+    elif fusion_fuel == "DD":
         fusion_energy_of_trition_ev = 1.01 * 1e6
         fusion_energy_of_proton_ev = 3.02 * 1e6
         fusion_energy_of_he3_ev = 0.82 * 1e6
         fusion_energy_of_neutron_ev = 2.45 * 1e6
-        fusion_energy_per_reaction_ev = (0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)) + (
-            0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
+        fusion_energy_per_reaction_ev = (
+            0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
+        ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
     if fusion_power is not None:
         number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
     if fusion_energy_per_pulse is not None:
-        number_of_neutrons_in_pulse = fusion_energy_per_pulse / fusion_energy_per_reaction_j
+        number_of_neutrons_in_pulse = (
+            fusion_energy_per_pulse / fusion_energy_per_reaction_j
+        )
 
     # open the results file
     statepoint = openmc.StatePoint(statepoint_filename)
@@ -233,7 +236,7 @@ def get_neutronics_results_from_statepoint_file(
 
     # access the tallies
     for tally in statepoint.tallies.values():
-        print(f'processing {tally.name}')
+        print(f"processing {tally.name}")
         if tally.name.endswith("TBR"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -304,22 +307,20 @@ def get_neutronics_results_from_statepoint_file(
             # flux is in units of cm per source particle
             # dose coefficients have units of pico Sv cm^2
             results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result, "std. dev.": tally_std_dev, }
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
 
             if fusion_power is not None:
                 results[tally.name]["pSv cm3 per second"] = {
-                    "result": tally_result
-                    * number_of_neutrons_per_second,
-                    "std. dev.": tally_std_dev
-                    * number_of_neutrons_per_second,
+                    "result": tally_result * number_of_neutrons_per_second,
+                    "std. dev.": tally_std_dev * number_of_neutrons_per_second,
                 }
 
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["pSv cm3 per pulse"] = {
-                    "result": tally_result
-                    * number_of_neutrons_in_pulse,
-                    "std. dev.": tally_std_dev
-                    * number_of_neutrons_in_pulse,
+                    "result": tally_result * number_of_neutrons_in_pulse,
+                    "std. dev.": tally_std_dev * number_of_neutrons_in_pulse,
                 }
 
         elif "_on_2D_mesh" in tally.name:
@@ -327,17 +328,11 @@ def get_neutronics_results_from_statepoint_file(
             _save_2d_mesh_tally_as_png(
                 score=score,
                 tally=tally,
-                filename=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-"),
+                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
             )
 
         elif "_on_3D_mesh" in tally.name:
-            print(f'processing {tally.name}')
+            print(f"processing {tally.name}")
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
 
@@ -379,14 +374,8 @@ def get_neutronics_results_from_statepoint_file(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-") +
-                ".vtk",
+                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
+                + ".vtk",
             )
 
         elif "_on_3D_u_mesh" in tally.name:
@@ -489,9 +478,7 @@ def write_3d_mesh_tally_to_vtk(
     return outfile
 
 
-def create_initial_particles(
-        source,
-        number_of_source_particles: int = 2000) -> str:
+def create_initial_particles(source, number_of_source_particles: int = 2000) -> str:
     """Accepts an openmc source and creates an initial_source.h5 that can be
     used to find intial xyz, direction and energy of the partice source.
 
@@ -594,14 +581,10 @@ def extract_points_from_initial_source(
         elif view_plane == "ZX":
             points.append((particle[0][2], particle[0][0]))
         elif view_plane == "RZ":
-            xy_coord = math.pow(particle[0][0], 2) + \
-                math.pow(particle[0][1], 2)
+            xy_coord = math.pow(particle[0][0], 2) + math.pow(particle[0][1], 2)
             points.append((math.sqrt(xy_coord), particle[0][2]))
         elif view_plane == "XYZ":
             points.append((particle[0][0], particle[0][1], particle[0][2]))
         else:
-            raise ValueError(
-                "view_plane value of ",
-                view_plane,
-                " is not supported")
+            raise ValueError("view_plane value of ", view_plane, " is not supported")
     return points
