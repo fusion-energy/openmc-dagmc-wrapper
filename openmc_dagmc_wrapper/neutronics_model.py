@@ -890,8 +890,8 @@ class NeutronicsModel:
         if statepoint_filename is None:
             statepoint_filename = self.statepoint_filename
         if statepoint_filename is None:
-            msg = ("statepoint_filename was not provided and 
-                   "NeutronicsModel.statepoint_filename has not been set. Try"
+            msg = ("statepoint_filename was not provided and "
+                   "NeutronicsModel.statepoint_filename has not been set. Try "
                    "simulating the model first with NeutronicsModel.simulate")
             raise ValueError(msg)
 
