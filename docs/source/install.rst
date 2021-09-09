@@ -6,7 +6,7 @@ Installation
 Install
 -------
 
-To use the OpenMC-DAGMC-Wrapper package you will need the Python, Paramak, DAGMC
+To use the OpenMC-DAGMC-Wrapper package you will need the Python, MOAB, DAGMC
 and OpenMC installed.
 
 The recommended method is to install Python 3 using Anaconda or Miniconda
@@ -38,16 +38,17 @@ Then install the OpenMC-DAGMC-Wrapper package using Pip.
    pip install openmc-dagmc-wrapper
 
 
-To complete the software stack OpenMC, DAGMC, Cubit and the DAGMC/Cubit plugin
-will also need installing. We don't have simple instructions for these packages
-yet but one option is to duplicate the stages in the `Dockerfile <https://github.com/fusion-energy/neutronics_workflow/blob/main/Dockerfile>`_
+To complete the software stack OpenMC, DAGMC and MOAB will also need installing.
+We don't have simple instructions for these packages yet but one option is to
+duplicate the stages in the `Dockerfile https://github.com/fusion-energy/neutronics_workflow/blob/main/Dockerfile>`_
 or to make use of the `install scripts <https://github.com/fusion-energy/neutronics_workflow/blob/main/install_scripts/`_
+
 
 Docker Image Installation
 -------------------------
 
 Another option is to use the Docker image which contains all the required
-dependencies.
+dependencies (including OpenMC, DAGMC and MOAB).
 
 1. Install Docker CE for `Ubuntu <https://docs.docker.com/install/linux/docker-ce/ubuntu/>`_ ,
 `Mac OS <https://store.docker.com/editions/community/docker-ce-desktop-mac>`_ or

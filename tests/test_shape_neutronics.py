@@ -15,37 +15,37 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = 'dagmc_bigger.h5m'
+        local_filename = "dagmc_bigger.h5m"
 
         if not Path(local_filename).is_file():
 
             r = requests.get(url, stream=True)
-            with open(local_filename, 'wb') as f:
+            with open(local_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
 
         self.material_description_bigger = {
-            'pf_coil_case_mat': 'Be',
-            'center_column_shield_mat': 'Be',
-            'blanket_rear_wall_mat': 'Be',
-            'divertor_mat': 'Be',
-            'graveyard': 'Be',
-            'tf_coil_mat': 'Be',
-            'pf_coil_mat': 'Be',
-            'inboard_tf_coils_mat': 'Be',
-            'blanket_mat': 'Be',
-            'firstwall_mat': 'Be',
+            "pf_coil_case_mat": "Be",
+            "center_column_shield_mat": "Be",
+            "blanket_rear_wall_mat": "Be",
+            "divertor_mat": "Be",
+            "graveyard": "Be",
+            "tf_coil_mat": "Be",
+            "pf_coil_mat": "Be",
+            "inboard_tf_coils_mat": "Be",
+            "blanket_mat": "Be",
+            "firstwall_mat": "Be",
         }
 
         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = 'dagmc_smaller.h5m'
+        local_filename = "dagmc_smaller.h5m"
 
         if not Path(local_filename).is_file():
 
             r = requests.get(url, stream=True)
-            with open(local_filename, 'wb') as f:
+            with open(local_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
@@ -53,7 +53,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         self.h5m_filename_smaller_smaller = local_filename
 
         self.material_description_smaller = {
-            'mat1': 'Be',
+            "mat1": "Be",
         }
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
@@ -69,7 +69,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
             materials=self.material_description_bigger,
-            cell_tallies=['TBR']
+            cell_tallies=["TBR"],
         )
 
         my_model.simulate(
@@ -77,7 +77,9 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             simulation_particles_per_batch=20,
         )
 
-        assert my_model.results['TBR']['result'] > 0.
+        my_model.process_results()
+
+        assert my_model.results["TBR"]["result"] > 0.0
 
     def test_bounding_box_size(self):
 
@@ -120,6 +122,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
         assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
         assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
+
 
 # # move to neutronics_workflow
 # class TestSimulationResultsVsCsg(unittest.TestCase):
