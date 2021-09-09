@@ -171,7 +171,8 @@ class NeutronicsModel:
                     "flux",
                     "spectra",
                     "absorption",
-                    "effective_dose"] +
+                    "effective_dose",
+                    "fast_flux"] +
                 list(
                     REACTION_MT.keys()) +
                 list(
@@ -394,9 +395,9 @@ class NeutronicsModel:
                 Defaults to None which uses the NeutronicsModel.mesh_tally_2d
                 attribute.
             cell_tallies: the cell based tallies to calculate, options include
-                TBR, heating, flux, MT numbers, effective_dose and OpenMC
-                standard scores such as (n,Xa) which is helium production are
-                also supported
+                TBR, heating, flux, MT numbers, effective_dose, fast_flux and
+                OpenMC standard scores such as (n,Xa) which is helium production
+                are also supported
                 https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
                 Defaults to None which uses the NeutronicsModel.cell_tallies
                 attribute.
@@ -505,6 +506,7 @@ class NeutronicsModel:
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
 
             for standard_tally in self.mesh_tally_3d:
+
                 if standard_tally == "effective_dose":
                     energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
                         particle="neutron",
@@ -665,6 +667,27 @@ class NeutronicsModel:
                     self.tallies.append(tally)
                     self._add_tally_for_every_material(suffix, score)
 
+                elif standard_tally == "fast_flux":
+
+                    energy_bins = [1e6, 1000e6]
+                    energy_filter = openmc.EnergyFilter(energy_bins)
+
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
+                    self._add_tally_for_every_material(
+                        "neutron_spectra",
+                        "flux",
+                        [neutron_particle_filter, energy_filter],
+                    )
+                    if self.photon_transport is True:
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
+                        self._add_tally_for_every_material(
+                            "photon_spectra",
+                            "flux",
+                            [photon_particle_filter, energy_filter],
+                        )
+
                 elif standard_tally == "spectra":
 
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
@@ -699,7 +722,6 @@ class NeutronicsModel:
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
-                    # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
 
                     self._add_tally_for_every_material(
                         "neutron_effective_dose",
