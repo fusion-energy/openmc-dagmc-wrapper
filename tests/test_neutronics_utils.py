@@ -8,20 +8,20 @@ import openmc_dagmc_wrapper
 import requests
 
 
-class TestNeutronicsUtilityFunctions(unittest.TestCase):
-    def setUp(self):
+# class TestNeutronicsUtilityFunctions(unittest.TestCase):
+#     def setUp(self):
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+#         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-        local_filename = "dagmc_bigger.h5m"
+#         local_filename = "dagmc_bigger.h5m"
 
-        if not Path(local_filename).is_file():
+#         if not Path(local_filename).is_file():
 
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
+#             r = requests.get(url, stream=True)
+#             with open(local_filename, "wb") as f:
+#                 for chunk in r.iter_content(chunk_size=1024):
+#                     if chunk:
+#                         f.write(chunk)
 
     # def test_create_initial_source_file(self):
     #     """Creates an initial_source.h5 from a point source"""
@@ -82,39 +82,6 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
     #         openmc_dagmc_wrapper.extract_points_from_initial_source(view_plane="coucou")
 
     #     self.assertRaises(ValueError, incorrect_viewplane)
-
-    def test_find_materials_in_h5_file(self):
-        """exports a h5m with specific material tags and checks they are
-        found using the find_material_groups_in_h5m utility function"""
-
-        list_of_mats = openmc_dagmc_wrapper.find_material_groups_in_h5m(
-            filename="dagmc_bigger.h5m"
-        )
-
-        assert len(list_of_mats) == 10
-        assert "mat:pf_coil_case_mat" in list_of_mats
-        assert "mat:center_column_shield_mat" in list_of_mats
-        assert "mat:blanket_rear_wall_mat" in list_of_mats
-        assert "mat:divertor_mat" in list_of_mats
-        assert "mat:graveyard" in list_of_mats
-        assert "mat:tf_coil_mat" in list_of_mats
-        assert "mat:pf_coil_mat" in list_of_mats
-        assert "mat:inboard_tf_coils_mat" in list_of_mats
-        assert "mat:blanket_mat" in list_of_mats
-        assert "mat:firstwall_mat" in list_of_mats
-
-    def test_find_volume_ids_in_h5_file(self):
-        """exports a h5m with a known number of volumes and checks they are
-        found using the find_volume_ids_in_h5m utility function"""
-
-        list_of_mats = openmc_dagmc_wrapper.find_volume_ids_in_h5m(
-            filename="dagmc_bigger.h5m"
-        )
-
-        assert len(list_of_mats) == len(
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-        )
-        assert 1 in list_of_mats
 
     # def test_create_initial_particles(self):
     #     """Creates an initial source file using create_initial_particles utility
