@@ -720,8 +720,11 @@ class TestShape(unittest.TestCase):
             """Attempts to simulate without a dagmc_smaller.h5m file which should fail
             with a FileNotFoundError"""
 
+            import shutil
+            shutil.copy(self.h5m_filename_smaller, '.')
+
             my_model = openmc_dagmc_wrapper.NeutronicsModel(
-                h5m_filename=self.h5m_filename_smaller,
+                h5m_filename='dagmc.h5m',
                 source=self.source,
                 materials={"mat1": "WC"},
             )
@@ -731,7 +734,7 @@ class TestShape(unittest.TestCase):
             os.system("touch materials.xml")
             os.system("touch settings.xml")
             os.system("touch tallies.xml")
-            os.system("rm dagmc_smaller.h5m")
+            os.system("rm dagmc.h5m")
 
             my_model.simulate()
 
