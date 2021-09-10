@@ -589,7 +589,8 @@ class TestShape(unittest.TestCase):
             float,
         )
 
-        assert my_model.results["mat1_flux"]["flux per source particle"]["result"] > my_model.results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
+        assert my_model.results["mat1_flux"]["flux per source particle"]["result"] > my_model.results[
+            "mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
 
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon

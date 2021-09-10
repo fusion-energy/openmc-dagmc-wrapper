@@ -880,7 +880,6 @@ class NeutronicsModel:
                 )
                 raise FileNotFoundError(msg)
 
-
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")

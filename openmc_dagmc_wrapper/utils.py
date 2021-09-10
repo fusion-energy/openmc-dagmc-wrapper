@@ -338,12 +338,13 @@ def get_neutronics_results_from_statepoint_file(
 
     return results
 
-#to do find particles from tally
+# to do find particles from tally
 # def find_particle_from_tally(tally):
 #     for filter in talliy.filters:
 #         if isinstance(filter, openmc.ParticleFilter):
 #             return filter.bins[0]
 #     return None
+
 
 def write_3d_mesh_tally_to_vtk(
     xs: np.linspace,
