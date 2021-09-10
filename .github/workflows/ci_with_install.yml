@@ -22,24 +22,13 @@ jobs:
       - name: install package
         run: |
           python setup.py install
+
       - name: run tests
         run: |
-          apt-get install tree
-          wget https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.1.tar.gz
-          tar -xvzf v0.0.1.tar.gz -C tests
-          tree
-          pytest tests/test_neutronics_model.py -vv
-
-      # - name: run tests
-      #   run: |
-      #     apt-get install tree
-      #     tree tests
-      #     pytest tests/test_neutronics_model.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     tree tests
-      #     pytest tests/test_reactor_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     pytest tests/test_shape_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     pytest tests/test_example_neutronics_simulations.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     pytest tests/test_neutronics_utils.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     pytest tests/notebook_testing.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-      #     tree tests
-      #     curl -s https://codecov.io/bash
+          pytest tests/test_neutronics_model.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests/test_reactor_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests/test_shape_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests/test_example_neutronics_simulations.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests/test_neutronics_utils.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests/notebook_testing.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          curl -s https://codecov.io/bash
