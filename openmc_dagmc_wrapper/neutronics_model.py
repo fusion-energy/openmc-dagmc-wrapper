@@ -289,7 +289,7 @@ class NeutronicsModel:
                 raise ValueError(msg)
 
         if 'graveyard' in materials_in_h5m:
-            required_number_of_materials = len(materials_in_h5m) -1
+            required_number_of_materials = len(materials_in_h5m) - 1
         else:
             required_number_of_materials = len(materials_in_h5m)
 
