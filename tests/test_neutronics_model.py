@@ -21,8 +21,8 @@ class TestShape(unittest.TestCase):
             tar.extractall("tests")
             tar.close()
 
-        self.h5m_filename_bigger = "neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_smaller = "neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
