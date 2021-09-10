@@ -284,7 +284,7 @@ class NeutronicsModel:
         # # checks all the required materials are present
         for reactor_material in self.materials.keys():
             if reactor_material not in materials_in_h5m:
-                msg = (f"material with tag {reactor_material} was not found in"
+                msg = (f"material with tag {reactor_material} was not found in "
                        "the dagmc h5m file")
                 raise ValueError(msg)
 
@@ -295,7 +295,7 @@ class NeutronicsModel:
 
         if required_number_of_materials != len(self.materials.keys()):
             msg = (
-                f"the NeutronicsModel.materials does not match the material"
+                f"the NeutronicsModel.materials does not match the material "
                 "tags in the dagmc h5m file. Materials in h5m file "
                 f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
             raise ValueError(msg)
