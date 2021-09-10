@@ -281,9 +281,10 @@ class NeutronicsModel:
                 raise ValueError(msg)
 
         if len(materials_in_h5m) != len(self.materials.keys()):
-            msg = (f"the NeutronicsModel.materials does not match the material"
-                    "tags in the dagmc h5m file. Materials in h5m file "
-                   f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
+            msg = (
+                f"the NeutronicsModel.materials does not match the material"
+                "tags in the dagmc h5m file. Materials in h5m file "
+                f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
             raise ValueError(msg)
 
         silently_remove_file("materials.xml")
