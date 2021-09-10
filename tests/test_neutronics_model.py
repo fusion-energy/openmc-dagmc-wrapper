@@ -1,7 +1,7 @@
 import os
 import unittest
 from pathlib import Path
-
+import tarfile
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper
@@ -14,18 +14,16 @@ class TestShape(unittest.TestCase):
 
     def setUp(self):
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        if not Path("tests/v0.0.1.tar.gz").is_file():
+            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.1.tar.gz"
+            urllib.request.urlretrieve(url, "tests/v0.0.1.tar.gz")
 
-        local_filename = "dagmc_bigger.h5m"
+            tar = tarfile.open("tests/v0.0.1.tar.gz", "r:gz")
+            tar.extractall("tests")
+            tar.close()
 
-        if not Path(local_filename).is_file():
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-
-        self.h5m_filename_bigger = local_filename
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
@@ -33,19 +31,6 @@ class TestShape(unittest.TestCase):
             "flibe": "FLiNaBe",
             "copper": "copper",
         }
-
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-
-        local_filename = "dagmc_smaller.h5m"
-
-        if not Path(local_filename).is_file():
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
-
-        self.h5m_filename_smaller = local_filename
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
