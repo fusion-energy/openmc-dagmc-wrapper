@@ -48,8 +48,6 @@ class TestShape(unittest.TestCase):
             ],
         )
 
-
-
     def simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
 
@@ -740,7 +738,6 @@ class TestShape(unittest.TestCase):
         self.assertRaises(
             FileNotFoundError,
             test_missing_h5m_file_error_handling)
-
 
     def test_neutronics_model_attributes(self):
         """Makes a BallReactor neutronics model and simulates the TBR"""
