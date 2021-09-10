@@ -2,19 +2,17 @@ import json
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 
-from .utils import (
-    create_initial_particles,
-    extract_points_from_initial_source,
-    get_neutronics_results_from_statepoint_file,
-    silently_remove_file,
-    plotly_trace,
-)
+from .utils import (create_initial_particles,
+                    extract_points_from_initial_source,
+                    get_neutronics_results_from_statepoint_file, plotly_trace,
+                    silently_remove_file)
 
 
 class NeutronicsModel:
@@ -31,8 +29,8 @@ class NeutronicsModel:
             neutronics-material-maker.Material or
             neutronics-material-maker.MultiMaterial. All components within the
             geometry object must be accounted for. Material tags required
-            for a Reactor or Shape can be obtained with .material_tags() and
-            material_tag respectively.
+            for a Reactor or Shape can be obtained using the python package
+            dagmc_h5m_file_inspector
         cell_tallies: the cell based tallies to calculate, options include
             spectra, TBR, heating, flux, MT numbers and OpenMC standard scores
             such as (n,Xa) which is helium production are also supported
@@ -123,6 +121,9 @@ class NeutronicsModel:
     @h5m_filename.setter
     def h5m_filename(self, value):
         if isinstance(value, str):
+            if not Path(value).is_file():
+                msg = f"h5m_filename provided ({value}) does not exist"
+                raise FileNotFoundError(msg)
             self._h5m_filename = value
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
@@ -134,7 +135,12 @@ class NeutronicsModel:
 
     @tet_mesh_filename.setter
     def tet_mesh_filename(self, value):
-        if isinstance(value, (str, type(None))):
+        if isinstance(value, str):
+            if not Path(value).is_file():
+                msg = f"tet_mesh_filename provided ({value}) does not exist"
+                raise FileNotFoundError(msg)
+            self._tet_mesh_filename = value
+        if isinstance(value, type(None)):
             self._tet_mesh_filename = value
         else:
             msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
@@ -273,19 +279,27 @@ class NeutronicsModel:
         return openmc_material
 
     def create_openmc_materials(self):
-        # # checks all the required materials are present
-        # for reactor_material in self.geometry.material_tags:
-        #     if reactor_material not in self.materials.keys():
-        #         raise ValueError(
-        #             "material included by the reactor model has not \
-        #             been added", reactor_material)
 
-        # # checks that no extra materials we added
-        # for reactor_material in self.materials.keys():
-        #     if reactor_material not in self.geometry.material_tags:
-        #         raise ValueError(
-        #             "material has been added that is not needed for this \
-        #             reactor model", reactor_material)
+        materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
+        # # checks all the required materials are present
+        for reactor_material in self.materials.keys():
+            if reactor_material not in materials_in_h5m:
+                msg = (
+                    f"material with tag {reactor_material} was not found in "
+                    "the dagmc h5m file")
+                raise ValueError(msg)
+
+        if 'graveyard' in materials_in_h5m:
+            required_number_of_materials = len(materials_in_h5m) - 1
+        else:
+            required_number_of_materials = len(materials_in_h5m)
+
+        if required_number_of_materials != len(self.materials.keys()):
+            msg = (
+                f"the NeutronicsModel.materials does not match the material "
+                "tags in the dagmc h5m file. Materials in h5m file "
+                f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
+            raise ValueError(msg)
 
         silently_remove_file("materials.xml")
 
