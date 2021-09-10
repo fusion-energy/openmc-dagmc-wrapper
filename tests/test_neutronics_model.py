@@ -39,6 +39,16 @@ class TestShape(unittest.TestCase):
         source.energy = openmc.stats.Discrete([14e6], [1])
         self.source = source
 
+        self.blanket_material = nmm.Material.from_mixture(
+            fracs=[0.8, 0.2],
+            materials=[
+                nmm.Material.from_library("SiC"),
+                nmm.Material.from_library("eurofer"),
+            ],
+        )
+
+
+
     def simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
 
@@ -731,37 +741,13 @@ class TestShape(unittest.TestCase):
             test_missing_h5m_file_error_handling)
 
 
-class TestNeutronicsBallReactor(unittest.TestCase):
-    """Tests the NeutronicsModel with a BallReactor as the geometry input
-    including neutronics simulations"""
-
-    def setUp(self):
-
-        # makes a homogenised material for the blanket from lithium lead and
-        # eurofer
-        self.blanket_material = nmm.Material.from_mixture(
-            fracs=[0.8, 0.2],
-            materials=[
-                nmm.Material.from_library("SiC"),
-                nmm.Material.from_library("eurofer"),
-            ],
-        )
-
-        self.source = openmc.Source()
-        # sets the location of the source to x=0 y=0 z=0
-        self.source.space = openmc.stats.Point((0, 0, 0))
-        # sets the direction to isotropic
-        self.source.angle = openmc.stats.Isotropic()
-        # sets the energy distribution to 100% 14MeV neutrons
-        self.source.energy = openmc.stats.Discrete([14e6], [1])
-
     def test_neutronics_model_attributes(self):
         """Makes a BallReactor neutronics model and simulates the TBR"""
 
         # makes the neutronics material
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             source=openmc.Source(),
-            h5m_filename="placeholder.h5m",
+            h5m_filename=self.h5m_filename_smaller,
             materials={
                 "inboard_tf_coils_mat": "copper",
                 "mat1": "WC",
@@ -773,7 +759,7 @@ class TestNeutronicsBallReactor(unittest.TestCase):
             cell_tallies=["TBR", "flux", "heating"],
         )
 
-        assert my_model.h5m_filename == "placeholder.h5m"
+        assert my_model.h5m_filename == self.h5m_filename_smaller
 
         assert my_model.materials == {
             "inboard_tf_coils_mat": "copper",

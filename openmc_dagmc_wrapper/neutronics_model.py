@@ -121,7 +121,12 @@ class NeutronicsModel:
     @h5m_filename.setter
     def h5m_filename(self, value):
         if isinstance(value, str):
-            self._h5m_filename = value
+            if not Path(value).is_file():
+                msg = f"h5m_filename provided ({value}) does not exist"
+                raise TypeError(msg)
+
+
+                self._h5m_filename = value
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
             raise TypeError(msg)
