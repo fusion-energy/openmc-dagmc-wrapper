@@ -555,6 +555,36 @@ class TestShape(unittest.TestCase):
         assert isinstance(my_model.results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
 
+    def test_cell_tallies_simulation_fast_flux(self):
+        """Performs simulation with h5m file and tallies neutron and photon
+        fast flux. Checks that entries exist in the results."""
+
+        os.system("rm results.json")
+
+        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            h5m_filename=self.h5m_filename_smaller,
+            source=self.source,
+            materials={"mat1": "Be"},
+            cell_tallies=["fast_flux"],
+            photon_transport=True,
+        )
+
+        # starts the neutronics simulation
+        my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=10,
+        )
+
+        my_model.process_results(
+            fusion_power=1e9,
+            fusion_energy_per_pulse=1.2e6
+        )
+
+        assert isinstance(
+            my_model.results["mat1_neutron_fast_flux"]["result"],
+            float,
+        )
+
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon
         dose. Checks that entries exist in the results."""
