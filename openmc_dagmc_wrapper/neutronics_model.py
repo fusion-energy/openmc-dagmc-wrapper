@@ -288,7 +288,12 @@ class NeutronicsModel:
                        "the dagmc h5m file")
                 raise ValueError(msg)
 
-        if len(materials_in_h5m) != len(self.materials.keys()):
+        if 'graveyard' in materials_in_h5m:
+            required_number_of_materials = len(materials_in_h5m) -1
+        else:
+            required_number_of_materials = len(materials_in_h5m)
+
+        if required_number_of_materials != len(self.materials.keys()):
             msg = (
                 f"the NeutronicsModel.materials does not match the material"
                 "tags in the dagmc h5m file. Materials in h5m file "
