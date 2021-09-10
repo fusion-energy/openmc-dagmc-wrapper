@@ -7,6 +7,7 @@ import openmc
 import openmc_dagmc_wrapper
 import urllib.request
 
+
 class TestShape(unittest.TestCase):
     """Tests the NeutronicsModel with a Shape as the geometry input
     including neutronics simulations using"""
