@@ -2,19 +2,17 @@ import json
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 
-from .utils import (
-    create_initial_particles,
-    extract_points_from_initial_source,
-    get_neutronics_results_from_statepoint_file,
-    silently_remove_file,
-    plotly_trace,
-)
+from .utils import (create_initial_particles,
+                    extract_points_from_initial_source,
+                    get_neutronics_results_from_statepoint_file, plotly_trace,
+                    silently_remove_file)
 
 
 class NeutronicsModel:
@@ -31,8 +29,8 @@ class NeutronicsModel:
             neutronics-material-maker.Material or
             neutronics-material-maker.MultiMaterial. All components within the
             geometry object must be accounted for. Material tags required
-            for a Reactor or Shape can be obtained with .material_tags() and
-            material_tag respectively.
+            for a Reactor or Shape can be obtained using the python package
+            dagmc_h5m_file_inspector
         cell_tallies: the cell based tallies to calculate, options include
             spectra, TBR, heating, flux, MT numbers and OpenMC standard scores
             such as (n,Xa) which is helium production are also supported
@@ -123,6 +121,9 @@ class NeutronicsModel:
     @h5m_filename.setter
     def h5m_filename(self, value):
         if isinstance(value, str):
+            if not Path(value).is_file():
+                msg = f"h5m_filename provided ({value}) does not exist"
+                raise FileNotFoundError(msg)
             self._h5m_filename = value
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
@@ -134,7 +135,12 @@ class NeutronicsModel:
 
     @tet_mesh_filename.setter
     def tet_mesh_filename(self, value):
-        if isinstance(value, (str, type(None))):
+        if isinstance(value, str):
+            if not Path(value).is_file():
+                msg = f"tet_mesh_filename provided ({value}) does not exist"
+                raise FileNotFoundError(msg)
+            self._tet_mesh_filename = value
+        if isinstance(value, type(None)):
             self._tet_mesh_filename = value
         else:
             msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
@@ -171,7 +177,8 @@ class NeutronicsModel:
                     "flux",
                     "spectra",
                     "absorption",
-                    "effective_dose"] +
+                    "effective_dose",
+                    "fast_flux"] +
                 list(
                     REACTION_MT.keys()) +
                 list(
@@ -273,19 +280,27 @@ class NeutronicsModel:
         return openmc_material
 
     def create_openmc_materials(self):
-        # # checks all the required materials are present
-        # for reactor_material in self.geometry.material_tags:
-        #     if reactor_material not in self.materials.keys():
-        #         raise ValueError(
-        #             "material included by the reactor model has not \
-        #             been added", reactor_material)
 
-        # # checks that no extra materials we added
-        # for reactor_material in self.materials.keys():
-        #     if reactor_material not in self.geometry.material_tags:
-        #         raise ValueError(
-        #             "material has been added that is not needed for this \
-        #             reactor model", reactor_material)
+        materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
+        # # checks all the required materials are present
+        for reactor_material in self.materials.keys():
+            if reactor_material not in materials_in_h5m:
+                msg = (
+                    f"material with tag {reactor_material} was not found in "
+                    "the dagmc h5m file")
+                raise ValueError(msg)
+
+        if 'graveyard' in materials_in_h5m:
+            required_number_of_materials = len(materials_in_h5m) - 1
+        else:
+            required_number_of_materials = len(materials_in_h5m)
+
+        if required_number_of_materials != len(self.materials.keys()):
+            msg = (
+                f"the NeutronicsModel.materials does not match the material "
+                "tags in the dagmc h5m file. Materials in h5m file "
+                f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
+            raise ValueError(msg)
 
         silently_remove_file("materials.xml")
 
@@ -394,9 +409,9 @@ class NeutronicsModel:
                 Defaults to None which uses the NeutronicsModel.mesh_tally_2d
                 attribute.
             cell_tallies: the cell based tallies to calculate, options include
-                TBR, heating, flux, MT numbers, effective_dose and OpenMC
-                standard scores such as (n,Xa) which is helium production are
-                also supported
+                TBR, heating, flux, MT numbers, effective_dose, fast_flux and
+                OpenMC standard scores such as (n,Xa) which is helium production
+                are also supported
                 https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
                 Defaults to None which uses the NeutronicsModel.cell_tallies
                 attribute.
@@ -505,6 +520,7 @@ class NeutronicsModel:
                 mesh_xyz.upper_right = self.mesh_3d_corners[1]
 
             for standard_tally in self.mesh_tally_3d:
+
                 if standard_tally == "effective_dose":
                     energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
                         particle="neutron",
@@ -665,6 +681,27 @@ class NeutronicsModel:
                     self.tallies.append(tally)
                     self._add_tally_for_every_material(suffix, score)
 
+                elif standard_tally == "fast_flux":
+
+                    energy_bins = [1e6, 1000e6]
+                    energy_filter = openmc.EnergyFilter(energy_bins)
+
+                    neutron_particle_filter = openmc.ParticleFilter([
+                                                                    "neutron"])
+                    self._add_tally_for_every_material(
+                        "neutron_fast_flux",
+                        "flux",
+                        [neutron_particle_filter, energy_filter],
+                    )
+                    if self.photon_transport is True:
+                        photon_particle_filter = openmc.ParticleFilter([
+                                                                       "photon"])
+                        self._add_tally_for_every_material(
+                            "photon_fast_flux",
+                            "flux",
+                            [photon_particle_filter, energy_filter],
+                        )
+
                 elif standard_tally == "spectra":
 
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
@@ -699,7 +736,6 @@ class NeutronicsModel:
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
-                    # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
 
                     self._add_tally_for_every_material(
                         "neutron_effective_dose",
@@ -730,6 +766,9 @@ class NeutronicsModel:
                     score = standard_tally
                     suffix = standard_tally
                     self._add_tally_for_every_material(suffix, score)
+
+                    # todo add photon tallys for standard tallies
+                    # if self.photon_transport:
 
         # make the model from geometry, materials, settings and tallies
         model = openmc.model.Model(geom, self.mats, settings, self.tallies)
@@ -813,6 +852,12 @@ class NeutronicsModel:
             )
             raise TypeError(msg)
 
+        if not Path(self.h5m_filename).is_file():
+            msg = f"""{self.h5m_filename} file was not found. Please set
+                  export_h5m to True or use the export_h5m() methods to create
+                  the dagmc.h5m file"""
+            raise FileNotFoundError(msg)
+
         if export_xml is True:
             self.export_xml(
                 simulation_batches=simulation_batches,
@@ -834,12 +879,6 @@ class NeutronicsModel:
                     required_file
                 )
                 raise FileNotFoundError(msg)
-
-        if not Path(self.h5m_filename).is_file():
-            msg = f"""{self.h5m_filename} file was not found. Please set
-                  export_h5m to True or use the export_h5m() methods to create
-                  the dagmc.h5m file"""
-            raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file

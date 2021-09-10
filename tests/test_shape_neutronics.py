@@ -30,7 +30,6 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             "center_column_shield_mat": "Be",
             "blanket_rear_wall_mat": "Be",
             "divertor_mat": "Be",
-            "graveyard": "Be",
             "tf_coil_mat": "Be",
             "pf_coil_mat": "Be",
             "inboard_tf_coils_mat": "Be",

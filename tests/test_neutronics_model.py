@@ -1,11 +1,11 @@
 import os
 import unittest
 from pathlib import Path
-
+import tarfile
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper
-import requests
+import urllib.request
 
 
 class TestShape(unittest.TestCase):
@@ -14,18 +14,16 @@ class TestShape(unittest.TestCase):
 
     def setUp(self):
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        if not Path("tests/v0.0.1.tar.gz").is_file():
+            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.1.tar.gz"
+            urllib.request.urlretrieve(url, "tests/v0.0.1.tar.gz")
 
-        local_filename = "dagmc_bigger.h5m"
+            tar = tarfile.open("tests/v0.0.1.tar.gz", "r:gz")
+            tar.extractall("tests")
+            tar.close()
 
-        if not Path(local_filename).is_file():
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-
-        self.h5m_filename_bigger = local_filename
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
@@ -34,19 +32,6 @@ class TestShape(unittest.TestCase):
             "copper": "copper",
         }
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-
-        local_filename = "dagmc_smaller.h5m"
-
-        if not Path(local_filename).is_file():
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
-
-        self.h5m_filename_smaller = local_filename
-
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
         source = openmc.Source()
@@ -54,6 +39,14 @@ class TestShape(unittest.TestCase):
         source.angle = openmc.stats.Isotropic()
         source.energy = openmc.stats.Discrete([14e6], [1])
         self.source = source
+
+        self.blanket_material = nmm.Material.from_mixture(
+            fracs=[0.8, 0.2],
+            materials=[
+                nmm.Material.from_library("SiC"),
+                nmm.Material.from_library("eurofer"),
+            ],
+        )
 
     def simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
@@ -355,16 +348,16 @@ class TestShape(unittest.TestCase):
 
         # extracts the heat from the results dictionary
         heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        flux = my_model.results["mat1_flux"]["Flux per source particle"]["result"]
+        flux = my_model.results["mat1_flux"]["flux per source particle"]["result"]
         mat_tbr = my_model.results["mat1_TBR"]["result"]
         tbr = my_model.results["TBR"]["result"]
         spectra_neutrons = my_model.results["mat1_neutron_spectra"][
-            "Flux per source particle"
+            "flux per source particle"
         ]["result"]
         spectra_photons = my_model.results["mat1_photon_spectra"][
-            "Flux per source particle"
+            "flux per source particle"
         ]["result"]
-        energy = my_model.results["mat1_photon_spectra"]["Flux per source particle"][
+        energy = my_model.results["mat1_photon_spectra"]["flux per source particle"][
             "energy"
         ]
 
@@ -562,6 +555,43 @@ class TestShape(unittest.TestCase):
         assert isinstance(my_model.results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
 
+    def test_cell_tallies_simulation_fast_flux(self):
+        """Performs simulation with h5m file and tallies neutron and photon
+        fast flux. Checks that entries exist in the results."""
+
+        os.system("rm results.json")
+
+        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            h5m_filename=self.h5m_filename_smaller,
+            source=self.source,
+            materials={"mat1": "Be"},
+            cell_tallies=["fast_flux", "flux"],
+            photon_transport=True,
+        )
+
+        # starts the neutronics simulation
+        my_model.simulate(
+            simulation_batches=2,
+            simulation_particles_per_batch=1000,
+        )
+
+        my_model.process_results(
+            fusion_power=1e9,
+            fusion_energy_per_pulse=1.2e6
+        )
+
+        assert isinstance(
+            my_model.results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"],
+            float,
+        )
+        assert isinstance(
+            my_model.results["mat1_flux"]["flux per source particle"]["result"],
+            float,
+        )
+
+        assert my_model.results["mat1_flux"]["flux per source particle"]["result"] > my_model.results[
+            "mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
+
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon
         dose. Checks that entries exist in the results."""
@@ -727,8 +757,11 @@ class TestShape(unittest.TestCase):
             """Attempts to simulate without a dagmc_smaller.h5m file which should fail
             with a FileNotFoundError"""
 
+            import shutil
+            shutil.copy(self.h5m_filename_smaller, '.')
+
             my_model = openmc_dagmc_wrapper.NeutronicsModel(
-                h5m_filename=self.h5m_filename_smaller,
+                h5m_filename='dagmc.h5m',
                 source=self.source,
                 materials={"mat1": "WC"},
             )
@@ -738,7 +771,7 @@ class TestShape(unittest.TestCase):
             os.system("touch materials.xml")
             os.system("touch settings.xml")
             os.system("touch tallies.xml")
-            os.system("rm dagmc_smaller.h5m")
+            os.system("rm dagmc.h5m")
 
             my_model.simulate()
 
@@ -746,38 +779,13 @@ class TestShape(unittest.TestCase):
             FileNotFoundError,
             test_missing_h5m_file_error_handling)
 
-
-class TestNeutronicsBallReactor(unittest.TestCase):
-    """Tests the NeutronicsModel with a BallReactor as the geometry input
-    including neutronics simulations"""
-
-    def setUp(self):
-
-        # makes a homogenised material for the blanket from lithium lead and
-        # eurofer
-        self.blanket_material = nmm.Material.from_mixture(
-            fracs=[0.8, 0.2],
-            materials=[
-                nmm.Material.from_library("SiC"),
-                nmm.Material.from_library("eurofer"),
-            ],
-        )
-
-        self.source = openmc.Source()
-        # sets the location of the source to x=0 y=0 z=0
-        self.source.space = openmc.stats.Point((0, 0, 0))
-        # sets the direction to isotropic
-        self.source.angle = openmc.stats.Isotropic()
-        # sets the energy distribution to 100% 14MeV neutrons
-        self.source.energy = openmc.stats.Discrete([14e6], [1])
-
     def test_neutronics_model_attributes(self):
         """Makes a BallReactor neutronics model and simulates the TBR"""
 
         # makes the neutronics material
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             source=openmc.Source(),
-            h5m_filename="placeholder.h5m",
+            h5m_filename=self.h5m_filename_smaller,
             materials={
                 "inboard_tf_coils_mat": "copper",
                 "mat1": "WC",
@@ -789,7 +797,7 @@ class TestNeutronicsBallReactor(unittest.TestCase):
             cell_tallies=["TBR", "flux", "heating"],
         )
 
-        assert my_model.h5m_filename == "placeholder.h5m"
+        assert my_model.h5m_filename == self.h5m_filename_smaller
 
         assert my_model.materials == {
             "inboard_tf_coils_mat": "copper",

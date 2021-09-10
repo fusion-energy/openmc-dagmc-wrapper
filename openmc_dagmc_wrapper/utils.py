@@ -81,13 +81,6 @@ def plotly_trace(
     return trace
 
 
-def load_moab_file(filename: str):
-    """Loads a h5m into a Moab Core object and returns the object"""
-    moab_core = core.Core()
-    moab_core.load_file(filename)
-    return moab_core
-
-
 def silently_remove_file(filename: str):
     """Allows files to be deleted without printing warning messages int the
     terminal. input XML files for OpenMC are deleted prior to running
@@ -96,72 +89,6 @@ def silently_remove_file(filename: str):
         os.remove(filename)
     except OSError:
         pass  # in some cases the file will not exist
-
-
-def find_volume_ids_in_h5m(filename: Optional[str] = "dagmc.h5m") -> List[str]:
-    """Reads in a DAGMC h5m file and uses PyMoab to find the volume ids of the
-    volumes in the file
-
-    Arguments:
-        filename:
-
-    Returns:
-        The filename of the h5m file created
-    """
-
-    # create a new PyMOAB instance and load the specified DAGMC file
-    moab_core = load_moab_file(filename)
-
-    # retrieve the category tag on the instance
-    cat_tag = moab_core.tag_get_handle(types.CATEGORY_TAG_NAME)
-
-    # get the id tag
-    gid_tag = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
-
-    # get the set of entities using the provided category tag name
-    # (0 means search on the instance's root set)
-    ents = moab_core.get_entities_by_type_and_tag(
-        0, types.MBENTITYSET, [cat_tag], ["Volume"]
-    )
-
-    # retrieve the IDs of the entities
-    ids = moab_core.tag_get_data(gid_tag, ents).flatten()
-
-    return sorted(list(ids))
-
-
-def find_material_groups_in_h5m(
-        filename: Optional[str] = "dagmc.h5m") -> List[str]:
-    """Reads in a DAGMC h5m file and uses mbsize to find the names of the
-    material groups in the file
-
-    Arguments:
-        filename:
-
-    Returns:
-        The filename of the h5m file created
-    """
-
-    try:
-        terminal_output = subprocess.check_output(
-            "mbsize -ll {} | grep 'mat:'".format(filename),
-            shell=True,
-            universal_newlines=True,
-        )
-    except BaseException:
-        raise ValueError(
-            "mbsize failed, check MOAB is install and the MOAB/build/bin "
-            "folder is in the path directory (Linux and Mac) or set as an "
-            "enviromental varible (Windows)"
-        )
-
-    list_of_mats = terminal_output.split()
-    list_of_mats = list(filter(lambda a: a != "=", list_of_mats))
-    list_of_mats = list(filter(lambda a: a != "NAME", list_of_mats))
-    list_of_mats = list(filter(lambda a: a != "EXTRA_NAME0", list_of_mats))
-    list_of_mats = list(set(list_of_mats))
-
-    return list_of_mats
 
 
 def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
@@ -278,15 +205,22 @@ def get_neutronics_results_from_statepoint_file(
                     * number_of_neutrons_in_pulse,
                 }
 
-        # todo add fast flux tally
-        # energies = [0.1e6, 100e6] 0.1MeV to 100MeV
-        # energy_filter = openmc.EnergyFilter(energies)
+        elif tally.name.endswith("fast_flux"):
+
+            data_frame = tally.get_pandas_dataframe()
+            tally_result = data_frame["mean"].sum()
+            tally_std_dev = data_frame["std. dev."].sum()
+            results[tally.name]["fast flux per source particle"] = {
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
+
         elif tally.name.endswith("flux"):
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
             tally_std_dev = data_frame["std. dev."].sum()
-            results[tally.name]["Flux per source particle"] = {
+            results[tally.name]["flux per source particle"] = {
                 "result": tally_result,
                 "std. dev.": tally_std_dev,
             }
@@ -295,7 +229,7 @@ def get_neutronics_results_from_statepoint_file(
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"]
             tally_std_dev = data_frame["std. dev."]
-            results[tally.name]["Flux per source particle"] = {
+            results[tally.name]["flux per source particle"] = {
                 "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
                 "result": tally_result.tolist(),
                 "std. dev.": tally_std_dev.tolist(),
@@ -403,6 +337,13 @@ def get_neutronics_results_from_statepoint_file(
             }
 
     return results
+
+# to do find particles from tally
+# def find_particle_from_tally(tally):
+#     for filter in talliy.filters:
+#         if isinstance(filter, openmc.ParticleFilter):
+#             return filter.bins[0]
+#     return None
 
 
 def write_3d_mesh_tally_to_vtk(

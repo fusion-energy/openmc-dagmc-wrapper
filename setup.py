@@ -34,7 +34,8 @@ setuptools.setup(
         "plotly",
         "defusedxml",
         "nbformat",
-        "nbconvert"
+        "nbconvert",
+        "dagmc_h5m_file_inspector",
     ],
     # openmc, dagmc, moab are also needed and embree and double down are also
     # optionally needed but not avaible on PyPi
