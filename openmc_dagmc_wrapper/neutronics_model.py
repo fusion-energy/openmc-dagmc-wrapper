@@ -125,7 +125,6 @@ class NeutronicsModel:
                 msg = f"h5m_filename provided ({value}) does not exist"
                 raise TypeError(msg)
 
-
                 self._h5m_filename = value
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
