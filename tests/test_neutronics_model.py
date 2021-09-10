@@ -7,7 +7,6 @@ import openmc
 import openmc_dagmc_wrapper
 import urllib.request
 
-
 class TestShape(unittest.TestCase):
     """Tests the NeutronicsModel with a Shape as the geometry input
     including neutronics simulations using"""
@@ -22,8 +21,8 @@ class TestShape(unittest.TestCase):
             tar.extractall("tests")
             tar.close()
 
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "neutronics_workflow-0.0.1/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = "neutronics_workflow-0.0.1/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
@@ -47,6 +46,7 @@ class TestShape(unittest.TestCase):
                 nmm.Material.from_library("eurofer"),
             ],
         )
+
 
     def simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
@@ -738,6 +738,7 @@ class TestShape(unittest.TestCase):
         self.assertRaises(
             FileNotFoundError,
             test_missing_h5m_file_error_handling)
+
 
     def test_neutronics_model_attributes(self):
         """Makes a BallReactor neutronics model and simulates the TBR"""
