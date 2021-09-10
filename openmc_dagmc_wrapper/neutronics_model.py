@@ -282,7 +282,7 @@ class NeutronicsModel:
 
         materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
         # # checks all the required materials are present
-        for reactor_material in self.materials.items():
+        for reactor_material in self.materials.keys():
             if reactor_material not in materials_in_h5m:
                 msg = (f"material with tag {reactor_material} was not found in"
                        "the dagmc h5m file")
