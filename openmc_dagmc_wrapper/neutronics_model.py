@@ -689,7 +689,7 @@ class NeutronicsModel:
                     neutron_particle_filter = openmc.ParticleFilter([
                                                                     "neutron"])
                     self._add_tally_for_every_material(
-                        "neutron_spectra",
+                        "neutron_fast_flux",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
@@ -697,7 +697,7 @@ class NeutronicsModel:
                         photon_particle_filter = openmc.ParticleFilter([
                                                                        "photon"])
                         self._add_tally_for_every_material(
-                            "photon_spectra",
+                            "photon_fast_flux",
                             "flux",
                             [photon_particle_filter, energy_filter],
                         )
@@ -766,6 +766,9 @@ class NeutronicsModel:
                     score = standard_tally
                     suffix = standard_tally
                     self._add_tally_for_every_material(suffix, score)
+
+                    # todo add photon tallys for standard tallies
+                    # if self.photon_transport:
 
         # make the model from geometry, materials, settings and tallies
         model = openmc.model.Model(geom, self.mats, settings, self.tallies)
@@ -849,6 +852,12 @@ class NeutronicsModel:
             )
             raise TypeError(msg)
 
+        if not Path(self.h5m_filename).is_file():
+            msg = f"""{self.h5m_filename} file was not found. Please set
+                  export_h5m to True or use the export_h5m() methods to create
+                  the dagmc.h5m file"""
+            raise FileNotFoundError(msg)
+
         if export_xml is True:
             self.export_xml(
                 simulation_batches=simulation_batches,
@@ -871,11 +880,6 @@ class NeutronicsModel:
                 )
                 raise FileNotFoundError(msg)
 
-        if not Path(self.h5m_filename).is_file():
-            msg = f"""{self.h5m_filename} file was not found. Please set
-                  export_h5m to True or use the export_h5m() methods to create
-                  the dagmc.h5m file"""
-            raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file

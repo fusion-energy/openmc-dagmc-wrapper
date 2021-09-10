@@ -205,15 +205,22 @@ def get_neutronics_results_from_statepoint_file(
                     * number_of_neutrons_in_pulse,
                 }
 
-        # todo add fast flux tally
-        # energies = [0.1e6, 100e6] 0.1MeV to 100MeV
-        # energy_filter = openmc.EnergyFilter(energies)
+        elif tally.name.endswith("fast_flux"):
+
+            data_frame = tally.get_pandas_dataframe()
+            tally_result = data_frame["mean"].sum()
+            tally_std_dev = data_frame["std. dev."].sum()
+            results[tally.name]["fast flux per source particle"] = {
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
+
         elif tally.name.endswith("flux"):
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
             tally_std_dev = data_frame["std. dev."].sum()
-            results[tally.name]["Flux per source particle"] = {
+            results[tally.name]["flux per source particle"] = {
                 "result": tally_result,
                 "std. dev.": tally_std_dev,
             }
@@ -222,7 +229,7 @@ def get_neutronics_results_from_statepoint_file(
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"]
             tally_std_dev = data_frame["std. dev."]
-            results[tally.name]["Flux per source particle"] = {
+            results[tally.name]["flux per source particle"] = {
                 "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
                 "result": tally_result.tolist(),
                 "std. dev.": tally_std_dev.tolist(),
@@ -331,6 +338,12 @@ def get_neutronics_results_from_statepoint_file(
 
     return results
 
+#to do find particles from tally
+# def find_particle_from_tally(tally):
+#     for filter in talliy.filters:
+#         if isinstance(filter, openmc.ParticleFilter):
+#             return filter.bins[0]
+#     return None
 
 def write_3d_mesh_tally_to_vtk(
     xs: np.linspace,

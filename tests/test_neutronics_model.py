@@ -348,16 +348,16 @@ class TestShape(unittest.TestCase):
 
         # extracts the heat from the results dictionary
         heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        flux = my_model.results["mat1_flux"]["Flux per source particle"]["result"]
+        flux = my_model.results["mat1_flux"]["flux per source particle"]["result"]
         mat_tbr = my_model.results["mat1_TBR"]["result"]
         tbr = my_model.results["TBR"]["result"]
         spectra_neutrons = my_model.results["mat1_neutron_spectra"][
-            "Flux per source particle"
+            "flux per source particle"
         ]["result"]
         spectra_photons = my_model.results["mat1_photon_spectra"][
-            "Flux per source particle"
+            "flux per source particle"
         ]["result"]
-        energy = my_model.results["mat1_photon_spectra"]["Flux per source particle"][
+        energy = my_model.results["mat1_photon_spectra"]["flux per source particle"][
             "energy"
         ]
 
@@ -565,14 +565,14 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
-            cell_tallies=["fast_flux"],
+            cell_tallies=["fast_flux", "flux"],
             photon_transport=True,
         )
 
         # starts the neutronics simulation
         my_model.simulate(
             simulation_batches=2,
-            simulation_particles_per_batch=10,
+            simulation_particles_per_batch=1000,
         )
 
         my_model.process_results(
@@ -581,9 +581,15 @@ class TestShape(unittest.TestCase):
         )
 
         assert isinstance(
-            my_model.results["mat1_neutron_fast_flux"]["result"],
+            my_model.results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"],
             float,
         )
+        assert isinstance(
+            my_model.results["mat1_flux"]["flux per source particle"]["result"],
+            float,
+        )
+
+        assert my_model.results["mat1_flux"]["flux per source particle"]["result"] > my_model.results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
 
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon
