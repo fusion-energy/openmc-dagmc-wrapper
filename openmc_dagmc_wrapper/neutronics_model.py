@@ -123,7 +123,7 @@ class NeutronicsModel:
         if isinstance(value, str):
             if not Path(value).is_file():
                 msg = f"h5m_filename provided ({value}) does not exist"
-                raise TypeError(msg)
+                raise FileNotFoundError(msg)
             self._h5m_filename = value
         else:
             msg = "NeutronicsModelFromReactor.h5m_filename should be a string"
@@ -135,7 +135,12 @@ class NeutronicsModel:
 
     @tet_mesh_filename.setter
     def tet_mesh_filename(self, value):
-        if isinstance(value, (str, type(None))):
+        if isinstance(value, str):
+            if not Path(value).is_file():
+                msg = f"tet_mesh_filename provided ({value}) does not exist"
+                raise FileNotFoundError(msg)
+            self._tet_mesh_filename = value
+        if isinstance(value, type(None)):
             self._tet_mesh_filename = value
         else:
             msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
