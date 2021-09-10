@@ -5,8 +5,7 @@ import tarfile
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper
-import requests
-
+import urllib.request
 
 class TestShape(unittest.TestCase):
     """Tests the NeutronicsModel with a Shape as the geometry input
