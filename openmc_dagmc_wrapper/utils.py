@@ -150,10 +150,11 @@ def get_neutronics_results_from_statepoint_file(
         ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
+
     if fusion_power is not None:
         number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
     if fusion_energy_per_pulse is not None:
-        number_of_neutrons_in_pulse = (
+        number_of_neutrons_per_pulse = (
             fusion_energy_per_pulse / fusion_energy_per_reaction_j
         )
 
@@ -199,10 +200,10 @@ def get_neutronics_results_from_statepoint_file(
                 results[tally.name]["Joules"] = {
                     "result": tally_result
                     * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_in_pulse,
+                    * number_of_neutrons_per_pulse,
                     "std. dev.": tally_std_dev
                     * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_in_pulse,
+                    * number_of_neutrons_per_pulse,
                 }
 
         elif tally.name.endswith("fast_flux"):
@@ -215,6 +216,16 @@ def get_neutronics_results_from_statepoint_file(
                 "std. dev.": tally_std_dev,
             }
 
+            if fusion_power is not None:
+                results[tally.name]["fast flux per second"] = {
+                    "result": tally_result * number_of_neutrons_per_second,
+                }
+
+            if fusion_energy_per_pulse is not None:
+                results[tally.name]["fast flux per pulse"] = {
+                    "result": tally_result * number_of_neutrons_per_pulse,
+                }
+
         elif tally.name.endswith("flux"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -225,6 +236,16 @@ def get_neutronics_results_from_statepoint_file(
                 "std. dev.": tally_std_dev,
             }
 
+            if fusion_power is not None:
+                results[tally.name]["flux per second"] = {
+                    "result": tally_result * number_of_neutrons_per_second,
+                }
+
+            if fusion_energy_per_pulse is not None:
+                results[tally.name]["flux per pulse"] = {
+                    "result": tally_result * number_of_neutrons_per_pulse,
+                }
+
         elif tally.name.endswith("spectra"):
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"]
@@ -234,6 +255,20 @@ def get_neutronics_results_from_statepoint_file(
                 "result": tally_result.tolist(),
                 "std. dev.": tally_std_dev.tolist(),
             }
+
+            if fusion_power is not None:
+                results[tally.name]["flux per second"] = {
+                    "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
+                    "result": [result * number_of_neutrons_per_second for result in tally_result.tolist()],
+                    "std. dev.": [result * number_of_neutrons_per_second for result in tally_std_dev.tolist()],
+                }
+
+            if fusion_energy_per_pulse is not None:
+                results[tally.name]["flux per pulse"] = {
+                    "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
+                    "result": [result * number_of_neutrons_per_pulse for result in tally_result.tolist()],
+                    "std. dev.": [result * number_of_neutrons_per_pulse for result in tally_std_dev.tolist()],
+                }
 
         elif tally.name.endswith("effective_dose"):
             data_frame = tally.get_pandas_dataframe()
@@ -252,8 +287,8 @@ def get_neutronics_results_from_statepoint_file(
 
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["pSv cm3 per pulse"] = {
-                    "result": tally_result * number_of_neutrons_in_pulse,
-                    "std. dev.": tally_std_dev * number_of_neutrons_in_pulse,
+                    "result": tally_result * number_of_neutrons_per_pulse,
+                    "std. dev.": tally_std_dev * number_of_neutrons_per_pulse,
                 }
 
         elif "_on_2D_mesh" in tally.name:

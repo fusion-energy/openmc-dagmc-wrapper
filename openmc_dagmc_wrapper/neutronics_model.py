@@ -911,10 +911,11 @@ class NeutronicsModel:
                 Providing an input can result in additional entries in the post
                 processed tally results. e.g heating tallies are extended to include
                 rate of heating deposited in Watts.
-            fusion_energy_per_pulse: the amount of energy released by the pulse.
-                Intended use for pulsed machines. Providing an input can result in
-                additional entries in the post processed tally results. e.g heating
-                tallies are extended to include Joules deposited for the pulse.
+            fusion_energy_per_pulse: the amount of energy released by the pulse
+                in Joules. Intended use for pulsed machines. Providing an input
+                can result in additional entries in the post processed tally
+                results. e.g heating tallies are extended to include Joules
+                deposited for the pulse.
             cell_tally_results_filename: the filename to use when saving the
                 cell tallies to file.
             statepoint_filename: the name of the statepoint file to extract
