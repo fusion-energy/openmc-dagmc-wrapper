@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import subprocess
@@ -116,22 +117,41 @@ def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
     return filename
 
 
-def get_neutronics_results_from_statepoint_file(
+def process_results(
     statepoint_filename: str,
     fusion_power: Optional[float] = None,
     fusion_energy_per_pulse: Optional[float] = None,
-    fusion_fuel="DT",
+    fusion_fuel: Optional[str] = "DT",
+    outputfile: Optional[str] = "results.json"
 ) -> dict:
-    """Reads the statepoint file from the neutronics simulation
-    and extracts the tally results.
+    """Extracts simulation results from the statepoint file. Applies post
+    processing to the results taking into account user specified fusion
+    power or fusion energy per pulse. If 3d mesh tallies are specified then
+    vtk files will be produced. If 2d mesh tallies are specified then png
+    images will be produced. The cell tallies results will be output to
+    a json file.
 
-    Arguments:
-        statepoint_filename (str): The name of the statepoint file
-        fusion_power (float): The fusion power of the reactor, which is used to
-            scale some tallies. Defaults to None
+    Args:
+        statepoint_filename: the name of the statepoint file to extract
+            results from and process.
+        fusion_power: the power in watts emitted by the fusion reaction
+            recalling that each DT fusion reaction emits 17.6 MeV or
+            2.819831e-12 Joules. Intended use for steady state reactors.
+            Providing an input can result in additional entries in the post
+            processed tally results. e.g heating tallies are extended to include
+            rate of heating deposited in Watts.
+        fusion_energy_per_pulse: the amount of energy released by the pulse
+            in Joules. Intended use for pulsed machines. Providing an input
+            can result in additional entries in the post processed tally
+            results. e.g heating tallies are extended to include Joules
+            deposited for the pulse.
+        outputfile: the filename to use when saving the cell tallies to file.
+        fusion_fuel: the isotopes that make up the fuel. Accepted options are
+            'DT' or 'DD' used to obtain the fusion energy emitted per fusion
+            event.
 
     Returns:
-        dict: a dictionary of the simulation results
+        A dictionary of results
     """
 
     if fusion_fuel == "DT":
@@ -266,7 +286,7 @@ def get_neutronics_results_from_statepoint_file(
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["flux per pulse"] = {
                     "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": [result * number_of_neutrons_per_pulse for result in tally_result.tolist()],
+                    "result": number_of_neutrons_per_pulse * tally_result.multip,
                     "std. dev.": [result * number_of_neutrons_per_pulse for result in tally_std_dev.tolist()],
                 }
 
@@ -370,6 +390,10 @@ def get_neutronics_results_from_statepoint_file(
                 "result": tally_result,
                 "std. dev.": tally_std_dev,
             }
+
+    if outputfile is not None:
+        with open(outputfile, "w") as outfile:
+            json.dump(self.results, outfile, indent=4, sort_keys=True)
 
     return results
 

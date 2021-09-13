@@ -4,7 +4,7 @@ from pathlib import Path
 import tarfile
 import neutronics_material_maker as nmm
 import openmc
-import openmc_dagmc_wrapper
+import openmc_dagmc_wrapper as odw
 import urllib.request
 
 
@@ -51,17 +51,17 @@ class TestShape(unittest.TestCase):
     def simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "WC"},
         )
 
-        my_model.simulate()
+        h5m_filename = my_model.simulate()
 
-        my_model.process_results()
+        results = odw.process_results(statepoint_filename=h5m_filename)
 
-        my_model.results is not None
+        assert results is not None
 
     def test_neutronics_component_simulation_with_openmc_mat(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -71,7 +71,7 @@ class TestShape(unittest.TestCase):
         test_mat.set_density(units="g/cm3", density=4.2)
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": test_mat},
@@ -79,19 +79,19 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        assert output_filename.name == "statepoint.2.h5"
+        assert h5m_filename.name == "statepoint.2.h5"
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        my_model.process_results(fusion_power=1e9)
+        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
         # extracts the heat from the results dictionary
-        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
+        assert results["mat1_heating"]["Watts"]["result"] > 0
 
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -99,7 +99,7 @@ class TestShape(unittest.TestCase):
         test_mat = nmm.Material.from_library("Be")
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": test_mat},
@@ -107,17 +107,17 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        my_model.process_results(fusion_power=1e9)
+        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
         # extracts the heat from the results dictionary
-        assert my_model.results["mat1_heating"]["Watts"]["result"] > 0
+        assert results["mat1_heating"]["Watts"]["result"] > 0
 
     # def test_cell_tally_output_file_creation(self):
     #     """Performs a neutronics simulation and checks the cell tally output
@@ -132,7 +132,7 @@ class TestShape(unittest.TestCase):
 
     #     # converts the geometry into a neutronics geometry
     #     # this simulation has no tally to test this edge case
-    #     my_model = openmc_dagmc_wrapper.NeutronicsModel(
+    #     my_model = odw.NeutronicsModel(
     #         h5m_filename=self.h5m_filename_smaller,
     #         source=self.source,
     #         materials={"mat1": test_mat},
@@ -159,7 +159,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_faceting_tolerance(self):
         def incorrect_faceting_tolerance():
             """Sets faceting_tolerance as a string which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -171,7 +171,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_merge_tolerance(self):
         def incorrect_merge_tolerance():
             """Set merge_tolerance as a string which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -183,7 +183,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_cell_tallies(self):
         def incorrect_cell_tallies():
             """Set a cell tally that is not accepted which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -195,7 +195,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_cell_tally_type(self):
         def incorrect_cell_tally_type():
             """Set a cell tally that is the wrong type which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -207,7 +207,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_mesh_tally_2d(self):
         def incorrect_mesh_tally_2d():
             """Set a mesh_tally_2d that is not accepted which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -219,7 +219,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_mesh_tally_2d_type(self):
         def incorrect_mesh_tally_2d_type():
             """Set a mesh_tally_2d that is the wrong type which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -231,7 +231,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_mesh_tally_3d(self):
         def incorrect_mesh_tally_3d():
             """Set a mesh_tally_3d that is not accepted which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -243,7 +243,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_mesh_tally_3d_type(self):
         def incorrect_mesh_tally_3d_type():
             """Set a mesh_tally_3d that is the wrong type which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -255,7 +255,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_materials(self):
         def incorrect_materials():
             """Set a material as a string which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials="coucou",
@@ -266,7 +266,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_materials_type(self):
         def incorrect_materials_type():
             """Sets a material as an int which should raise an error"""
-            test_model = openmc_dagmc_wrapper.NeutronicsModel(
+            test_model = odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": 23},
@@ -279,7 +279,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_batches_to_small(self):
         def incorrect_simulation_batches_to_small():
             """Sets simulation batch below 2 which should raise an error"""
-            my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -291,7 +291,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_batches_wrong_type(self):
         def incorrect_simulation_batches_wrong_type():
             """Sets simulation_batches as a string which should raise an error"""
-            openmc_dagmc_wrapper.NeutronicsModel(
+            odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -303,7 +303,7 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_particles_per_batch_wrong_type(self):
         def incorrect_simulation_particles_per_batch_wrong_type():
             """Sets simulation_particles_per_batch below 2 which should raise an error"""
-            my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
@@ -325,7 +325,7 @@ class TestShape(unittest.TestCase):
         mat.set_density("g/cm3", 2.1)
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": mat},
@@ -333,33 +333,27 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         # spectra add two tallies in this case (photons and neutrons)
         # TBR adds two tallies global TBR and material TBR
         assert len(results.tallies.items()) == 6
         assert len(results.meshes) == 0
 
-        my_model.process_results(fusion_power=1e9)
+        results = odw.process_results(fusion_power=1e9)
 
         # extracts the heat from the results dictionary
-        heat = my_model.results["mat1_heating"]["Watts"]["result"]
-        flux = my_model.results["mat1_flux"]["flux per source particle"]["result"]
-        mat_tbr = my_model.results["mat1_TBR"]["result"]
-        tbr = my_model.results["TBR"]["result"]
-        spectra_neutrons = my_model.results["mat1_neutron_spectra"][
-            "flux per source particle"
-        ]["result"]
-        spectra_photons = my_model.results["mat1_photon_spectra"][
-            "flux per source particle"
-        ]["result"]
-        energy = my_model.results["mat1_photon_spectra"]["flux per source particle"][
-            "energy"
-        ]
+        heat = results["mat1_heating"]["Watts"]["result"]
+        flux = results["mat1_flux"]["flux per source particle"]["result"]
+        mat_tbr = results["mat1_TBR"]["result"]
+        tbr = results["TBR"]["result"]
+        spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
+        spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
+        energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
 
         assert heat > 0
         assert flux > 0
@@ -380,7 +374,7 @@ class TestShape(unittest.TestCase):
         mat.set_density("g/cm3", 2.1)
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": mat},
@@ -388,36 +382,35 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
 
-
-        my_model.process_results().keys()
+        odw.process_results(statepoint_filename=h5m_filename).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 1
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 1
 
         flux_sum = sum(my_model.results['mat1_photon_spectra']["flux per source particle"]["result"])
 
-        my_model.process_results(fusion_energy_per_pulse=3).keys()
+        odw.process_results(statepoint_filename=h5m_filename, fusion_energy_per_pulse=3).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
         assert 3*sum(my_model.results['mat1_neutron_spectra']['flux per pulse']['result']) == flux_sum
         assert 3*sum(my_model.results['mat1_photon_spectra']['flux per pulse']['result']) == flux_sum
 
-        my_model.process_results(fusion_power=2).keys()
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=2).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
         assert 2*sum(my_model.results['mat1_neutron_spectra']['flux per second']['result']) == flux_sum
         assert 2*sum(my_model.results['mat1_photon_spectra']['flux per second']['result']) == flux_sum
 
-        my_model.process_results(fusion_energy_per_pulse=2, fusion_power=3).keys()
+        odw.process_results(statepoint_filename=h5m_filename, fusion_energy_per_pulse=2, fusion_power=3).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 3
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 3
@@ -443,7 +436,7 @@ class TestShape(unittest.TestCase):
         os.system("rm *.h5")
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -451,12 +444,12 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 3
         assert len(results.tallies.items()) == 3
 
@@ -464,7 +457,7 @@ class TestShape(unittest.TestCase):
         assert Path("heating_on_2D_mesh_xy.png").exists() is False
         assert Path("heating_on_2D_mesh_yz.png").exists() is False
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
         assert Path("heating_on_2D_mesh_xz.png").exists() is True
         assert Path("heating_on_2D_mesh_xy.png").exists() is True
@@ -477,7 +470,7 @@ class TestShape(unittest.TestCase):
         os.system("rm *.h5 *.vtk")
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -485,20 +478,20 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=2,
         )
 
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 1
         assert len(results.tallies.items()) == 2
-        assert Path(output_filename).exists() is True
+        assert Path(h5m_filename).exists() is True
 
         assert Path("heating_on_3D_mesh.vtk").exists() is False
         assert Path("n-Xt_on_3D_mesh.vtk").exists() is False
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("n-Xt_on_3D_mesh.vtk").exists() is True
@@ -512,7 +505,7 @@ class TestShape(unittest.TestCase):
     #     os.system("rm *.h5")
 
     #     # converts the geometry into a neutronics geometry
-    #     my_model = openmc_dagmc_wrapper.NeutronicsModel(
+    #     my_model = odw.NeutronicsModel(
     #         h5m_filename=self.h5m_filename_smaller,
     #         source=self.source,
     #         materials={"mat1": "Be"},
@@ -533,7 +526,7 @@ class TestShape(unittest.TestCase):
         os.system("rm *.h5")
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -542,17 +535,17 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=2,
         )
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-        assert Path(output_filename).exists() is True
+        assert Path(h5m_filename).exists() is True
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("heating_on_2D_mesh_xz.png").exists() is True
         assert Path("heating_on_2D_mesh_xy.png").exists() is True
@@ -567,7 +560,7 @@ class TestShape(unittest.TestCase):
         os.system("rm *.h5")
 
         # converts the geometry into a neutronics geometry
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -580,17 +573,17 @@ class TestShape(unittest.TestCase):
         assert my_model.mesh_3d_corners == [(0, 0, 0), (10, 10, 10)]
         assert my_model.mesh_2d_corners == [(5, 5, 5), (15, 15, 15)]
         # performs an openmc simulation on the model
-        output_filename = my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=2,
         )
-        results = openmc.StatePoint(output_filename)
+        results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-        assert Path(output_filename).exists() is True
+        assert Path(h5m_filename).exists() is True
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("heating_on_2D_mesh_xz.png").exists() is True
         assert Path("heating_on_2D_mesh_xy.png").exists() is True
@@ -602,7 +595,7 @@ class TestShape(unittest.TestCase):
 
         os.system("rm results.json")
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -611,12 +604,12 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
         assert isinstance(my_model.results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
@@ -627,7 +620,7 @@ class TestShape(unittest.TestCase):
 
         os.system("rm results.json")
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -636,12 +629,13 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=1000,
         )
 
-        my_model.process_results(
+        odw.process_results(
+            statepoint_filename=h5m_filename,
             fusion_power=1e9,
             fusion_energy_per_pulse=1.2e6
         )
@@ -664,7 +658,7 @@ class TestShape(unittest.TestCase):
 
         os.system("rm results.json")
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials={"mat1": "Be"},
@@ -673,12 +667,13 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        my_model.simulate(
+        mh5m_filename = y_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
 
-        my_model.process_results(
+        odw.process_results(
+            statepoint_filename=h5m_filename,
             fusion_power=1e9,
             fusion_energy_per_pulse=1.2e6
         )
@@ -767,7 +762,7 @@ class TestShape(unittest.TestCase):
 
         os.system("rm *_on_2D_mesh_*.png")
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             # materials=self.material_description,
@@ -776,12 +771,12 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
 
-        my_model.process_results(fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
         assert Path("n-Xt_on_2D_mesh_xz.png").exists() is True
         assert Path("n-Xt_on_2D_mesh_xy.png").exists() is True
@@ -801,7 +796,7 @@ class TestShape(unittest.TestCase):
             """Attempts to simulate without OpenMC xml files which should fail
             with a FileNotFoundError"""
 
-            my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "WC"},
@@ -826,7 +821,7 @@ class TestShape(unittest.TestCase):
             import shutil
             shutil.copy(self.h5m_filename_smaller, '.')
 
-            my_model = openmc_dagmc_wrapper.NeutronicsModel(
+            my_model = odw.NeutronicsModel(
                 h5m_filename='dagmc.h5m',
                 source=self.source,
                 materials={"mat1": "WC"},
@@ -849,7 +844,7 @@ class TestShape(unittest.TestCase):
         """Makes a BallReactor neutronics model and simulates the TBR"""
 
         # makes the neutronics material
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             source=openmc.Source(),
             h5m_filename=self.h5m_filename_smaller,
             materials={
