@@ -89,7 +89,9 @@ class TestShape(unittest.TestCase):
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9)
         # extracts the heat from the results dictionary
         assert results["mat1_heating"]["Watts"]["result"] > 0
 
@@ -115,7 +117,9 @@ class TestShape(unittest.TestCase):
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9)
         # extracts the heat from the results dictionary
         assert results["mat1_heating"]["Watts"]["result"] > 0
 
@@ -364,7 +368,6 @@ class TestShape(unittest.TestCase):
         assert len(spectra_neutrons) == 709
         assert len(spectra_photons) == 709
 
-
     def test_neutronics_spectra_post_processing(self):
         """Makes a neutronics model and simulates with a cell tally"""
 
@@ -394,31 +397,46 @@ class TestShape(unittest.TestCase):
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 1
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 1
 
-        flux_sum = sum(my_model.results['mat1_photon_spectra']["flux per source particle"]["result"])
+        flux_sum = sum(
+            my_model.results['mat1_photon_spectra']["flux per source particle"]["result"])
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_energy_per_pulse=3).keys()
+        odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_energy_per_pulse=3).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
-        assert 3*sum(my_model.results['mat1_neutron_spectra']['flux per pulse']['result']) == flux_sum
-        assert 3*sum(my_model.results['mat1_photon_spectra']['flux per pulse']['result']) == flux_sum
+        assert 3 * sum(my_model.results['mat1_neutron_spectra']
+                       ['flux per pulse']['result']) == flux_sum
+        assert 3 * sum(my_model.results['mat1_photon_spectra']
+                       ['flux per pulse']['result']) == flux_sum
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=2).keys()
+        odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=2).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
-        assert 2*sum(my_model.results['mat1_neutron_spectra']['flux per second']['result']) == flux_sum
-        assert 2*sum(my_model.results['mat1_photon_spectra']['flux per second']['result']) == flux_sum
+        assert 2 * sum(my_model.results['mat1_neutron_spectra']
+                       ['flux per second']['result']) == flux_sum
+        assert 2 * sum(my_model.results['mat1_photon_spectra']
+                       ['flux per second']['result']) == flux_sum
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_energy_per_pulse=2, fusion_power=3).keys()
+        odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_energy_per_pulse=2,
+            fusion_power=3).keys()
         assert len(my_model.results.keys()) == 2
         assert len(my_model.results['mat1_neutron_spectra'].keys()) == 3
         assert len(my_model.results['mat1_photon_spectra'].keys()) == 3
-        assert 3*sum(my_model.results['mat1_neutron_spectra']['flux per pulse']['result']) == flux_sum
-        assert 3*sum(my_model.results['mat1_photon_spectra']['flux per pulse']['result']) == flux_sum
-        assert 2*sum(my_model.results['mat1_neutron_spectra']['flux per second']['result']) == flux_sum
-        assert 2*sum(my_model.results['mat1_photon_spectra']['flux per second']['result']) == flux_sum
-
+        assert 3 * sum(my_model.results['mat1_neutron_spectra']
+                       ['flux per pulse']['result']) == flux_sum
+        assert 3 * sum(my_model.results['mat1_photon_spectra']
+                       ['flux per pulse']['result']) == flux_sum
+        assert 2 * sum(my_model.results['mat1_neutron_spectra']
+                       ['flux per second']['result']) == flux_sum
+        assert 2 * sum(my_model.results['mat1_photon_spectra']
+                       ['flux per second']['result']) == flux_sum
 
         spectra_neutrons = my_model.results["mat1_neutron_spectra"]["flux per source particle"]["result"]
         spectra_photons = my_model.results["mat1_photon_spectra"]["flux per source particle"]["result"]
@@ -427,7 +445,6 @@ class TestShape(unittest.TestCase):
         assert len(energy) == 710
         assert len(spectra_neutrons) == 709
         assert len(spectra_photons) == 709
-
 
     def test_neutronics_component_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 2D mesh tally"""
