@@ -164,6 +164,8 @@ ENV OPENMC_CROSS_SECTIONS=/nuclear_data/cross_sections.xml
 ENV PATH="/MOAB/build/bin:${PATH}"
 ENV PATH="/DAGMC/bin:${PATH}"
 
+COPY requirements-test.txt requirements-test.txt
+RUN pip install -r requirements-test.txt
 
 FROM dependencies as final
 
