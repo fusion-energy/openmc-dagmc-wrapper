@@ -286,7 +286,7 @@ def process_results(
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["flux per pulse"] = {
                     "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": number_of_neutrons_per_pulse * tally_result.multip,
+                    "result": [result * number_of_neutrons_per_pulse for result in tally_result.tolist()],
                     "std. dev.": [result * number_of_neutrons_per_pulse for result in tally_std_dev.tolist()],
                 }
 
