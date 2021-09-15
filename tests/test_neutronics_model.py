@@ -160,29 +160,6 @@ class TestShape(unittest.TestCase):
     #     assert output_filename.name == "statepoint.3.h5"
     #     assert Path("results.json").exists() is True
 
-    def test_incorrect_faceting_tolerance(self):
-        def incorrect_faceting_tolerance():
-            """Sets faceting_tolerance as a string which should raise an error"""
-            odw.NeutronicsModel(
-                h5m_filename=self.h5m_filename_smaller,
-                source=self.source,
-                materials={"mat1": "eurofer"},
-                faceting_tolerance="coucou",
-            )
-
-        self.assertRaises(TypeError, incorrect_faceting_tolerance)
-
-    def test_incorrect_merge_tolerance(self):
-        def incorrect_merge_tolerance():
-            """Set merge_tolerance as a string which should raise an error"""
-            odw.NeutronicsModel(
-                h5m_filename=self.h5m_filename_smaller,
-                source=self.source,
-                materials={"mat1": "eurofer"},
-                merge_tolerance="coucou",
-            )
-
-        self.assertRaises(TypeError, incorrect_merge_tolerance)
 
     def test_incorrect_cell_tallies(self):
         def incorrect_cell_tallies():
@@ -295,12 +272,12 @@ class TestShape(unittest.TestCase):
     def test_incorrect_simulation_batches_wrong_type(self):
         def incorrect_simulation_batches_wrong_type():
             """Sets simulation_batches as a string which should raise an error"""
-            odw.NeutronicsModel(
+            my_model = odw.NeutronicsModel(
                 h5m_filename=self.h5m_filename_smaller,
                 source=self.source,
                 materials={"mat1": "eurofer"},
-                simulation_batches="one",
             )
+            my_model.simulate(simulation_batches="one")
 
         self.assertRaises(TypeError, incorrect_simulation_batches_wrong_type)
 
