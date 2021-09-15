@@ -390,57 +390,55 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=20,
         )
 
-        results = openmc.StatePoint(h5m_filename)
-
-        odw.process_results(statepoint_filename=h5m_filename).keys()
-        assert len(my_model.results.keys()) == 2
-        assert len(my_model.results['mat1_neutron_spectra'].keys()) == 1
-        assert len(my_model.results['mat1_photon_spectra'].keys()) == 1
+        results = odw.process_results(statepoint_filename=h5m_filename).keys()
+        assert len(results.keys()) == 2
+        assert len(results['mat1_neutron_spectra'].keys()) == 1
+        assert len(results['mat1_photon_spectra'].keys()) == 1
 
         flux_sum = sum(
-            my_model.results['mat1_photon_spectra']["flux per source particle"]["result"])
+            results['mat1_photon_spectra']["flux per source particle"]["result"])
 
         odw.process_results(
             statepoint_filename=h5m_filename,
             fusion_energy_per_pulse=3).keys()
-        assert len(my_model.results.keys()) == 2
-        assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
-        assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
-        assert 3 * sum(my_model.results['mat1_neutron_spectra']
+        assert len(results.keys()) == 2
+        assert len(results['mat1_neutron_spectra'].keys()) == 2
+        assert len(results['mat1_photon_spectra'].keys()) == 2
+        assert 3 * sum(results['mat1_neutron_spectra']
                        ['flux per pulse']['result']) == flux_sum
-        assert 3 * sum(my_model.results['mat1_photon_spectra']
+        assert 3 * sum(results['mat1_photon_spectra']
                        ['flux per pulse']['result']) == flux_sum
 
         odw.process_results(
             statepoint_filename=h5m_filename,
             fusion_power=2).keys()
-        assert len(my_model.results.keys()) == 2
-        assert len(my_model.results['mat1_neutron_spectra'].keys()) == 2
-        assert len(my_model.results['mat1_photon_spectra'].keys()) == 2
-        assert 2 * sum(my_model.results['mat1_neutron_spectra']
+        assert len(results.keys()) == 2
+        assert len(results['mat1_neutron_spectra'].keys()) == 2
+        assert len(results['mat1_photon_spectra'].keys()) == 2
+        assert 2 * sum(results['mat1_neutron_spectra']
                        ['flux per second']['result']) == flux_sum
-        assert 2 * sum(my_model.results['mat1_photon_spectra']
+        assert 2 * sum(results['mat1_photon_spectra']
                        ['flux per second']['result']) == flux_sum
 
         odw.process_results(
             statepoint_filename=h5m_filename,
             fusion_energy_per_pulse=2,
             fusion_power=3).keys()
-        assert len(my_model.results.keys()) == 2
-        assert len(my_model.results['mat1_neutron_spectra'].keys()) == 3
-        assert len(my_model.results['mat1_photon_spectra'].keys()) == 3
-        assert 3 * sum(my_model.results['mat1_neutron_spectra']
+        assert len(results.keys()) == 2
+        assert len(results['mat1_neutron_spectra'].keys()) == 3
+        assert len(results['mat1_photon_spectra'].keys()) == 3
+        assert 3 * sum(results['mat1_neutron_spectra']
                        ['flux per pulse']['result']) == flux_sum
-        assert 3 * sum(my_model.results['mat1_photon_spectra']
+        assert 3 * sum(results['mat1_photon_spectra']
                        ['flux per pulse']['result']) == flux_sum
-        assert 2 * sum(my_model.results['mat1_neutron_spectra']
+        assert 2 * sum(results['mat1_neutron_spectra']
                        ['flux per second']['result']) == flux_sum
-        assert 2 * sum(my_model.results['mat1_photon_spectra']
+        assert 2 * sum(results['mat1_photon_spectra']
                        ['flux per second']['result']) == flux_sum
 
-        spectra_neutrons = my_model.results["mat1_neutron_spectra"]["flux per source particle"]["result"]
-        spectra_photons = my_model.results["mat1_photon_spectra"]["flux per source particle"]["result"]
-        energy = my_model.results["mat1_photon_spectra"]["flux per source particle"]["energy"]
+        spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
+        spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
+        energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
 
         assert len(energy) == 710
         assert len(spectra_neutrons) == 709
@@ -626,9 +624,9 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=10,
         )
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-        assert isinstance(my_model.results["TBR"]["result"], float)
+        assert isinstance(results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
 
     def test_cell_tallies_simulation_fast_flux(self):
@@ -651,22 +649,22 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=1000,
         )
 
-        odw.process_results(
+        results = odw.process_results(
             statepoint_filename=h5m_filename,
             fusion_power=1e9,
             fusion_energy_per_pulse=1.2e6
         )
 
         assert isinstance(
-            my_model.results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"],
+            results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_flux"]["flux per source particle"]["result"],
+            results["mat1_flux"]["flux per source particle"]["result"],
             float,
         )
 
-        assert my_model.results["mat1_flux"]["flux per source particle"]["result"] > my_model.results[
+        assert results["mat1_flux"]["flux per source particle"]["result"] > results[
             "mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
 
     def test_cell_tallies_simulation_effective_dose(self):
@@ -684,88 +682,88 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        mh5m_filename = y_model.simulate(
+        h5m_filename = y_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
 
-        odw.process_results(
+        results = odw.process_results(
             statepoint_filename=h5m_filename,
             fusion_power=1e9,
             fusion_energy_per_pulse=1.2e6
         )
 
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "effective dose per source particle pSv cm3"
             ]["result"],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "pSv cm3 per pulse"
             ]["result"],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "pSv cm3 per second"
             ]["result"],
             float,
         )
 
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "effective dose per source particle pSv cm3"
             ]["std. dev."],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "pSv cm3 per pulse"
             ]["std. dev."],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_neutron_effective_dose"][
+            results["mat1_neutron_effective_dose"][
                 "pSv cm3 per second"
             ]["std. dev."],
             float,
         )
 
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"][
+            results["mat1_photon_effective_dose"][
                 "effective dose per source particle pSv cm3"
             ]["result"],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
+            results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
                 "result"
             ],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"][
+            results["mat1_photon_effective_dose"][
                 "pSv cm3 per second"
             ]["result"],
             float,
         )
 
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"][
+            results["mat1_photon_effective_dose"][
                 "effective dose per source particle pSv cm3"
             ]["std. dev."],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
+            results["mat1_photon_effective_dose"]["pSv cm3 per pulse"][
                 "std. dev."
             ],
             float,
         )
         assert isinstance(
-            my_model.results["mat1_photon_effective_dose"][
+            results["mat1_photon_effective_dose"][
                 "pSv cm3 per second"
             ]["std. dev."],
             float,
