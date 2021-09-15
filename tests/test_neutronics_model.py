@@ -160,7 +160,6 @@ class TestShape(unittest.TestCase):
     #     assert output_filename.name == "statepoint.3.h5"
     #     assert Path("results.json").exists() is True
 
-
     def test_incorrect_cell_tallies(self):
         def incorrect_cell_tallies():
             """Set a cell tally that is not accepted which should raise an error"""
