@@ -395,8 +395,8 @@ class TestShape(unittest.TestCase):
         assert len(results['mat1_neutron_spectra'].keys()) == 1
         assert len(results['mat1_photon_spectra'].keys()) == 1
 
-        flux_sum = sum(
-            results['mat1_photon_spectra']["flux per source particle"]["result"])
+        flux_sum = sum(results['mat1_photon_spectra']
+                       ["flux per source particle"]["result"])
 
         odw.process_results(
             statepoint_filename=h5m_filename,
@@ -624,7 +624,9 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=10,
         )
 
-        results = odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9)
 
         assert isinstance(results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
