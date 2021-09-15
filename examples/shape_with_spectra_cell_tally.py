@@ -4,7 +4,8 @@ import plotly.graph_objects as go
 
 
 def main():
-    # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic directions
+    # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
+    # directions
     source = openmc.Source()
     source.space = openmc.stats.Point((0, 0, 0))
     source.energy = openmc.stats.Discrete([14e6], [1])
@@ -24,8 +25,10 @@ def main():
         simulation_particles_per_batch=2000,
     )
     # this extracts and post processes the simulation results, scales by number of neutrons per second.
-    # fusion_energy_per_pulse argument could be 
-    results = odw.process_results(statepoint_filename=output_filename, fusion_power=1e9)
+    # fusion_energy_per_pulse argument could be
+    results = odw.process_results(
+        statepoint_filename=output_filename,
+        fusion_power=1e9)
 
     # this extracts the values from the results dictionary
     energy_bins = results["mat1_photon_spectra"]["flux per source particle"]["energy"]

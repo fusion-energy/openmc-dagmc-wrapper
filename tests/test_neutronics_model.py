@@ -399,9 +399,9 @@ class TestShape(unittest.TestCase):
         assert len(results['mat1_photon_spectra'].keys()) == 1
 
         neutron_flux_sum = sum(results['mat1_neutron_spectra']
-                       ["flux per source particle"]["result"])
+                               ["flux per source particle"]["result"])
         photon_flux_sum = sum(results['mat1_photon_spectra']
-                       ["flux per source particle"]["result"])
+                              ["flux per source particle"]["result"])
 
         # TODO change > to the actual ratio
 
@@ -411,8 +411,10 @@ class TestShape(unittest.TestCase):
         assert len(results.keys()) == 2
         assert len(results['mat1_neutron_spectra'].keys()) == 2
         assert len(results['mat1_photon_spectra'].keys()) == 2
-        assert sum(results['mat1_neutron_spectra']['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']['flux per pulse']['result']) > photon_flux_sum
+        assert sum(results['mat1_neutron_spectra']
+                   ['flux per pulse']['result']) > neutron_flux_sum
+        assert sum(results['mat1_photon_spectra']
+                   ['flux per pulse']['result']) > photon_flux_sum
 
         results = odw.process_results(
             statepoint_filename=h5m_filename,
@@ -420,8 +422,10 @@ class TestShape(unittest.TestCase):
         assert len(results.keys()) == 2
         assert len(results['mat1_neutron_spectra'].keys()) == 2
         assert len(results['mat1_photon_spectra'].keys()) == 2
-        assert sum(results['mat1_neutron_spectra']['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']['flux per second']['result']) > photon_flux_sum
+        assert sum(results['mat1_neutron_spectra']
+                   ['flux per second']['result']) > neutron_flux_sum
+        assert sum(results['mat1_photon_spectra']
+                   ['flux per second']['result']) > photon_flux_sum
 
         results = odw.process_results(
             statepoint_filename=h5m_filename,
@@ -430,10 +434,14 @@ class TestShape(unittest.TestCase):
         assert len(results.keys()) == 2
         assert len(results['mat1_neutron_spectra'].keys()) == 3
         assert len(results['mat1_photon_spectra'].keys()) == 3
-        assert sum(results['mat1_neutron_spectra']['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']['flux per pulse']['result']) > photon_flux_sum
-        assert sum(results['mat1_neutron_spectra']['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']['flux per second']['result']) > photon_flux_sum
+        assert sum(results['mat1_neutron_spectra']
+                   ['flux per pulse']['result']) > neutron_flux_sum
+        assert sum(results['mat1_photon_spectra']
+                   ['flux per pulse']['result']) > photon_flux_sum
+        assert sum(results['mat1_neutron_spectra']
+                   ['flux per second']['result']) > neutron_flux_sum
+        assert sum(results['mat1_photon_spectra']
+                   ['flux per second']['result']) > photon_flux_sum
 
         spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
         spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
