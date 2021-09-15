@@ -348,7 +348,10 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 6
         assert len(results.meshes) == 0
 
-        results = odw.process_results(fusion_power=1e9)
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9
+        )
 
         # extracts the heat from the results dictionary
         heat = results["mat1_heating"]["Watts"]["result"]
@@ -390,7 +393,7 @@ class TestShape(unittest.TestCase):
             simulation_particles_per_batch=20,
         )
 
-        results = odw.process_results(statepoint_filename=h5m_filename).keys()
+        results = odw.process_results(statepoint_filename=h5m_filename)
         assert len(results.keys()) == 2
         assert len(results['mat1_neutron_spectra'].keys()) == 1
         assert len(results['mat1_photon_spectra'].keys()) == 1
@@ -682,7 +685,7 @@ class TestShape(unittest.TestCase):
         )
 
         # starts the neutronics simulation
-        h5m_filename = y_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
