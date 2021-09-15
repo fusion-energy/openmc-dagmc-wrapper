@@ -393,7 +393,7 @@ def process_results(
 
     if outputfile is not None:
         with open(outputfile, "w") as outfile:
-            json.dump(self.results, outfile, indent=4, sort_keys=True)
+            json.dump(results, outfile, indent=4, sort_keys=True)
 
     return results
 
