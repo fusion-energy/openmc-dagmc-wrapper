@@ -13,7 +13,6 @@ import openmc
 import plotly.graph_objects as go
 
 
-
 def plotly_trace(
     points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
     mode: str = "markers+lines",
@@ -116,14 +115,15 @@ def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
 
     return filename
 
+
 def find_fusion_energy_per_reaction(reactants: str) -> float:
     """Finds the average fusion energy produced per fusion reaction in joules
     from the fule type.
-    
+
     Args:
         reactants: the isotopes that are combined in the fusion even. Options
             are "DD" or "DT"
-    
+
     Returns:
         The average energy of a fusion reaction in Joules
     """
@@ -143,11 +143,13 @@ def find_fusion_energy_per_reaction(reactants: str) -> float:
             0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
         ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
     else:
-        raise ValueError("Only fuel types of DD and DT are currently supported")
+        raise ValueError(
+            "Only fuel types of DD and DT are currently supported")
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
 
     return fusion_energy_per_reaction_j
+
 
 def process_results(
     statepoint_filename: str,
