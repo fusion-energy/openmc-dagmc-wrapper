@@ -36,16 +36,17 @@ Standard simulations tallies are facilitated:
 Neutronics responses can be obtained:
 - Tritium Breeding Ratio (TBR)
 - Heating (photon and neutron)
-- Dose (on road map)
-- Any supported reaction from the standard OpenMC reactions
+- Effective dose (photon and neutron)
+- Any supported reaction from the [standard OpenMC reactions](https://docs.openmc.org/en/latest/usersguide/tallies.html#scores)
 
 A standard collection of materials are available by making use of the
 [neutronics_material_maker](https://github.com/fusion-energy/neutronics_material_maker) package.
 
 OpenMC sources definitions are used for the particle sources. 
  
-Post processing of results are also carried out to automatically provide images,
-JSON output files and VTK files for convenient access to the results.
+Post processing of the OpenMC output files are also carried out to automatically
+provide: JSON text files, PNG images, VTK files for convenient access to the
+results.
 
 :point_right: [Documentation](https://openmc-dagmc-wrapper.readthedocs.io)
 

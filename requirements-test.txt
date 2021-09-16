@@ -1,0 +1,7 @@
+
+pytest
+pytest-cov
+pytest-runner
+nbformat
+nbconvert
+requests

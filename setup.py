@@ -18,13 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    tests_require=[
-        "pytest-cov",
-        "pytest-runner",
-        "nbformat",
-        "nbconvert",
-        "requests"
-    ],
     install_requires=[
         "remove_dagmc_tags",
         "neutronics_material_maker",
@@ -33,8 +26,6 @@ setuptools.setup(
         "matplotlib",
         "plotly",
         "defusedxml",
-        "nbformat",
-        "nbconvert",
         "dagmc_h5m_file_inspector",
     ],
     # openmc, dagmc, moab are also needed and embree and double down are also
