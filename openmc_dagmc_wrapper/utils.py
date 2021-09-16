@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import openmc
 import plotly.graph_objects as go
-from pymoab import core, types
+
 
 
 def plotly_trace(
@@ -116,6 +116,38 @@ def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
 
     return filename
 
+def find_fusion_energy_per_reaction(reactants: str) -> float:
+    """Finds the average fusion energy produced per fusion reaction in joules
+    from the fule type.
+    
+    Args:
+        reactants: the isotopes that are combined in the fusion even. Options
+            are "DD" or "DT"
+    
+    Returns:
+        The average energy of a fusion reaction in Joules
+    """
+
+    if reactants == "DT":
+        fusion_energy_of_neutron_ev = 14.06 * 1e6
+        fusion_energy_of_alpha_ev = 3.52 * 1e6
+        fusion_energy_per_reaction_ev = (
+            fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
+        )
+    elif reactants == "DD":
+        fusion_energy_of_trition_ev = 1.01 * 1e6
+        fusion_energy_of_proton_ev = 3.02 * 1e6
+        fusion_energy_of_he3_ev = 0.82 * 1e6
+        fusion_energy_of_neutron_ev = 2.45 * 1e6
+        fusion_energy_per_reaction_ev = (
+            0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
+        ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
+    else:
+        raise ValueError("Only fuel types of DD and DT are currently supported")
+
+    fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
+
+    return fusion_energy_per_reaction_j
 
 def process_results(
     statepoint_filename: str,
@@ -154,22 +186,7 @@ def process_results(
         A dictionary of results
     """
 
-    if fusion_fuel == "DT":
-        fusion_energy_of_neutron_ev = 14.06 * 1e6
-        fusion_energy_of_alpha_ev = 3.52 * 1e6
-        fusion_energy_per_reaction_ev = (
-            fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
-        )
-    elif fusion_fuel == "DD":
-        fusion_energy_of_trition_ev = 1.01 * 1e6
-        fusion_energy_of_proton_ev = 3.02 * 1e6
-        fusion_energy_of_he3_ev = 0.82 * 1e6
-        fusion_energy_of_neutron_ev = 2.45 * 1e6
-        fusion_energy_per_reaction_ev = (
-            0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
-        ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
-
-    fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
+    fusion_energy_per_reaction_j = find_fusion_energy_per_reaction(fusion_fuel)
 
     if fusion_power is not None:
         number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
