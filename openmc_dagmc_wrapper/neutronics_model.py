@@ -139,7 +139,7 @@ class NeutronicsModel:
                 msg = f"tet_mesh_filename provided ({value}) does not exist"
                 raise FileNotFoundError(msg)
             self._tet_mesh_filename = value
-        if isinstance(value, type(None)):
+        elif isinstance(value, type(None)):
             self._tet_mesh_filename = value
         else:
             msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
