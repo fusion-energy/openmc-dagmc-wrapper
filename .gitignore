@@ -141,3 +141,4 @@ dmypy.json
 *.stp
 *.trelis
 *.out
+*.tar.gz

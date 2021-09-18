@@ -10,8 +10,7 @@ import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from .utils import (create_initial_particles,
-                    extract_points_from_initial_source,
-                    get_neutronics_results_from_statepoint_file, plotly_trace,
+                    extract_points_from_initial_source, plotly_trace,
                     silently_remove_file)
 
 
@@ -140,7 +139,7 @@ class NeutronicsModel:
                 msg = f"tet_mesh_filename provided ({value}) does not exist"
                 raise FileNotFoundError(msg)
             self._tet_mesh_filename = value
-        if isinstance(value, type(None)):
+        elif isinstance(value, type(None)):
             self._tet_mesh_filename = value
         else:
             msg = "NeutronicsModelFromReactor.tet_mesh_filename should be a string"
@@ -889,63 +888,6 @@ class NeutronicsModel:
             output=verbose, threads=threads)
 
         return self.statepoint_filename
-
-    def process_results(
-        self,
-        fusion_power: Optional[float] = None,
-        fusion_energy_per_pulse: Optional[float] = None,
-        cell_tally_results_filename: Optional[str] = "results.json",
-        statepoint_filename: Optional[str] = None,
-    ) -> dict:
-        """Extracts simulation results from the statepoint file. Applies post
-        processing to the results taking into account user specified fusion
-        power or fusion energy per pulse. If 3d mesh tallies are specified then
-        vtk files will be produced. If 2d mesh tallies are specified then png
-        images will be produced. The cell tallies results will be output to
-        a json file.
-
-        Args:
-            fusion_power: the power in watts emitted by the fusion reaction
-                recalling that each DT fusion reaction emits 17.6 MeV or
-                2.819831e-12 Joules. Intended use for steady state reactors.
-                Providing an input can result in additional entries in the post
-                processed tally results. e.g heating tallies are extended to include
-                rate of heating deposited in Watts.
-            fusion_energy_per_pulse: the amount of energy released by the pulse.
-                Intended use for pulsed machines. Providing an input can result in
-                additional entries in the post processed tally results. e.g heating
-                tallies are extended to include Joules deposited for the pulse.
-            cell_tally_results_filename: the filename to use when saving the
-                cell tallies to file.
-            statepoint_filename: the name of the statepoint file to extract
-                results from and process. Defaults to None which makes use of
-                NeutronicsModel.statepoint_filename which is set when the
-                NeutronicsModel.simulate method is called.
-
-        Returns:
-            A dictionary of results
-        """
-
-        if statepoint_filename is None:
-            statepoint_filename = self.statepoint_filename
-        if statepoint_filename is None:
-            msg = ("statepoint_filename was not provided and "
-                   "NeutronicsModel.statepoint_filename has not been set. Try "
-                   "simulating the model first with NeutronicsModel.simulate")
-            raise ValueError(msg)
-
-        self.results = get_neutronics_results_from_statepoint_file(
-            statepoint_filename=statepoint_filename,
-            fusion_power=fusion_power,
-            fusion_energy_per_pulse=fusion_energy_per_pulse,
-        )
-
-        # outputs the cell tally results as a json file
-        if cell_tally_results_filename is not None:
-            with open(cell_tally_results_filename, "w") as outfile:
-                json.dump(self.results, outfile, indent=4, sort_keys=True)
-
-        return self.results
 
     def export_html(
         self,

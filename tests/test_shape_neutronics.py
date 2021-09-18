@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 import openmc
-import openmc_dagmc_wrapper
+import openmc_dagmc_wrapper as odw
 import pytest
 import requests
 
@@ -64,25 +64,25 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_cell_tally_simulation(self):
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
             materials=self.material_description_bigger,
             cell_tallies=["TBR"],
         )
 
-        my_model.simulate(
+        h5m_filename = my_model.simulate(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
 
-        my_model.process_results()
+        results = odw.process_results(statepoint_filename=h5m_filename)
 
-        assert my_model.results["TBR"]["result"] > 0.0
+        assert results["TBR"]["result"] > 0.0
 
     def test_bounding_box_size(self):
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename="dagmc_bigger.h5m",
             source=self.source,
             materials=self.material_description_bigger,
@@ -103,7 +103,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        my_model = openmc_dagmc_wrapper.NeutronicsModel(
+        my_model = odw.NeutronicsModel(
             h5m_filename="dagmc_smaller.h5m",
             source=self.source,
             materials=self.material_description_smaller,
