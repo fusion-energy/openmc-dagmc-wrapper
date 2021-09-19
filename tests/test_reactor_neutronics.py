@@ -1,11 +1,12 @@
 import os
+import tarfile
 import unittest
+import urllib.request
 from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper
 import pytest
-import requests
 
 
 class TestNeutronicsModelWithReactor(unittest.TestCase):
@@ -13,16 +14,17 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
     def setUp(self):
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        if not Path("tests/v0.0.2.tar.gz").is_file():
+            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
 
-        local_filename = "dagmc_bigger.h5m"
-        if not Path(local_filename).is_file():
+            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
+            tar.extractall("tests")
+            tar.close()
 
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+
 
         self.material_description_bigger = {
             "pf_coil_case_mat": "Be",
@@ -45,7 +47,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         source.angle = openmc.stats.Isotropic()
         source.energy = openmc.stats.Discrete([14e6], [1])
 
-        h5m_filename = "dagmc_bigger.h5m"
+        h5m_filename = self.h5m_filename_bigger
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=h5m_filename,
             source=source,
