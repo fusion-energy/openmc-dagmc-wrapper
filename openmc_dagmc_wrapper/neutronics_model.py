@@ -366,7 +366,7 @@ class NeutronicsModel:
 
     def create_graveyard_surfaces(self):
         """Creates four vacuum surfaces that surround the geometry and can be
-        used as an alternative to the traditionaly DAGMC graveyard cell"""
+        used as an alternative to the traditionally DAGMC graveyard cell"""
 
         if self.bounding_box is None:
             self.bounding_box = self.find_bounding_box()
