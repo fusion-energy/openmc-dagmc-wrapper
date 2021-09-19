@@ -13,17 +13,17 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def setUp(self):
 
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        if not Path("tests/v0.0.2.tar.gz").is_file():
+            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
 
-        local_filename = "dagmc_bigger.h5m"
+            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
+            tar.extractall("tests")
+            tar.close()
 
-        if not Path(local_filename).is_file():
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
 
         self.material_description_bigger = {
             "pf_coil_case_mat": "Be",
@@ -36,20 +36,6 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             "blanket_mat": "Be",
             "firstwall_mat": "Be",
         }
-
-        url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-
-        local_filename = "dagmc_smaller.h5m"
-
-        if not Path(local_filename).is_file():
-
-            r = requests.get(url, stream=True)
-            with open(local_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
-
-        self.h5m_filename_smaller_smaller = local_filename
 
         self.material_description_smaller = {
             "mat1": "Be",
@@ -65,7 +51,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
     def test_cell_tally_simulation(self):
 
         my_model = odw.NeutronicsModel(
-            h5m_filename="dagmc_bigger.h5m",
+            h5m_filename=self.h5m_filename_bigger,
             source=self.source,
             materials=self.material_description_bigger,
             cell_tallies=["TBR"],
@@ -83,7 +69,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
     def test_bounding_box_size(self):
 
         my_model = odw.NeutronicsModel(
-            h5m_filename="dagmc_bigger.h5m",
+            h5m_filename=self.h5m_filename_bigger,
             source=self.source,
             materials=self.material_description_bigger,
         )
@@ -104,7 +90,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
     def test_bounding_box_size_2(self):
 
         my_model = odw.NeutronicsModel(
-            h5m_filename="dagmc_smaller.h5m",
+            h5m_filename=self.h5m_filename_smaller,
             source=self.source,
             materials=self.material_description_smaller,
         )
