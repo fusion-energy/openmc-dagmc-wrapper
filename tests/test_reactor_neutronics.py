@@ -47,7 +47,6 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
         source.angle = openmc.stats.Isotropic()
         source.energy = openmc.stats.Discrete([14e6], [1])
 
-        h5m_filename = self.h5m_filename_bigger
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
             h5m_filename=self.h5m_filename_bigger,
             source=source,
