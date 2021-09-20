@@ -8,7 +8,7 @@ import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
-
+from numpy import cos, sin
 from .utils import (create_initial_particles,
                     extract_points_from_initial_source, plotly_trace,
                     silently_remove_file)
@@ -88,6 +88,7 @@ class NeutronicsModel:
         bounding_box: Tuple[
             Tuple[float, float, float], Tuple[float, float, float]
         ] = None,
+        reflective_angles=None,
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
@@ -109,6 +110,7 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
+        self.reflective_angles = reflective_angles
 
         # find_bounding_box can be used to populate this
         self.bounding_box = bounding_box
@@ -462,7 +464,38 @@ class NeutronicsModel:
         # this is the underlying geometry container that is filled with the
         # faceted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
-        geom = openmc.Geometry(root=dag_univ)
+
+        if self.reflective_angles is None:
+            root = dag_univ
+        else:
+            if self.bounding_box is None:
+                self.bounding_box = self.find_bounding_box()
+            bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
+            # add reflective surfaces
+            # fix the x and y minimums to zero to get the universe boundary co
+            bbox[0][0] = 0.0
+            bbox[0][1] = 0.0
+
+            bump = 0.0
+
+            lower_z = openmc.ZPlane(bbox[0][2] - bump, surface_id=9999, boundary_type='vacuum')
+            upper_z = openmc.ZPlane(bbox[1][2] + bump, surface_id=9998, boundary_type='vacuum')
+
+            upper_x =openmc.XPlane(bbox[1][0] + bump, surface_id=9993, boundary_type='vacuum')
+            upper_y =openmc.YPlane(bbox[1][1] + bump, surface_id=9992, boundary_type='vacuum')
+
+            angle_1, angle_2 = self.reflective_angles[0], self.reflective_angles[1]
+            reflective_1 = openmc.Plane(
+                a=sin(angle_1), b=-cos(angle_1), c=0.0, d=0.0,
+                surface_id=9995, boundary_type='reflective')
+            reflective_2 = openmc.Plane(
+                a=sin(angle_2), b=-cos(angle_2), c=0.0, d=0.0,
+                surface_id=9994, boundary_type='reflective')
+
+            region = -upper_x & -upper_y & +lower_z & -upper_z & -reflective_1 & +reflective_2
+            Q1_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
+            root = [Q1_cell]
+        geom = openmc.Geometry(root=root)
 
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
