@@ -143,8 +143,7 @@ def find_fusion_energy_per_reaction(reactants: str) -> float:
             0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
         ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
     else:
-        raise ValueError(
-            "Only fuel types of DD and DT are currently supported")
+        raise ValueError("Only fuel types of DD and DT are currently supported")
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
 
@@ -156,7 +155,7 @@ def process_results(
     fusion_power: Optional[float] = None,
     fusion_energy_per_pulse: Optional[float] = None,
     fusion_fuel: Optional[str] = "DT",
-    outputfile: Optional[str] = "results.json"
+    outputfile: Optional[str] = "results.json",
 ) -> dict:
     """Extracts simulation results from the statepoint file. Applies post
     processing to the results taking into account user specified fusion
@@ -307,8 +306,14 @@ def process_results(
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["flux per pulse"] = {
                     "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": [result * number_of_neutrons_per_pulse for result in tally_result.tolist()],
-                    "std. dev.": [result * number_of_neutrons_per_pulse for result in tally_std_dev.tolist()],
+                    "result": [
+                        result * number_of_neutrons_per_pulse
+                        for result in tally_result.tolist()
+                    ],
+                    "std. dev.": [
+                        result * number_of_neutrons_per_pulse
+                        for result in tally_std_dev.tolist()
+                    ],
                 }
 
         elif tally.name.endswith("effective_dose"):
@@ -318,7 +323,9 @@ def process_results(
             # flux is in units of cm per source particle
             # dose coefficients have units of pico Sv cm^2
             results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result, "std. dev.": tally_std_dev, }
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
 
             if fusion_power is not None:
                 results[tally.name]["pSv cm3 per second"] = {
@@ -337,13 +344,7 @@ def process_results(
             _save_2d_mesh_tally_as_png(
                 score=score,
                 tally=tally,
-                filename=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-"),
+                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
             )
 
         elif "_on_3D_mesh" in tally.name:
@@ -389,14 +390,8 @@ def process_results(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-") +
-                ".vtk",
+                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
+                + ".vtk",
             )
 
         elif "_on_3D_u_mesh" in tally.name:
@@ -417,6 +412,7 @@ def process_results(
             json.dump(results, outfile, indent=4, sort_keys=True)
 
     return results
+
 
 # to do find particles from tally
 # def find_particle_from_tally(tally):
@@ -510,9 +506,7 @@ def write_3d_mesh_tally_to_vtk(
     return outfile
 
 
-def create_initial_particles(
-        source,
-        number_of_source_particles: int = 2000) -> str:
+def create_initial_particles(source, number_of_source_particles: int = 2000) -> str:
     """Accepts an openmc source and creates an initial_source.h5 that can be
     used to find intial xyz, direction and energy of the partice source.
 
@@ -615,14 +609,10 @@ def extract_points_from_initial_source(
         elif view_plane == "ZX":
             points.append((particle[0][2], particle[0][0]))
         elif view_plane == "RZ":
-            xy_coord = math.pow(particle[0][0], 2) + \
-                math.pow(particle[0][1], 2)
+            xy_coord = math.pow(particle[0][0], 2) + math.pow(particle[0][1], 2)
             points.append((math.sqrt(xy_coord), particle[0][2]))
         elif view_plane == "XYZ":
             points.append((particle[0][0], particle[0][1], particle[0][2]))
         else:
-            raise ValueError(
-                "view_plane value of ",
-                view_plane,
-                " is not supported")
+            raise ValueError("view_plane value of ", view_plane, " is not supported")
     return points

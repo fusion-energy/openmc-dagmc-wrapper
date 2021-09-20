@@ -9,9 +9,12 @@ import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
 from openmc.data import REACTION_MT, REACTION_NAME
 
-from .utils import (create_initial_particles,
-                    extract_points_from_initial_source, plotly_trace,
-                    silently_remove_file)
+from .utils import (
+    create_initial_particles,
+    extract_points_from_initial_source,
+    plotly_trace,
+    silently_remove_file,
+)
 
 
 class NeutronicsModel:
@@ -177,11 +180,11 @@ class NeutronicsModel:
                     "spectra",
                     "absorption",
                     "effective_dose",
-                    "fast_flux"] +
-                list(
-                    REACTION_MT.keys()) +
-                list(
-                    REACTION_NAME.keys()))
+                    "fast_flux",
+                ]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
@@ -286,10 +289,11 @@ class NeutronicsModel:
             if reactor_material not in materials_in_h5m:
                 msg = (
                     f"material with tag {reactor_material} was not found in "
-                    "the dagmc h5m file")
+                    "the dagmc h5m file"
+                )
                 raise ValueError(msg)
 
-        if 'graveyard' in materials_in_h5m:
+        if "graveyard" in materials_in_h5m:
             required_number_of_materials = len(materials_in_h5m) - 1
         else:
             required_number_of_materials = len(materials_in_h5m)
@@ -298,15 +302,15 @@ class NeutronicsModel:
             msg = (
                 f"the NeutronicsModel.materials does not match the material "
                 "tags in the dagmc h5m file. Materials in h5m file "
-                f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
+                f"{materials_in_h5m}. Materials provided {self.materials.keys()}"
+            )
             raise ValueError(msg)
 
         silently_remove_file("materials.xml")
 
         openmc_materials = {}
         for material_tag, material_entry in self.materials.items():
-            openmc_material = self.create_material(
-                material_tag, material_entry)
+            openmc_material = self.create_material(material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -464,8 +468,7 @@ class NeutronicsModel:
             raise ValueError(msg)
 
         if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(
-                simulation_particles_per_batch)
+            simulation_particles_per_batch = int(simulation_particles_per_batch)
         if not isinstance(simulation_particles_per_batch, int):
             msg = (
                 "NeutronicsModelFromReactor.simulation_particles_per_batch"
@@ -520,8 +523,7 @@ class NeutronicsModel:
             elif self.tet_mesh_filename.endswith(".h5m"):
                 # requires a .cub file export from cubit and mbconvert to h5m
                 # format
-                umesh = openmc.UnstructuredMesh(
-                    self.tet_mesh_filename, library="moab")
+                umesh = openmc.UnstructuredMesh(self.tet_mesh_filename, library="moab")
             else:
                 msg = "only h5m or exo files are accepted as valid tet_mesh_filename values"
                 raise ValueError(msg)
@@ -558,8 +560,7 @@ class NeutronicsModel:
                         geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -582,8 +583,7 @@ class NeutronicsModel:
                             geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
@@ -591,8 +591,7 @@ class NeutronicsModel:
                         score = "flux"
                         prefix = standard_tally
                         mesh_filter = openmc.MeshFilter(mesh_xyz)
-                        tally = openmc.Tally(
-                            name=f"{prefix}_photon_on_3D_mesh")
+                        tally = openmc.Tally(name=f"{prefix}_photon_on_3D_mesh")
                         tally.filters = [
                             mesh_filter,
                             photon_particle_filter,
@@ -717,16 +716,14 @@ class NeutronicsModel:
                     energy_bins = [1e6, 1000e6]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
                     self._add_tally_for_every_material(
                         "neutron_fast_flux",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
                         self._add_tally_for_every_material(
                             "photon_fast_flux",
                             "flux",
@@ -738,16 +735,14 @@ class NeutronicsModel:
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
                     self._add_tally_for_every_material(
                         "neutron_spectra",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
                         self._add_tally_for_every_material(
                             "photon_spectra",
                             "flux",
@@ -762,8 +757,7 @@ class NeutronicsModel:
                         geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                     )
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
+                    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -780,8 +774,7 @@ class NeutronicsModel:
                             geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
                         )
 
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
+                        photon_particle_filter = openmc.ParticleFilter(["photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
@@ -872,7 +865,8 @@ class NeutronicsModel:
                 msg = (
                     f"{required_file} file was not found. Please use the "
                     "openmc_dagmc_wrapper.export_xml() method to create the "
-                    "xml files")
+                    "xml files"
+                )
                 raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
@@ -882,8 +876,7 @@ class NeutronicsModel:
         simulation_batches = self.model.settings.batches
         silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
-        self.statepoint_filename = self.model.run(
-            output=verbose, threads=threads)
+        self.statepoint_filename = self.model.run(output=verbose, threads=threads)
 
         return self.statepoint_filename
 
@@ -923,14 +916,9 @@ class NeutronicsModel:
             source_filename = create_initial_particles(
                 self.source, number_of_source_particles
             )
-            points = extract_points_from_initial_source(
-                source_filename, view_plane)
+            points = extract_points_from_initial_source(source_filename, view_plane)
 
-            figure.add_trace(
-                plotly_trace(
-                    points=points,
-                    mode="markers",
-                    name="source"))
+            figure.add_trace(plotly_trace(points=points, mode="markers", name="source"))
 
         if filename is not None:
 
