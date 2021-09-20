@@ -841,7 +841,6 @@ class NeutronicsModel:
         self,
         verbose: Optional[bool] = True,
         threads: Optional[int] = None,
-        max_lost_particles: Optional[int] = 0,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -879,7 +878,10 @@ class NeutronicsModel:
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")
-        silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
+
+        # todo consider removing the old output file
+        print(self.model.settings)
+        # silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)
