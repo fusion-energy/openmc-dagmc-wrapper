@@ -1,14 +1,16 @@
-import json
+
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
-from openmc.data import REACTION_MT, REACTION_NAME
 from numpy import cos, sin
+from openmc.data import REACTION_MT, REACTION_NAME
+from remove_dagmc_tags import remove_tags
+
 from .utils import (create_initial_particles,
                     extract_points_from_initial_source, plotly_trace,
                     silently_remove_file)
@@ -362,6 +364,38 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
+    def create_graveyard_surfaces(self):
+        """Creates four vacuum surfaces that surround the geometry and can be
+        used as an alternative to the traditionaly DAGMC graveyard cell"""
+
+        if self.bounding_box is None:
+            self.bounding_box = self.find_bounding_box()
+        bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
+        # add reflective surfaces
+        # fix the x and y minimums to zero to get the universe boundary co
+        bbox[0][0] = 0.0
+        bbox[0][1] = 0.0
+
+        lower_z = openmc.ZPlane(
+            bbox[0][2],
+            surface_id=9999,
+            boundary_type='vacuum')
+        upper_z = openmc.ZPlane(
+            bbox[1][2],
+            surface_id=9998,
+            boundary_type='vacuum')
+
+        upper_x = openmc.XPlane(
+            bbox[1][0],
+            surface_id=9993,
+            boundary_type='vacuum')
+        upper_y = openmc.YPlane(
+            bbox[1][1],
+            surface_id=9992,
+            boundary_type='vacuum')
+
+        return [upper_x, upper_y, lower_z, upper_z]
+
     def export_xml(
         self,
         simulation_batches: int,
@@ -466,49 +500,59 @@ class NeutronicsModel:
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
 
         if self.reflective_angles is None:
-            root = dag_univ
+            # if a graveyard is not found in the dagmc geometry a CSG one is made
+            if 'graveyard' not in di.get_materials_from_h5m(self.h5m_filename):
+                vac_surfs = self.create_graveyard_surfaces()
+                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & -vac_surfs[3]
+
+                containing_cell = openmc.Cell(
+                    cell_id=9999,
+                    region=region,
+                    fill=dag_univ
+                )
+
+                root = [containing_cell]
+            
+            else:
+                
+                root = dag_univ
+
         else:
-            if self.bounding_box is None:
-                self.bounding_box = self.find_bounding_box()
-            bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
-            # add reflective surfaces
-            # fix the x and y minimums to zero to get the universe boundary co
-            bbox[0][0] = 0.0
-            bbox[0][1] = 0.0
 
-            bump = 0.0
-
-            lower_z = openmc.ZPlane(
-                bbox[0][2] - bump,
-                surface_id=9999,
-                boundary_type='vacuum')
-            upper_z = openmc.ZPlane(
-                bbox[1][2] + bump,
-                surface_id=9998,
-                boundary_type='vacuum')
-
-            upper_x = openmc.XPlane(
-                bbox[1][0] + bump,
-                surface_id=9993,
-                boundary_type='vacuum')
-            upper_y = openmc.YPlane(
-                bbox[1][1] + bump,
-                surface_id=9992,
-                boundary_type='vacuum')
-
-            angle_1, angle_2 = self.reflective_angles[0], self.reflective_angles[1]
             reflective_1 = openmc.Plane(
-                a=sin(angle_1), b=-cos(angle_1), c=0.0, d=0.0,
-                surface_id=9995, boundary_type='reflective')
-            reflective_2 = openmc.Plane(
-                a=sin(angle_2), b=-cos(angle_2), c=0.0, d=0.0,
-                surface_id=9994, boundary_type='reflective')
+                a=sin(self.reflective_angles[0]),
+                b=-cos(self.reflective_angles[0]),
+                c=0.0,
+                d=0.0,
+                surface_id=9995,
+                boundary_type='reflective'
+            )
 
-            region = -upper_x & -upper_y & +lower_z & - \
-                upper_z & -reflective_1 & +reflective_2
+            reflective_2 = openmc.Plane(
+                a=sin(self.reflective_angles[1]),
+                b=-cos(self.reflective_angles[1]),
+                c=0.0,
+                d=0.0,
+                surface_id=9994,
+                boundary_type='reflective'
+            )
+
+            # if a graveyard is not found in the dagmc geometry a CSG one is made
+            if 'graveyard' in di.get_materials_from_h5m(self.h5m_filename):
+                region = -reflective_1 & +reflective_2
+            else:
+                vac_surfs = self.create_graveyard_surfaces()
+                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & -vac_surfs[3] \
+                        & -reflective_1 & +reflective_2
+
             containing_cell = openmc.Cell(
-                cell_id=9999, region=region, fill=dag_univ)
+                cell_id=9999,
+                region=region,
+                fill=dag_univ
+            )
+
             root = [containing_cell]
+
         geom = openmc.Geometry(root=root)
 
         # settings for the number of neutrons to simulate
