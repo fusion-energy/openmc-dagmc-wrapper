@@ -478,11 +478,23 @@ class NeutronicsModel:
 
             bump = 0.0
 
-            lower_z = openmc.ZPlane(bbox[0][2] - bump, surface_id=9999, boundary_type='vacuum')
-            upper_z = openmc.ZPlane(bbox[1][2] + bump, surface_id=9998, boundary_type='vacuum')
+            lower_z = openmc.ZPlane(
+                bbox[0][2] - bump,
+                surface_id=9999,
+                boundary_type='vacuum')
+            upper_z = openmc.ZPlane(
+                bbox[1][2] + bump,
+                surface_id=9998,
+                boundary_type='vacuum')
 
-            upper_x =openmc.XPlane(bbox[1][0] + bump, surface_id=9993, boundary_type='vacuum')
-            upper_y =openmc.YPlane(bbox[1][1] + bump, surface_id=9992, boundary_type='vacuum')
+            upper_x = openmc.XPlane(
+                bbox[1][0] + bump,
+                surface_id=9993,
+                boundary_type='vacuum')
+            upper_y = openmc.YPlane(
+                bbox[1][1] + bump,
+                surface_id=9992,
+                boundary_type='vacuum')
 
             angle_1, angle_2 = self.reflective_angles[0], self.reflective_angles[1]
             reflective_1 = openmc.Plane(
@@ -492,7 +504,8 @@ class NeutronicsModel:
                 a=sin(angle_2), b=-cos(angle_2), c=0.0, d=0.0,
                 surface_id=9994, boundary_type='reflective')
 
-            region = -upper_x & -upper_y & +lower_z & -upper_z & -reflective_1 & +reflective_2
+            region = -upper_x & -upper_y & +lower_z & - \
+                upper_z & -reflective_1 & +reflective_2
             Q1_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
             root = [Q1_cell]
         geom = openmc.Geometry(root=root)
