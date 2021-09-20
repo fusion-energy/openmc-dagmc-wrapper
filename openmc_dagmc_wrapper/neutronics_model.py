@@ -378,8 +378,8 @@ class NeutronicsModel:
 
     def export_xml(
         self,
-        source: Optional[openmc.Source]=None,
-        geometry: Optional[openmc.Geometry]=None,
+        source: Optional[openmc.Source] = None,
+        geometry: Optional[openmc.Geometry] = None,
         simulation_batches: Optional[int] = 10,
         simulation_particles_per_batch: Optional[int] = 100,
         max_lost_particles: Optional[int] = 0,
@@ -870,9 +870,10 @@ class NeutronicsModel:
             "tallies.xml",
         ]:
             if not Path(required_file).is_file():
-                msg = (f"{required_file} file was not found. Please use the "
-                       "openmc_dagmc_wrapper.export_xml() method to create the "
-                       "xml files")
+                msg = (
+                    f"{required_file} file was not found. Please use the "
+                    "openmc_dagmc_wrapper.export_xml() method to create the "
+                    "xml files")
                 raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
