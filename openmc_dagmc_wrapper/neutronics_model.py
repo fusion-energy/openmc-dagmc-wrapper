@@ -500,10 +500,12 @@ class NeutronicsModel:
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
 
         if self.reflective_angles is None:
-            # if a graveyard is not found in the dagmc geometry a CSG one is made
+            # if a graveyard is not found in the dagmc geometry a CSG one is
+            # made
             if 'graveyard' not in di.get_materials_from_h5m(self.h5m_filename):
                 vac_surfs = self.create_graveyard_surfaces()
-                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & -vac_surfs[3]
+                region = -vac_surfs[0] & -vac_surfs[1] & + \
+                    vac_surfs[2] & -vac_surfs[3]
 
                 containing_cell = openmc.Cell(
                     cell_id=9999,
@@ -512,9 +514,9 @@ class NeutronicsModel:
                 )
 
                 root = [containing_cell]
-            
+
             else:
-                
+
                 root = dag_univ
 
         else:
@@ -537,13 +539,14 @@ class NeutronicsModel:
                 boundary_type='reflective'
             )
 
-            # if a graveyard is not found in the dagmc geometry a CSG one is made
+            # if a graveyard is not found in the dagmc geometry a CSG one is
+            # made
             if 'graveyard' in di.get_materials_from_h5m(self.h5m_filename):
                 region = -reflective_1 & +reflective_2
             else:
                 vac_surfs = self.create_graveyard_surfaces()
-                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & -vac_surfs[3] \
-                        & -reflective_1 & +reflective_2
+                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & - \
+                    vac_surfs[3] & -reflective_1 & +reflective_2
 
             containing_cell = openmc.Cell(
                 cell_id=9999,
