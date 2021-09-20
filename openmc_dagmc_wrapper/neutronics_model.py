@@ -879,9 +879,8 @@ class NeutronicsModel:
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")
 
-        # todo consider removing the old output file
-        print(self.model.settings)
-        # silently_remove_file(f"statepoint.{simulation_batches}.h5")
+        simulation_batches = self.model.settings.batches
+        silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)
