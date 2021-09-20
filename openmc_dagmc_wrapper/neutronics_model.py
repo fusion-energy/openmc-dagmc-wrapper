@@ -506,8 +506,8 @@ class NeutronicsModel:
 
             region = -upper_x & -upper_y & +lower_z & - \
                 upper_z & -reflective_1 & +reflective_2
-            Q1_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
-            root = [Q1_cell]
+            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
+            root = [containing_cell ]
         geom = openmc.Geometry(root=root)
 
         # settings for the number of neutrons to simulate
