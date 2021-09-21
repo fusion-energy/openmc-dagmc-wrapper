@@ -1,11 +1,12 @@
 import os
-import unittest
-from pathlib import Path
 import tarfile
+import unittest
+import urllib.request
+from pathlib import Path
+
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
-import urllib.request
 
 
 class TestShape(unittest.TestCase):
