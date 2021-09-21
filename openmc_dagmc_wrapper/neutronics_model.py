@@ -1,17 +1,22 @@
-import json
+
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
 import plotly.graph_objects as go
+from numpy import cos, sin
 from openmc.data import REACTION_MT, REACTION_NAME
+from remove_dagmc_tags import remove_tags
 
-from .utils import (create_initial_particles,
-                    extract_points_from_initial_source, plotly_trace,
-                    silently_remove_file)
+from .utils import (
+    create_initial_particles,
+    extract_points_from_initial_source,
+    plotly_trace,
+    silently_remove_file, diff_between_angles
+)
 
 
 class NeutronicsModel:
@@ -63,6 +68,8 @@ class NeutronicsModel:
         bounding_box: the lower left and upper right corners of the geometry
             used by the 2d and 3d mesh when no corners are specified. Can be
             found with NeutronicsModel.find_bounding_box but includes graveyard
+        reflective_angles: tuple of 2 floats designing the angles of the
+            reflective planes (parrallel to the Z axis).
     """
 
     def __init__(
@@ -88,6 +95,7 @@ class NeutronicsModel:
         bounding_box: Tuple[
             Tuple[float, float, float], Tuple[float, float, float]
         ] = None,
+        reflective_angles: Optional[Tuple[float, float]] = None,
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
@@ -109,9 +117,23 @@ class NeutronicsModel:
         self.tallies = None
         self.output_filename = None
         self.statepoint_filename = None
+        self.reflective_angles = reflective_angles
 
         # find_bounding_box can be used to populate this
         self.bounding_box = bounding_box
+
+    @property
+    def reflective_angles(self):
+        return self._reflective_angles
+
+    @reflective_angles.setter
+    def reflective_angles(self, value):
+        if value is not None:
+            if diff_between_angles(value[0], value[1]) > 180:
+                msg = "difference between reflective_angles should be less " + \
+                    "than 180 degrees"
+                raise ValueError(msg)
+        self._reflective_angles = value
 
     @property
     def h5m_filename(self):
@@ -177,11 +199,11 @@ class NeutronicsModel:
                     "spectra",
                     "absorption",
                     "effective_dose",
-                    "fast_flux"] +
-                list(
-                    REACTION_MT.keys()) +
-                list(
-                    REACTION_NAME.keys()))
+                    "fast_flux",
+                ]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
@@ -286,10 +308,11 @@ class NeutronicsModel:
             if reactor_material not in materials_in_h5m:
                 msg = (
                     f"material with tag {reactor_material} was not found in "
-                    "the dagmc h5m file")
+                    "the dagmc h5m file"
+                )
                 raise ValueError(msg)
 
-        if 'graveyard' in materials_in_h5m:
+        if "graveyard" in materials_in_h5m:
             required_number_of_materials = len(materials_in_h5m) - 1
         else:
             required_number_of_materials = len(materials_in_h5m)
@@ -360,11 +383,60 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
+    def export_geometry(self, h5m_filename=None):
+        """Creates the underlying container geometry that is filled with the
+        faceted DAGMC CAD model
+
+        Args:
+            geometry: the geometry to use for the simulation. If None then
+                Defaults to the openmc_dagmc_wrapper.h5m_filename
+        """
+
+        if h5m_filename is None:
+            h5m_filename = self.h5m_filename
+        dag_univ = openmc.DAGMCUniverse(h5m_filename)
+        geometry = openmc.Geometry(root=dag_univ)
+
+        return geometry
+
+    def create_graveyard_surfaces(self):
+        """Creates four vacuum surfaces that surround the geometry and can be
+        used as an alternative to the traditionally DAGMC graveyard cell"""
+
+        if self.bounding_box is None:
+            self.bounding_box = self.find_bounding_box()
+        bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
+        # add reflective surfaces
+        # fix the x and y minimums to zero to get the universe boundary co
+        bbox[0][0] = 0.0
+        bbox[0][1] = 0.0
+
+        lower_z = openmc.ZPlane(
+            bbox[0][2],
+            surface_id=9999,
+            boundary_type='vacuum')
+        upper_z = openmc.ZPlane(
+            bbox[1][2],
+            surface_id=9998,
+            boundary_type='vacuum')
+
+        upper_x = openmc.XPlane(
+            bbox[1][0],
+            surface_id=9993,
+            boundary_type='vacuum')
+        upper_y = openmc.YPlane(
+            bbox[1][1],
+            surface_id=9992,
+            boundary_type='vacuum')
+
+        return [upper_x, upper_y, lower_z, upper_z]
+
     def export_xml(
         self,
-        simulation_batches: int,
-        simulation_particles_per_batch: int,
-        source=None,
+        source: Optional[openmc.Source] = None,
+        geometry: Optional[openmc.Geometry] = None,
+        simulation_batches: Optional[int] = 10,
+        simulation_particles_per_batch: Optional[int] = 100,
         max_lost_particles: Optional[int] = 0,
         mesh_tally_3d: Optional[List[str]] = None,
         mesh_tally_tet: Optional[List[str]] = None,
@@ -384,8 +456,11 @@ class NeutronicsModel:
         particles per batch).
 
         Arguments:
-            source: (openmc.Source): the particle source to use during the
-                OpenMC simulation. Defaults to NeutronicsModel.source
+            source: the particle source to use during the OpenMC simulation.
+            geometry: the geometry to use for the simulation. If None then
+                Defaults to the openmc-dagmc-wrapper.h5m_filename
+            simulation_batches: the number of batch to simulate.
+            simulation_particles_per_batch: particles per batch.
             max_lost_particles: The maximum number of particles that can be
                 lost during the simulation before terminating the simulation.
                 Defaults to 0.
@@ -404,14 +479,14 @@ class NeutronicsModel:
             mesh_tally_2d: . the 2D mesh based tallies to calculate, options
                 include heating and flux , MT numbers and OpenMC standard
                 scores such as (n,Xa) which is helium production are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores .
+                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
                 Defaults to None which uses the NeutronicsModel.mesh_tally_2d
                 attribute.
             cell_tallies: the cell based tallies to calculate, options include
                 TBR, heating, flux, MT numbers, effective_dose, fast_flux and
                 OpenMC standard scores such as (n,Xa) which is helium production
                 are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
+                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
                 Defaults to None which uses the NeutronicsModel.cell_tallies
                 attribute.
             mesh_2d_resolution: The 2D mesh resolution in the height and
@@ -435,6 +510,24 @@ class NeutronicsModel:
             openmc.model.Model(): The openmc model object created
         """
 
+        if isinstance(simulation_batches, float):
+            simulation_batches = int(simulation_batches)
+        if not isinstance(simulation_batches, int):
+            raise TypeError("The simulation_batches argument must be an int")
+        if simulation_batches < 2:
+            msg = "The minimum of setting for simulation_batches is 2"
+            raise ValueError(msg)
+
+        if isinstance(simulation_particles_per_batch, float):
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
+        if not isinstance(simulation_particles_per_batch, int):
+            msg = (
+                "NeutronicsModelFromReactor.simulation_particles_per_batch"
+                "should be an int"
+            )
+            raise TypeError(msg)
+
         if source is None:
             source = self.source
         if mesh_tally_3d is None:
@@ -455,14 +548,71 @@ class NeutronicsModel:
             mesh_3d_corners = self.mesh_3d_corners
 
         # this removes any old file from previous simulations
-        silently_remove_file("geometry.xml")
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
 
         # this is the underlying geometry container that is filled with the
         # faceted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
-        geom = openmc.Geometry(root=dag_univ)
+
+        if self.reflective_angles is None:
+            # if a graveyard is not found in the dagmc geometry a CSG one is
+            # made
+            if 'graveyard' not in di.get_materials_from_h5m(self.h5m_filename):
+                vac_surfs = self.create_graveyard_surfaces()
+                region = -vac_surfs[0] & -vac_surfs[1] & + \
+                    vac_surfs[2] & -vac_surfs[3]
+
+                containing_cell = openmc.Cell(
+                    cell_id=9999,
+                    region=region,
+                    fill=dag_univ
+                )
+
+                root = [containing_cell]
+
+            else:
+
+                root = dag_univ
+
+        else:
+
+            reflective_1 = openmc.Plane(
+                a=sin(self.reflective_angles[0]),
+                b=-cos(self.reflective_angles[0]),
+                c=0.0,
+                d=0.0,
+                surface_id=9995,
+                boundary_type='reflective'
+            )
+
+            reflective_2 = openmc.Plane(
+                a=sin(self.reflective_angles[1]),
+                b=-cos(self.reflective_angles[1]),
+                c=0.0,
+                d=0.0,
+                surface_id=9994,
+                boundary_type='reflective'
+            )
+
+            # if a graveyard is not found in the dagmc geometry a CSG one is
+            # made
+            if 'graveyard' in di.get_materials_from_h5m(self.h5m_filename):
+                region = -reflective_1 & +reflective_2
+            else:
+                vac_surfs = self.create_graveyard_surfaces()
+                region = -vac_surfs[0] & -vac_surfs[1] & +vac_surfs[2] & - \
+                    vac_surfs[3] & -reflective_1 & +reflective_2
+
+            containing_cell = openmc.Cell(
+                cell_id=9999,
+                region=region,
+                fill=dag_univ
+            )
+
+            root = [containing_cell]
+
+        openmc.Geometry(root=root)
 
         # settings for the number of neutrons to simulate
         settings = openmc.Settings()
@@ -479,6 +629,24 @@ class NeutronicsModel:
         # details about what neutrons interactions to keep track of (tally)
         self.tallies = openmc.Tallies()
 
+        # defines filters that are used in multiple places including particle
+        # and dose filters.
+        # ISO defines the direction of the source to person,
+        # for more details see documentation
+        # https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+        # a few more details on dose tallies can be found here
+        # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
+        energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+            particle="neutron",
+            geometry="ISO",
+        )
+        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+            particle="photon",
+            geometry="ISO",
+        )
+        photon_particle_filter = openmc.ParticleFilter(["photon"])
+        neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+
         if self.tet_mesh_filename is not None:
             if self.tet_mesh_filename.endswith(".exo"):
                 # requires a exo file export from cubit
@@ -491,7 +659,8 @@ class NeutronicsModel:
                 umesh = openmc.UnstructuredMesh(
                     self.tet_mesh_filename, library="moab")
             else:
-                msg = "only h5m or exo files are accepted as valid tet_mesh_filename values"
+                msg = ("only h5m or exo files are accepted as valid "
+                       "tet_mesh_filename values")
                 raise ValueError(msg)
 
             umesh_filter = openmc.MeshFilter(umesh)
@@ -521,13 +690,7 @@ class NeutronicsModel:
             for standard_tally in self.mesh_tally_3d:
 
                 if standard_tally == "effective_dose":
-                    energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
-                        particle="neutron",
-                        geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
-                    )
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -545,13 +708,7 @@ class NeutronicsModel:
                     self.tallies.append(tally)
 
                     if self.photon_transport:
-                        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
-                            particle="photon",
-                            geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
-                        )
 
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
@@ -685,16 +842,12 @@ class NeutronicsModel:
                     energy_bins = [1e6, 1000e6]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
                     self._add_tally_for_every_material(
                         "neutron_fast_flux",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
                         self._add_tally_for_every_material(
                             "photon_fast_flux",
                             "flux",
@@ -706,16 +859,12 @@ class NeutronicsModel:
                     energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
                     energy_filter = openmc.EnergyFilter(energy_bins)
 
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
                     self._add_tally_for_every_material(
                         "neutron_spectra",
                         "flux",
                         [neutron_particle_filter, energy_filter],
                     )
                     if self.photon_transport is True:
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
                         self._add_tally_for_every_material(
                             "photon_spectra",
                             "flux",
@@ -723,15 +872,6 @@ class NeutronicsModel:
                         )
                 elif standard_tally == "effective_dose":
 
-                    # a few more details on dose tallies can be found here
-                    # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
-                    energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
-                        particle="neutron",
-                        geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
-                    )
-
-                    neutron_particle_filter = openmc.ParticleFilter([
-                                                                    "neutron"])
                     energy_function_filter_n = openmc.EnergyFunctionFilter(
                         energy_bins_n, dose_coeffs_n
                     )
@@ -743,17 +883,10 @@ class NeutronicsModel:
                     )
 
                     if self.photon_transport:
-                        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
-                            particle="photon",
-                            geometry="ISO",  # ISO defines the direction of the source to person, for more details see documentation https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
-                        )
 
-                        photon_particle_filter = openmc.ParticleFilter([
-                                                                       "photon"])
                         energy_function_filter_p = openmc.EnergyFunctionFilter(
                             energy_bins_p, dose_coeffs_p
                         )
-                        # energy_function_filter_p = openmc.EnergyFunctionFilter(energy_bins_p, dose_coeffs_p)
 
                         self._add_tally_for_every_material(
                             "photon_effective_dose",
@@ -766,13 +899,18 @@ class NeutronicsModel:
                     suffix = standard_tally
                     self._add_tally_for_every_material(suffix, score)
 
-                    # todo add photon tallys for standard tallies
+                    # todo add photon tallys for standard tallies that starts with (p,
                     # if self.photon_transport:
 
-        # make the model from geometry, materials, settings and tallies
-        model = openmc.model.Model(geom, self.mats, settings, self.tallies)
+        if geometry is None:
+            geometry = self.export_geometry()
 
-        geom.export_to_xml()
+        # make the model from geometry, materials, settings and tallies
+        model = openmc.model.Model(geometry, self.mats, settings, self.tallies)
+
+        silently_remove_file("geometry.xml")
+        geometry.export_to_xml()
+
         settings.export_to_xml()
         self.tallies.export_to_xml()
 
@@ -804,10 +942,6 @@ class NeutronicsModel:
         self,
         verbose: Optional[bool] = True,
         threads: Optional[int] = None,
-        export_xml: Optional[bool] = True,
-        simulation_batches: Optional[int] = 100,
-        simulation_particles_per_batch: Optional[int] = 10000,
-        max_lost_particles: Optional[int] = 0,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -817,52 +951,16 @@ class NeutronicsModel:
                 don't print the OpenMC output (False).
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
-            simulation_batches: the number of batch to simulate.
-            simulation_particles_per_batch: particles per batch.
-            export_xml: controls the creation of the OpenMC model
-                files (xml files). Set to True to create the OpenMC files with
-                the default settings as determined by the NeutronicsModel
-                attributes or set to False and use existing xml files or run
-                the export_xml() method yourself with more
-                direct control over the settings and creation of the xml files.
-            max_lost_particles: The maximum number of particles that can be
-                lost during the simulation before terminating the simulation.
-                Defaults to 0.
 
         Returns:
             The h5 simulation output filename
         """
-
-        if isinstance(simulation_batches, float):
-            simulation_batches = int(simulation_batches)
-        if not isinstance(simulation_batches, int):
-            raise TypeError("The simulation_batches argument must be an int")
-        if simulation_batches < 2:
-            msg = "The minimum of setting for simulation_batches is 2"
-            raise ValueError(msg)
-
-        if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(
-                simulation_particles_per_batch)
-        if not isinstance(simulation_particles_per_batch, int):
-            msg = (
-                "NeutronicsModelFromReactor.simulation_particles_per_batch"
-                "should be an int"
-            )
-            raise TypeError(msg)
 
         if not Path(self.h5m_filename).is_file():
             msg = f"""{self.h5m_filename} file was not found. Please set
                   export_h5m to True or use the export_h5m() methods to create
                   the dagmc.h5m file"""
             raise FileNotFoundError(msg)
-
-        if export_xml is True:
-            self.export_xml(
-                simulation_batches=simulation_batches,
-                simulation_particles_per_batch=simulation_particles_per_batch,
-                max_lost_particles=max_lost_particles,
-            )
 
         # checks all the nessecary files are found
         for required_file in [
@@ -872,17 +970,19 @@ class NeutronicsModel:
             "tallies.xml",
         ]:
             if not Path(required_file).is_file():
-                msg = "{} file was not found. Please set export_xml \
-                    to True or use the export_xml() \
-                    method to create the xml files".format(
-                    required_file
+                msg = (
+                    f"{required_file} file was not found. Please use the "
+                    "openmc_dagmc_wrapper.export_xml() method to create the "
+                    "xml files"
                 )
                 raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")
-        silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
+
+        simulation_batches = self.model.settings.batches
+        silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)
@@ -893,9 +993,6 @@ class NeutronicsModel:
         self,
         figure=go.Figure(),
         filename: Optional[str] = "neutronics_model.html",
-        # facet_splines: Optional[bool] = True,
-        # facet_circles: Optional[bool] = True,
-        # tolerance: Optional[float] = 1.,
         view_plane: Optional[str] = "RZ",
         number_of_source_particles: Optional[int] = 1000,
     ):

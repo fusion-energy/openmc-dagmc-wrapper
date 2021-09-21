@@ -1,11 +1,12 @@
 import os
-import unittest
-from pathlib import Path
 import tarfile
+import unittest
+import urllib.request
+from pathlib import Path
+
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
-import urllib.request
 
 
 class TestShape(unittest.TestCase):
@@ -57,6 +58,8 @@ class TestShape(unittest.TestCase):
             materials={"mat1": "WC"},
         )
 
+        my_model.export_xml()
+
         h5m_filename = my_model.simulate()
 
         results = odw.process_results(statepoint_filename=h5m_filename)
@@ -78,11 +81,13 @@ class TestShape(unittest.TestCase):
             cell_tallies=["heating"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
+
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         assert h5m_filename.name == "statepoint.2.h5"
 
@@ -108,11 +113,13 @@ class TestShape(unittest.TestCase):
             cell_tallies=["heating"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
+
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
@@ -264,7 +271,8 @@ class TestShape(unittest.TestCase):
                 source=self.source,
                 materials={"mat1": "eurofer"},
             )
-            my_model.simulate(simulation_batches=1)
+            my_model.export_xml(simulation_batches=1)
+            my_model.simulate()
 
         self.assertRaises(ValueError, incorrect_simulation_batches_to_small)
 
@@ -276,7 +284,8 @@ class TestShape(unittest.TestCase):
                 source=self.source,
                 materials={"mat1": "eurofer"},
             )
-            my_model.simulate(simulation_batches="one")
+            my_model.export_xml(simulation_batches="one")
+            my_model.simulate()
 
         self.assertRaises(TypeError, incorrect_simulation_batches_wrong_type)
 
@@ -288,12 +297,11 @@ class TestShape(unittest.TestCase):
                 source=self.source,
                 materials={"mat1": "eurofer"},
             )
-            my_model.simulate(
-                simulation_particles_per_batch="one",
-            )
+            my_model.export_xml(simulation_batches=1)
+            my_model.simulate()
 
         self.assertRaises(
-            TypeError, incorrect_simulation_particles_per_batch_wrong_type
+            ValueError, incorrect_simulation_particles_per_batch_wrong_type
         )
 
     def test_neutronics_component_cell_simulation_heating(self):
@@ -312,11 +320,12 @@ class TestShape(unittest.TestCase):
             cell_tallies=["heating", "flux", "TBR", "spectra"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
-            simulation_particles_per_batch=20,
+            simulation_particles_per_batch=20
         )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         results = openmc.StatePoint(h5m_filename)
         # spectra add two tallies in this case (photons and neutrons)
@@ -363,11 +372,13 @@ class TestShape(unittest.TestCase):
             cell_tallies=["spectra"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=2000,
         )
+
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         results = odw.process_results(statepoint_filename=h5m_filename)
         assert len(results.keys()) == 2
@@ -441,11 +452,12 @@ class TestShape(unittest.TestCase):
             mesh_tally_2d=["heating"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 3
@@ -475,11 +487,12 @@ class TestShape(unittest.TestCase):
             mesh_tally_3d=["heating", "(n,Xt)"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=2,
         )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
 
         results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 1
@@ -532,11 +545,13 @@ class TestShape(unittest.TestCase):
             mesh_tally_2d=["heating"],
         )
 
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=2,
         )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
+
         results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
@@ -570,11 +585,15 @@ class TestShape(unittest.TestCase):
 
         assert my_model.mesh_3d_corners == [(0, 0, 0), (10, 10, 10)]
         assert my_model.mesh_2d_corners == [(5, 5, 5), (15, 15, 15)]
-        # performs an openmc simulation on the model
-        h5m_filename = my_model.simulate(
+
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=2,
+
         )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.simulate()
+
         results = openmc.StatePoint(h5m_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
@@ -601,15 +620,18 @@ class TestShape(unittest.TestCase):
             cell_tallies=["TBR", "heating", "flux"],
         )
 
-        # starts the neutronics simulation
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
 
+        # starts the neutronics simulation
+        h5m_filename = my_model.simulate()
+
         results = odw.process_results(
             statepoint_filename=h5m_filename,
-            fusion_power=1e9)
+            fusion_power=1e9
+        )
 
         assert isinstance(results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
@@ -628,11 +650,13 @@ class TestShape(unittest.TestCase):
             photon_transport=True,
         )
 
-        # starts the neutronics simulation
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=1000,
         )
+
+        # starts the neutronics simulation
+        h5m_filename = my_model.simulate()
 
         results = odw.process_results(
             statepoint_filename=h5m_filename,
@@ -656,7 +680,7 @@ class TestShape(unittest.TestCase):
         """Performs simulation with h5m file and tallies neutron and photon
         dose. Checks that entries exist in the results."""
 
-        os.system("rm results.json")
+        os.system("rm results.json statepoint*.h5")
 
         my_model = odw.NeutronicsModel(
             h5m_filename=self.h5m_filename_smaller,
@@ -666,11 +690,13 @@ class TestShape(unittest.TestCase):
             photon_transport=True,
         )
 
-        # starts the neutronics simulation
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
+
+        # starts the neutronics simulation
+        h5m_filename = my_model.simulate()
 
         results = odw.process_results(
             statepoint_filename=h5m_filename,
@@ -770,11 +796,13 @@ class TestShape(unittest.TestCase):
             mesh_tally_2d=["(n,Xt)", "heating", "flux"],
         )
 
-        # starts the neutronics simulation
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=10,
         )
+
+        # starts the neutronics simulation
+        h5m_filename = my_model.simulate()
 
         odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
@@ -802,9 +830,11 @@ class TestShape(unittest.TestCase):
                 materials={"mat1": "WC"},
             )
 
+            my_model.export_xml()
+
             os.system("rm *.xml")
 
-            my_model.simulate(export_xml=False)
+            my_model.simulate()
 
         self.assertRaises(
             FileNotFoundError,

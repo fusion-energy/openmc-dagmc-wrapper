@@ -142,3 +142,5 @@ dmypy.json
 *.trelis
 *.out
 *.tar.gz
+examples/neutronics_workflow-0.0.2/
+tests/neutronics_workflow-0.0.2/
