@@ -15,7 +15,7 @@ from .utils import (
     create_initial_particles,
     extract_points_from_initial_source,
     plotly_trace,
-    silently_remove_file,
+    silently_remove_file, diff_between_angles
 )
 
 
