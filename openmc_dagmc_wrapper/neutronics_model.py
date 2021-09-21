@@ -125,12 +125,12 @@ class NeutronicsModel:
 
     @reflective_angles.setter
     def reflective_angles(self, value):
-        if diff_between_angles(value[0], value[1]) > 180:
-            msg = "difference between reflective_angles should be less " + \
-                "than 180 degrees"
-            raise ValueError(msg)
-        else:
-            self._reflective_angles = value
+        if value is not None:
+            if diff_between_angles(value[0], value[1]) > 180:
+                msg = "difference between reflective_angles should be less " + \
+                    "than 180 degrees"
+                raise ValueError(msg)
+        self._reflective_angles = value
 
     @property
     def h5m_filename(self):
