@@ -13,7 +13,7 @@ from remove_dagmc_tags import remove_tags
 
 from .utils import (create_initial_particles,
                     extract_points_from_initial_source, plotly_trace,
-                    silently_remove_file)
+                    silently_remove_file, diff_between_angles)
 
 
 class NeutronicsModel:
@@ -65,6 +65,8 @@ class NeutronicsModel:
         bounding_box: the lower left and upper right corners of the geometry
             used by the 2d and 3d mesh when no corners are specified. Can be
             found with NeutronicsModel.find_bounding_box but includes graveyard
+        reflective_angles: tuple of 2 floats designing the angles of the
+            reflective planes (parrallel to the Z axis).
     """
 
     def __init__(
@@ -90,7 +92,7 @@ class NeutronicsModel:
         bounding_box: Tuple[
             Tuple[float, float, float], Tuple[float, float, float]
         ] = None,
-        reflective_angles=None,
+        reflective_angles: Optional[Tuple[float, float]] = None,
     ):
         self.materials = materials
         self.h5m_filename = h5m_filename
@@ -116,6 +118,19 @@ class NeutronicsModel:
 
         # find_bounding_box can be used to populate this
         self.bounding_box = bounding_box
+
+    @property
+    def reflective_angles(self):
+        return self._reflective_angles
+
+    @reflective_angles.setter
+    def reflective_angles(self, value):
+        if diff_between_angles(value[0], value[1]) > 180:
+            msg = "difference between reflective_angles should be less " + \
+                "than 180 degrees"
+            raise ValueError(msg)
+        else:
+            self._reflective_angles = value
 
     @property
     def h5m_filename(self):

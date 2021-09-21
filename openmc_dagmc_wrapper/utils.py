@@ -626,3 +626,20 @@ def extract_points_from_initial_source(
                 view_plane,
                 " is not supported")
     return points
+
+
+def diff_between_angles(angle_a: float, angle_b: float) -> float:
+    """Calculates the difference between two angles angle_a and angle_b
+
+    Args:
+        angle_a (float): angle in degree
+        angle_b (float): angle in degree
+
+    Returns:
+        float: difference between the two angles in degree.
+    """
+
+    delta_mod = (angle_b - angle_a) % 360
+    if delta_mod > 180:
+        delta_mod -= 360
+    return delta_mod
