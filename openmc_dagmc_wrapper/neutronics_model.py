@@ -11,9 +11,12 @@ from numpy import cos, sin
 from openmc.data import REACTION_MT, REACTION_NAME
 from remove_dagmc_tags import remove_tags
 
-from .utils import (create_initial_particles,
-                    extract_points_from_initial_source, plotly_trace,
-                    silently_remove_file, diff_between_angles)
+from .utils import (
+    create_initial_particles,
+    extract_points_from_initial_source,
+    plotly_trace,
+    silently_remove_file,
+)
 
 
 class NeutronicsModel:
@@ -196,11 +199,11 @@ class NeutronicsModel:
                     "spectra",
                     "absorption",
                     "effective_dose",
-                    "fast_flux"] +
-                list(
-                    REACTION_MT.keys()) +
-                list(
-                    REACTION_NAME.keys()))
+                    "fast_flux",
+                ]
+                + list(REACTION_MT.keys())
+                + list(REACTION_NAME.keys())
+            )
             for entry in value:
                 if entry not in output_options:
                     raise ValueError(
@@ -305,10 +308,11 @@ class NeutronicsModel:
             if reactor_material not in materials_in_h5m:
                 msg = (
                     f"material with tag {reactor_material} was not found in "
-                    "the dagmc h5m file")
+                    "the dagmc h5m file"
+                )
                 raise ValueError(msg)
 
-        if 'graveyard' in materials_in_h5m:
+        if "graveyard" in materials_in_h5m:
             required_number_of_materials = len(materials_in_h5m) - 1
         else:
             required_number_of_materials = len(materials_in_h5m)
@@ -379,6 +383,22 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
+    def export_geometry(self, h5m_filename=None):
+        """Creates the underlying container geometry that is filled with the
+        faceted DAGMC CAD model
+
+        Args:
+            geometry: the geometry to use for the simulation. If None then
+                Defaults to the openmc_dagmc_wrapper.h5m_filename
+        """
+
+        if h5m_filename is None:
+            h5m_filename = self.h5m_filename
+        dag_univ = openmc.DAGMCUniverse(h5m_filename)
+        geometry = openmc.Geometry(root=dag_univ)
+
+        return geometry
+
     def create_graveyard_surfaces(self):
         """Creates four vacuum surfaces that surround the geometry and can be
         used as an alternative to the traditionally DAGMC graveyard cell"""
@@ -413,9 +433,10 @@ class NeutronicsModel:
 
     def export_xml(
         self,
-        simulation_batches: int,
-        simulation_particles_per_batch: int,
-        source=None,
+        source: Optional[openmc.Source] = None,
+        geometry: Optional[openmc.Geometry] = None,
+        simulation_batches: Optional[int] = 10,
+        simulation_particles_per_batch: Optional[int] = 100,
         max_lost_particles: Optional[int] = 0,
         mesh_tally_3d: Optional[List[str]] = None,
         mesh_tally_tet: Optional[List[str]] = None,
@@ -435,8 +456,11 @@ class NeutronicsModel:
         particles per batch).
 
         Arguments:
-            source: (openmc.Source): the particle source to use during the
-                OpenMC simulation. Defaults to NeutronicsModel.source
+            source: the particle source to use during the OpenMC simulation.
+            geometry: the geometry to use for the simulation. If None then
+                Defaults to the openmc-dagmc-wrapper.h5m_filename
+            simulation_batches: the number of batch to simulate.
+            simulation_particles_per_batch: particles per batch.
             max_lost_particles: The maximum number of particles that can be
                 lost during the simulation before terminating the simulation.
                 Defaults to 0.
@@ -486,6 +510,24 @@ class NeutronicsModel:
             openmc.model.Model(): The openmc model object created
         """
 
+        if isinstance(simulation_batches, float):
+            simulation_batches = int(simulation_batches)
+        if not isinstance(simulation_batches, int):
+            raise TypeError("The simulation_batches argument must be an int")
+        if simulation_batches < 2:
+            msg = "The minimum of setting for simulation_batches is 2"
+            raise ValueError(msg)
+
+        if isinstance(simulation_particles_per_batch, float):
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
+        if not isinstance(simulation_particles_per_batch, int):
+            msg = (
+                "NeutronicsModelFromReactor.simulation_particles_per_batch"
+                "should be an int"
+            )
+            raise TypeError(msg)
+
         if source is None:
             source = self.source
         if mesh_tally_3d is None:
@@ -506,7 +548,6 @@ class NeutronicsModel:
             mesh_3d_corners = self.mesh_3d_corners
 
         # this removes any old file from previous simulations
-        silently_remove_file("geometry.xml")
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
 
@@ -878,10 +919,15 @@ class NeutronicsModel:
                     # todo add photon tallys for standard tallies
                     # if self.photon_transport:
 
-        # make the model from geometry, materials, settings and tallies
-        model = openmc.model.Model(geom, self.mats, settings, self.tallies)
+        if geometry is None:
+            geometry = self.export_geometry()
 
-        geom.export_to_xml()
+        # make the model from geometry, materials, settings and tallies
+        model = openmc.model.Model(geometry, self.mats, settings, self.tallies)
+
+        silently_remove_file("geometry.xml")
+        geometry.export_to_xml()
+
         settings.export_to_xml()
         self.tallies.export_to_xml()
 
@@ -913,10 +959,6 @@ class NeutronicsModel:
         self,
         verbose: Optional[bool] = True,
         threads: Optional[int] = None,
-        export_xml: Optional[bool] = True,
-        simulation_batches: Optional[int] = 100,
-        simulation_particles_per_batch: Optional[int] = 10000,
-        max_lost_particles: Optional[int] = 0,
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -926,52 +968,16 @@ class NeutronicsModel:
                 don't print the OpenMC output (False).
             threads: Sets the number of OpenMP threads used for the simulation.
                  None takes all available threads by default.
-            simulation_batches: the number of batch to simulate.
-            simulation_particles_per_batch: particles per batch.
-            export_xml: controls the creation of the OpenMC model
-                files (xml files). Set to True to create the OpenMC files with
-                the default settings as determined by the NeutronicsModel
-                attributes or set to False and use existing xml files or run
-                the export_xml() method yourself with more
-                direct control over the settings and creation of the xml files.
-            max_lost_particles: The maximum number of particles that can be
-                lost during the simulation before terminating the simulation.
-                Defaults to 0.
 
         Returns:
             The h5 simulation output filename
         """
-
-        if isinstance(simulation_batches, float):
-            simulation_batches = int(simulation_batches)
-        if not isinstance(simulation_batches, int):
-            raise TypeError("The simulation_batches argument must be an int")
-        if simulation_batches < 2:
-            msg = "The minimum of setting for simulation_batches is 2"
-            raise ValueError(msg)
-
-        if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(
-                simulation_particles_per_batch)
-        if not isinstance(simulation_particles_per_batch, int):
-            msg = (
-                "NeutronicsModelFromReactor.simulation_particles_per_batch"
-                "should be an int"
-            )
-            raise TypeError(msg)
 
         if not Path(self.h5m_filename).is_file():
             msg = f"""{self.h5m_filename} file was not found. Please set
                   export_h5m to True or use the export_h5m() methods to create
                   the dagmc.h5m file"""
             raise FileNotFoundError(msg)
-
-        if export_xml is True:
-            self.export_xml(
-                simulation_batches=simulation_batches,
-                simulation_particles_per_batch=simulation_particles_per_batch,
-                max_lost_particles=max_lost_particles,
-            )
 
         # checks all the nessecary files are found
         for required_file in [
@@ -981,17 +987,19 @@ class NeutronicsModel:
             "tallies.xml",
         ]:
             if not Path(required_file).is_file():
-                msg = "{} file was not found. Please set export_xml \
-                    to True or use the export_xml() \
-                    method to create the xml files".format(
-                    required_file
+                msg = (
+                    f"{required_file} file was not found. Please use the "
+                    "openmc_dagmc_wrapper.export_xml() method to create the "
+                    "xml files"
                 )
                 raise FileNotFoundError(msg)
 
         # Deletes summary.h5m if it already exists.
         # This avoids permission problems when trying to overwrite the file
         silently_remove_file("summary.h5")
-        silently_remove_file("statepoint." + str(simulation_batches) + ".h5")
+
+        simulation_batches = self.model.settings.batches
+        silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
         self.statepoint_filename = self.model.run(
             output=verbose, threads=threads)

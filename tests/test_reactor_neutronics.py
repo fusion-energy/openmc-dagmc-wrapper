@@ -1,3 +1,4 @@
+
 import os
 import tarfile
 import unittest
@@ -48,7 +49,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
         h5m_filename = self.h5m_filename_bigger
         my_model = openmc_dagmc_wrapper.NeutronicsModel(
-            h5m_filename=h5m_filename,
+            h5m_filename=self.h5m_filename_bigger,
             source=source,
             materials=self.material_description_bigger,
         )

@@ -1,3 +1,4 @@
+
 import os
 import tarfile
 import unittest
@@ -57,10 +58,12 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             cell_tallies=["TBR"],
         )
 
-        h5m_filename = my_model.simulate(
+        my_model.export_xml(
             simulation_batches=2,
             simulation_particles_per_batch=20,
         )
+
+        h5m_filename = my_model.simulate()
 
         results = odw.process_results(statepoint_filename=h5m_filename)
 

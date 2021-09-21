@@ -156,7 +156,7 @@ def process_results(
     fusion_power: Optional[float] = None,
     fusion_energy_per_pulse: Optional[float] = None,
     fusion_fuel: Optional[str] = "DT",
-    outputfile: Optional[str] = "results.json"
+    outputfile: Optional[str] = "results.json",
 ) -> dict:
     """Extracts simulation results from the statepoint file. Applies post
     processing to the results taking into account user specified fusion
@@ -307,8 +307,14 @@ def process_results(
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["flux per pulse"] = {
                     "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": [result * number_of_neutrons_per_pulse for result in tally_result.tolist()],
-                    "std. dev.": [result * number_of_neutrons_per_pulse for result in tally_std_dev.tolist()],
+                    "result": [
+                        result * number_of_neutrons_per_pulse
+                        for result in tally_result.tolist()
+                    ],
+                    "std. dev.": [
+                        result * number_of_neutrons_per_pulse
+                        for result in tally_std_dev.tolist()
+                    ],
                 }
 
         elif tally.name.endswith("effective_dose"):
@@ -417,6 +423,7 @@ def process_results(
             json.dump(results, outfile, indent=4, sort_keys=True)
 
     return results
+
 
 # to do find particles from tally
 # def find_particle_from_tally(tally):
