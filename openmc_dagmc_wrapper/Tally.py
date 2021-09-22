@@ -46,6 +46,16 @@ class CellTally(openmc.Tally):
             self.name = self.odw_score
 
     def set_filter(self):
+        energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+            particle="neutron",
+            geometry="ISO",
+        )
+        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+            particle="photon",
+            geometry="ISO",
+        )
+        photon_particle_filter = openmc.ParticleFilter(["photon"])
+        neutron_particle_filter = openmc.ParticleFilter(["neutron"])
         if type(self.target) is str:  # material filter
             for mat in self.materials.materials:
                 if mat.name == self.target:
@@ -53,27 +63,40 @@ class CellTally(openmc.Tally):
         elif type(self.target) is int:  # volume filter
             tally_filter = openmc.CellFilter(self.target)
 
-        # if self.odw_score == "something_special":
-        #     additional_filters = "something special too"
-        # elif self.odw_score == "fast_flux":
-        #     additional_filters = "something special too"
-        self.filters = [tally_filter] # + additional_filters
+        additional_filters = []
+        if self.odw_score == "something_special":
+            additional_filters = "something special too"
+        elif self.odw_score == "neutron_fast_flux":
+            energy_bins = [1e6, 1000e6]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [neutron_particle_filter, energy_filter]
+        elif self.odw_score == "photon_fast_flux":
+            energy_bins = [1e6, 1000e6]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [photon_particle_filter, energy_filter]
+        elif self.odw_score == "neutron_spectra":
+            energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [neutron_particle_filter, energy_filter]
+        elif self.odw_score == "photon_spectra":
+            energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [photon_particle_filter, energy_filter]
+        elif self.odw_score == "neutron_effective_dose":
+            energy_function_filter_n = openmc.EnergyFunctionFilter(
+                energy_bins_n, dose_coeffs_n)
+            additional_filters = [
+                neutron_particle_filter, energy_function_filter_n]
+        elif self.odw_score == "photon_effective_dose":
+            energy_function_filter_n = openmc.EnergyFunctionFilter(
+                energy_bins_n, dose_coeffs_n)
+            additional_filters = [
+                photon_particle_filter, energy_function_filter_n]
 
-
-
+        self.filters = [tally_filter] + additional_filters
 
 
 # in neutronicsModel
-energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
-    particle="neutron",
-    geometry="ISO",
-)
-energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
-    particle="photon",
-    geometry="ISO",
-)
-photon_particle_filter = openmc.ParticleFilter(["photon"])
-neutron_particle_filter = openmc.ParticleFilter(["neutron"])
 
 for standard_tally in self.cell_tallies:
     if standard_tally == "TBR":
