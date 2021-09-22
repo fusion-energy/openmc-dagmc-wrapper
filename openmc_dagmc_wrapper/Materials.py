@@ -1,7 +1,7 @@
 import openmc
 import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
-
+from .utils import silently_remove_file
 
 class Materials(openmc.Materials):
     def __init__(self, h5m_filename, correspondence_dict):
@@ -26,7 +26,8 @@ class Materials(openmc.Materials):
                 msg = (
                     f"material with tag {reactor_material} was not found in "
                     f"the dagmc h5m file. The DAGMC file {self.h5m_filename} "
-                    f"contains the following material tags {materials_in_h5m}"
+                    f"contains the following material tags {materials_in_h5m}."
+
                 )
                 raise ValueError(msg)
 
