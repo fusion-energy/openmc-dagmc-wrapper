@@ -3,10 +3,10 @@ import dagmc_h5m_file_inspector as di
 
 
 class Geometry(openmc.Geometry):
-    def __init__(self, h5m_filename=None, reflective_angles=None, bounding_box=None):
+    def __init__(self, h5m_filename=None, reflective_angles=None, graveyard_box=None):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
-        self.bounding_box = bounding_box
+        self.graveyard_box = graveyard_box
         super().__init__(root=self.make_root())
 
     def make_root(self):
@@ -71,9 +71,9 @@ class Geometry(openmc.Geometry):
         """Creates four vacuum surfaces that surround the geometry and can be
         used as an alternative to the traditionally DAGMC graveyard cell"""
 
-        if self.bounding_box is None:
-            self.bounding_box = self.find_bounding_box()
-        bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
+        if self.graveyard_box is None:
+            self.graveyard_box = self.find_graveyard_box()
+        bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
         # add reflective surfaces
         # fix the x and y minimums to zero to get the universe boundary co
         bbox[0][0] = 0.0
