@@ -3,9 +3,10 @@ import dagmc_h5m_file_inspector as di
 
 
 class Geometry(openmc.Geometry):
-    def __init__(self, h5m_filename=None, reflective_angles=None):
+    def __init__(self, h5m_filename=None, reflective_angles=None, bounding_box=None):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
+        self.bounding_box = bounding_box
         super().__init__(root=self.make_root())
 
     def make_root(self):
@@ -65,3 +66,35 @@ class Geometry(openmc.Geometry):
 
             root = [containing_cell]
         return root
+
+    def create_graveyard_surfaces(self):
+        """Creates four vacuum surfaces that surround the geometry and can be
+        used as an alternative to the traditionally DAGMC graveyard cell"""
+
+        if self.bounding_box is None:
+            self.bounding_box = self.find_bounding_box()
+        bbox = [[*self.bounding_box[0]], [*self.bounding_box[1]]]
+        # add reflective surfaces
+        # fix the x and y minimums to zero to get the universe boundary co
+        bbox[0][0] = 0.0
+        bbox[0][1] = 0.0
+
+        lower_z = openmc.ZPlane(
+            bbox[0][2],
+            surface_id=9999,
+            boundary_type='vacuum')
+        upper_z = openmc.ZPlane(
+            bbox[1][2],
+            surface_id=9998,
+            boundary_type='vacuum')
+
+        upper_x = openmc.XPlane(
+            bbox[1][0],
+            surface_id=9993,
+            boundary_type='vacuum')
+        upper_y = openmc.YPlane(
+            bbox[1][1],
+            surface_id=9992,
+            boundary_type='vacuum')
+
+        return [upper_x, upper_y, lower_z, upper_z]
