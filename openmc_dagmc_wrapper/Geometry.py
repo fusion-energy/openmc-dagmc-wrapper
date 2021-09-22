@@ -6,7 +6,7 @@ class Geometry(openmc.Geometry):
     def __init__(self, h5m_filename=None, reflective_angles=None):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
-        super().__init__(self.make_root())
+        super().__init__(root=self.make_root())
 
     def make_root(self):
         # this is the underlying geometry container that is filled with the
