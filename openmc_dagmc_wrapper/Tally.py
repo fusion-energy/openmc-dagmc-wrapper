@@ -22,7 +22,7 @@ class CellTally(openmc.Tally):
         target ([type]): [description]
         materials ([type]): [description]
     """
-    def __init__(self, odw_score, target, materials=None, **kwargs):
+    def __init__(self, odw_score, target=None, materials=None, **kwargs):
         self.odw_score = odw_score
         self.targer = target
         self.materials = materials
@@ -32,11 +32,10 @@ class CellTally(openmc.Tally):
         self.set_filter()
 
     def set_score(self):
-
         flux_scores = [
             "neutron_fast_flux", "photon_fast_flux",
-            "neutron_spectra", "photon_spectra", "neutron_effective_dose",
-            "photon_effective_dose"
+            "neutron_spectra", "photon_spectra",
+            "neutron_effective_dose", "photon_effective_dose"
         ]
 
         if self.odw_score == "TBR":
@@ -99,6 +98,17 @@ class CellTally(openmc.Tally):
                 photon_particle_filter, energy_function_filter_n]
 
         self.filters = [tally_filter] + additional_filters
+
+
+class CellTallies:
+    def __init__(self, odw_scores, targets=[None], materials=None):
+        self.tallies = []
+        self.odw_scores = odw_scores
+        self.targets = targets
+        self.materials = materials
+        for score in self.odw_scores:
+            for target in self.targets:
+                self.tallies.append(CellTally(odw_score=score, target=target, materials=materials))
 
 
 # # in neutronicsModel
