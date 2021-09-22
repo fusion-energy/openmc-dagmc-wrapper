@@ -21,11 +21,12 @@ class Materials(openmc.Materials):
     def checks(self):
         materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
         # # checks all the required materials are present
-        for reactor_material in self.materials.keys():
+        for reactor_material in self.correspondence_dict.keys():
             if reactor_material not in materials_in_h5m:
                 msg = (
                     f"material with tag {reactor_material} was not found in "
-                    "the dagmc h5m file"
+                    f"the dagmc h5m file. The DAGMC file {self.h5m_filename} "
+                    f"contains the following material tags {materials_in_h5m}"
                 )
                 raise ValueError(msg)
 
@@ -34,11 +35,12 @@ class Materials(openmc.Materials):
         else:
             required_number_of_materials = len(materials_in_h5m)
 
-        if required_number_of_materials != len(self.materials.keys()):
+        if required_number_of_materials != len(self.correspondence_dict.keys()):
             msg = (
-                f"the NeutronicsModel.materials does not match the material "
-                "tags in the dagmc h5m file. Materials in h5m file "
-                f"{materials_in_h5m}. Materials provided {self.materials.keys()}")
+                f"the number of materials provided in the correspondence_dict "
+                f"{len(self.correspondence_dict.keys())} "
+                f"is not equal to the number of materials specified in the "
+                f"DAGMC h5m file {required_number_of_materials}")
             raise ValueError(msg)
 
         silently_remove_file("materials.xml")
