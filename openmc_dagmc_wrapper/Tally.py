@@ -32,9 +32,16 @@ class CellTally(openmc.Tally):
         self.set_filter()
 
     def set_score(self):
+
+        flux_scores = [
+            "neutron_fast_flux", "photon_fast_flux",
+            "neutron_spectra", "photon_spectra", "neutron_effective_dose",
+            "photon_effective_dose"
+        ]
+
         if self.odw_score == "TBR":
             self.scores = "(n,Xt)"  # where X is a wild card
-        elif self.odw_score == "fast_flux":
+        elif self.odw_score in flux_scores:
             self.scores = "flux"
         else:
             self.scores = self.odw_score
@@ -64,9 +71,7 @@ class CellTally(openmc.Tally):
             tally_filter = openmc.CellFilter(self.target)
 
         additional_filters = []
-        if self.odw_score == "something_special":
-            additional_filters = "something special too"
-        elif self.odw_score == "neutron_fast_flux":
+        if self.odw_score == "neutron_fast_flux":
             energy_bins = [1e6, 1000e6]
             energy_filter = openmc.EnergyFilter(energy_bins)
             additional_filters = [neutron_particle_filter, energy_filter]
