@@ -1,7 +1,7 @@
 import openmc
 
 
-class Model(openmc.Model):
+class Model(openmc.model.Model):
     def __init__(self, materials, geometry, settings, tallies):
         self.materials = materials
         self.geometry = geometry
