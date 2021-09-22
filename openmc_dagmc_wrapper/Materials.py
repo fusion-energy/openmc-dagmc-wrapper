@@ -1,10 +1,25 @@
-import openmc
+
 import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
+import openmc
+
 from .utils import silently_remove_file
 
+
 class Materials(openmc.Materials):
-    def __init__(self, h5m_filename, correspondence_dict):
+    """Extends the openmc.Material object to allow the matching materials with
+    the tags specified in the DAGMC file. Supports of a range of materials input
+    formats.
+
+    Args:
+        h5m_filename: the filename of the h5m file containing the DAGMC geometry
+        correspondence_dict: A dictionary that maps the material tags present
+            within the DAGMC file with materials. Materials can be provided in
+            a variety of formats including neutronics_material_maker.Material
+            objects, strings or openmc.Material objects.
+    """
+
+    def __init__(self, h5m_filename: str, correspondence_dict: dict):
         self.correspondence_dict = correspondence_dict
         self.h5m_filename = h5m_filename
         self.checks()
@@ -18,6 +33,7 @@ class Materials(openmc.Materials):
 
         super().__init__(list(self.openmc_materials.values()))
 
+
     def checks(self):
         materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
         # # checks all the required materials are present
@@ -27,7 +43,6 @@ class Materials(openmc.Materials):
                     f"material with tag {reactor_material} was not found in "
                     f"the dagmc h5m file. The DAGMC file {self.h5m_filename} "
                     f"contains the following material tags {materials_in_h5m}."
-
                 )
                 raise ValueError(msg)
 
