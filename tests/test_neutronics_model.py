@@ -69,46 +69,62 @@ class TestShape(unittest.TestCase):
             geometry=geometry,
             materials=materials,
             tallies=None,
-            settings=self.settings)
+            settings=self.settings
+            )
 
         h5m_filename = my_model.run()
         results = odw.process_results(statepoint_filename=h5m_filename)
 
         assert results is not None
 
-    # def test_neutronics_component_simulation_with_openmc_mat(self):
-    #     """Makes a neutronics model and simulates with a cell tally"""
+    def test_neutronics_component_simulation_with_openmc_mat(self):
+        """Makes a neutronics model and simulates with a cell tally"""
 
-    #     test_mat = openmc.Material()
-    #     test_mat.add_element("Fe", 1.0)
-    #     test_mat.set_density(units="g/cm3", density=4.2)
+        test_mat = openmc.Material()
+        test_mat.add_element("Fe", 1.0)
+        test_mat.set_density(units="g/cm3", density=4.2)
 
-    #     # converts the geometry into a neutronics geometry
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": test_mat},
-    #         cell_tallies=["heating"],
-    #     )
+        # # converts the geometry into a neutronics geometry
+        # my_model = odw.NeutronicsModel(
+        #     h5m_filename=self.h5m_filename_smaller,
+        #     source=self.source,
+        #     materials={"mat1": test_mat},
+        #     cell_tallies=["heating"],
+        # )
 
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=20,
-    #     )
+        # my_model.export_xml(
+        #     simulation_batches=2,
+        #     simulation_particles_per_batch=20,
+        # )
 
-    #     # performs an openmc simulation on the model
-    #     h5m_filename = my_model.simulate()
+        # # performs an openmc simulation on the model
+        # h5m_filename = my_model.simulate()
 
-    #     assert h5m_filename.name == "statepoint.2.h5"
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": test_mat})
 
-    #     results = openmc.StatePoint(h5m_filename)
-    #     assert len(results.tallies.items()) == 1
+        my_tally = odw.CellTally("heating")
 
-    #     results = odw.process_results(
-    #         statepoint_filename=h5m_filename,
-    #         fusion_power=1e9)
-    #     # extracts the heat from the results dictionary
-    #     assert results["mat1_heating"]["Watts"]["result"] > 0
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[my_tally],
+            settings=self.settings
+        )
+
+        h5m_filename = my_model.run()
+        assert h5m_filename.name == "statepoint.2.h5"
+
+        results = openmc.StatePoint(h5m_filename)
+        assert len(results.tallies.items()) == 1
+
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9)
+        # extracts the heat from the results dictionary
+        assert results["mat1_heating"]["Watts"]["result"] > 0
 
     # def test_neutronics_component_simulation_with_nmm(self):
     #     """Makes a neutronics model and simulates with a cell tally"""
