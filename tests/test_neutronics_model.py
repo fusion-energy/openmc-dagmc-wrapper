@@ -287,57 +287,59 @@ class TestShape(unittest.TestCase):
     #         ValueError, incorrect_simulation_particles_per_batch_wrong_type
     #     )
 
-    # def test_neutronics_component_cell_simulation_heating(self):
-    #     """Makes a neutronics model and simulates with a cell tally"""
+    def test_neutronics_component_cell_simulation_heating(self):
+        """Makes a neutronics model and simulates with a cell tally"""
 
-    #     os.system("rm *.h5")
-    #     mat = openmc.Material()
-    #     mat.add_element("Li", 1)
-    #     mat.set_density("g/cm3", 2.1)
+        os.system("rm *.h5")
+        mat = openmc.Material()
+        mat.add_element("Li", 1)
+        mat.set_density("g/cm3", 2.1)
 
-    #     # converts the geometry into a neutronics geometry
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": mat},
-    #         cell_tallies=["heating", "flux", "TBR", "spectra"],
-    #     )
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": mat})
+        my_tallies = odw.CellTallies(
+            tally_types=["heating", "flux", "TBR", "spectra"])
 
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=20
-    #     )
-    #     # performs an openmc simulation on the model
-    #     h5m_filename = my_model.simulate()
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=my_tallies.tallies,
+            settings=self.settings
+        )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.run()
 
-    #     results = openmc.StatePoint(h5m_filename)
-    #     # spectra add two tallies in this case (photons and neutrons)
-    #     # TBR adds two tallies global TBR and material TBR
-    #     assert len(results.tallies.items()) == 6
-    #     assert len(results.meshes) == 0
+        results = openmc.StatePoint(h5m_filename)
+        # spectra add two tallies in this case (photons and neutrons)
+        # TBR adds two tallies global TBR and material TBR
+        assert len(results.tallies.items()) == 6
+        assert len(results.meshes) == 0
 
-    #     results = odw.process_results(
-    #         statepoint_filename=h5m_filename,
-    #         fusion_power=1e9
-    #     )
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9
+        )
 
-    #     # extracts the heat from the results dictionary
-    #     heat = results["mat1_heating"]["Watts"]["result"]
-    #     flux = results["mat1_flux"]["flux per source particle"]["result"]
-    #     mat_tbr = results["mat1_TBR"]["result"]
-    #     tbr = results["TBR"]["result"]
-    #     spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
-    #     spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
-    #     energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
+        # extracts the heat from the results dictionary
+        print(results)
+        heat = results["mat1_heating"]["Watts"]["result"]
+        flux = results["mat1_flux"]["flux per source particle"]["result"]
+        mat_tbr = results["mat1_TBR"]["result"]
+        tbr = results["TBR"]["result"]
+        spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
+        spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
+        energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
 
-    #     assert heat > 0
-    #     assert flux > 0
-    #     assert tbr > 0
-    #     assert mat_tbr > 0
-    #     assert mat_tbr == tbr  # as there is just one shape
-    #     assert len(energy) == 710
-    #     assert len(spectra_neutrons) == 709
-    #     assert len(spectra_photons) == 709
+        assert heat > 0
+        assert flux > 0
+        assert tbr > 0
+        assert mat_tbr > 0
+        assert mat_tbr == tbr  # as there is just one shape
+        assert len(energy) == 710
+        assert len(spectra_neutrons) == 709
+        assert len(spectra_photons) == 709
 
     # def test_neutronics_spectra_post_processing(self):
     #     """Makes a neutronics model and simulates with a cell tally"""
