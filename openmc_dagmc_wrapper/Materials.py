@@ -7,7 +7,7 @@ from .utils import silently_remove_file
 
 
 class Materials(openmc.Materials):
-    """Extended openmc.Material object to allow the matching materials with
+    """Extended openmc.Materials object to allow the matching materials with
     the tags specified in the DAGMC file. Supports of a range of materials
     input formats.
 
@@ -24,6 +24,10 @@ class Materials(openmc.Materials):
         self.correspondence_dict = correspondence_dict
         self.h5m_filename = h5m_filename
         self.checks()
+        self.set_openmc_materials()
+        super().__init__(list(self.openmc_materials.values()))
+
+    def set_openmc_materials(self):
         openmc_materials = {}
         for material_tag, material_entry in self.correspondence_dict.items():
             openmc_material = self.create_material(
@@ -31,8 +35,6 @@ class Materials(openmc.Materials):
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
-
-        super().__init__(list(self.openmc_materials.values()))
 
     def checks(self):
         materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
