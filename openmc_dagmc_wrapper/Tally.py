@@ -13,9 +13,9 @@ import openmc
 class CellTally(openmc.Tally):
     """Usage:
     my_mats = odw.Materials(....)
-    my_tally = odw.CellTally(score='TBR', target="tungsten", materials=my_mats)
-    my_tally2 = odw.CellTally(score='TBR', target=2)
-    my_tally3 = odw.CellTally(score='TBR')
+    my_tally = odw.CellTally(odw_scores='TBR', target="tungsten", materials=my_mats)
+    my_tally2 = odw.CellTally(odw_scores='TBR', target=2)
+    my_tally3 = odw.CellTally(odw_scores='TBR')
 
     Args:
         odw_score ([type]): [description]
@@ -101,6 +101,19 @@ class CellTally(openmc.Tally):
 
 
 class CellTallies:
+    """
+    Collection of odw.CellTally objects stored in self.tallies
+
+    Usage:
+    my_mats = odw.Materials(....)
+    my_tallies = odw.CellTallies(odw_scores=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
+    my_tallies = odw.CellTallies(odw_scores=['TBR', "flux"], target=[2])
+
+    Args:
+        odw_scores ([type]): [description]
+        targets (list, optional): [description]. Defaults to [None].
+        materials ([type], optional): [description]. Defaults to None.
+    """
     def __init__(self, odw_scores, targets=[None], materials=None):
         self.tallies = []
         self.odw_scores = odw_scores
@@ -108,7 +121,12 @@ class CellTallies:
         self.materials = materials
         for score in self.odw_scores:
             for target in self.targets:
-                self.tallies.append(CellTally(odw_score=score, target=target, materials=materials))
+                self.tallies.append(
+                    CellTally(
+                        odw_score=score,
+                        target=target,
+                        materials=materials)
+                        )
 
 
 # # in neutronicsModel
