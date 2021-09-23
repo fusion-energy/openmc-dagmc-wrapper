@@ -300,7 +300,7 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": mat})
         my_tallies = odw.CellTallies(
-            tally_types=["heating", "flux", "TBR", "spectra"])
+            tally_types=["heating", "flux", "TBR", "neutron_spectra", "photon_spectra"])
 
         my_model = openmc.model.Model(
             geometry=geometry,
@@ -313,8 +313,7 @@ class TestShape(unittest.TestCase):
 
         results = openmc.StatePoint(h5m_filename)
         # spectra add two tallies in this case (photons and neutrons)
-        # TBR adds two tallies global TBR and material TBR
-        assert len(results.tallies.items()) == 6
+        assert len(results.tallies.items()) == 5
         assert len(results.meshes) == 0
 
         results = odw.process_results(
@@ -326,7 +325,6 @@ class TestShape(unittest.TestCase):
         print(results)
         heat = results["mat1_heating"]["Watts"]["result"]
         flux = results["mat1_flux"]["flux per source particle"]["result"]
-        mat_tbr = results["mat1_TBR"]["result"]
         tbr = results["TBR"]["result"]
         spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
         spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
@@ -335,8 +333,6 @@ class TestShape(unittest.TestCase):
         assert heat > 0
         assert flux > 0
         assert tbr > 0
-        assert mat_tbr > 0
-        assert mat_tbr == tbr  # as there is just one shape
         assert len(energy) == 710
         assert len(spectra_neutrons) == 709
         assert len(spectra_photons) == 709
@@ -353,13 +349,13 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": mat})
-        my_tally = odw.CellTally(
-            tally_type="spectra")
+        my_tallies = odw.CellTallies(
+            tally_types=["neutron_spectra", "photon_spectra"])
 
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=[my_tally],
+            tallies=my_tallies.tallies,
             settings=self.settings
         )
 
