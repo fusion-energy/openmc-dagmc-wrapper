@@ -55,7 +55,7 @@ class TestShape(unittest.TestCase):
         self.settings.run_mode = "fixed source"
 
         self.settings.photon_transport = True
-        self.settings.source = self.source
+        self.settings.source = source
 
     def test_simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
