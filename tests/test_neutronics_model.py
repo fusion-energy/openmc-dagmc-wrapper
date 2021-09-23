@@ -155,7 +155,7 @@ class TestShape(unittest.TestCase):
             statepoint_filename=h5m_filename,
             fusion_power=1e9)
         # extracts the heat from the results dictionary
-        assert results["mat1_heating"]["Watts"]["result"] > 0
+        assert results[my_tally.name]["Watts"]["result"] > 0
 
     # def test_cell_tally_output_file_creation(self):
     #     """Performs a neutronics simulation and checks the cell tally output
