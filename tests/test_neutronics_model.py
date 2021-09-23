@@ -442,21 +442,21 @@ class TestShape(unittest.TestCase):
             settings=self.settings
         )
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        # h5m_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
-        assert len(results.meshes) == 3
-        assert len(results.tallies.items()) == 3
+        # results = openmc.StatePoint(h5m_filename)
+        # assert len(results.meshes) == 3
+        # assert len(results.tallies.items()) == 3
 
-        assert Path("heating_on_2D_mesh_xz.png").exists() is False
-        assert Path("heating_on_2D_mesh_xy.png").exists() is False
-        assert Path("heating_on_2D_mesh_yz.png").exists() is False
+        # assert Path("heating_on_2D_mesh_xz.png").exists() is False
+        # assert Path("heating_on_2D_mesh_xy.png").exists() is False
+        # assert Path("heating_on_2D_mesh_yz.png").exists() is False
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        # odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-        assert Path("heating_on_2D_mesh_xz.png").exists() is True
-        assert Path("heating_on_2D_mesh_xy.png").exists() is True
-        assert Path("heating_on_2D_mesh_yz.png").exists() is True
+        # assert Path("heating_on_2D_mesh_xz.png").exists() is True
+        # assert Path("heating_on_2D_mesh_xy.png").exists() is True
+        # assert Path("heating_on_2D_mesh_yz.png").exists() is True
 
     def test_neutronics_component_3d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D mesh tally and
@@ -546,17 +546,17 @@ class TestShape(unittest.TestCase):
         # performs an openmc simulation on the model
         h5m_filename = my_model.run()
 
-        # results = openmc.StatePoint(h5m_filename)
-        # assert len(results.meshes) == 4  # one 3D and three 2D
-        # assert len(results.tallies.items()) == 4  # one 3D and three 2D
+        results = openmc.StatePoint(h5m_filename)
+        assert len(results.meshes) == 4  # one 3D and three 2D
+        assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-        # odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-        # assert Path(h5m_filename).exists() is True
-        # assert Path("heating_on_3D_mesh.vtk").exists() is True
-        # assert Path("heating_on_2D_mesh_xz.png").exists() is True
-        # assert Path("heating_on_2D_mesh_xy.png").exists() is True
-        # assert Path("heating_on_2D_mesh_yz.png").exists() is True
+        assert Path(h5m_filename).exists() is True
+        assert Path("heating_on_3D_mesh.vtk").exists() is True
+        assert Path("heating_on_2D_mesh_xz.png").exists() is True
+        assert Path("heating_on_2D_mesh_xy.png").exists() is True
+        assert Path("heating_on_2D_mesh_yz.png").exists() is True
 
     # def test_neutronics_component_3d_and_2d_mesh_simulation_with_corner_points(
     #         self):
