@@ -122,7 +122,7 @@ class CellTally(Tally):
         photon_particle_filter = openmc.ParticleFilter(["photon"])
         neutron_particle_filter = openmc.ParticleFilter(["neutron"])
         if type(self.target) is str:  # material filter
-            for mat in self.materials.materials:
+            for mat in self.materials:
                 if mat.name == self.target:
                     tally_filter = [openmc.MaterialFilter(mat)]
         elif type(self.target) is int:  # volume filter
