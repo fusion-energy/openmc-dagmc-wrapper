@@ -382,7 +382,7 @@ class TestShape(unittest.TestCase):
         assert len(results['photon_spectra'].keys()) == 2
         assert sum(results['neutron_spectra']
                    ['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']
+        assert sum(results['photon_spectra']
                    ['flux per pulse']['result']) > photon_flux_sum
 
         results = odw.process_results(
@@ -401,20 +401,20 @@ class TestShape(unittest.TestCase):
             fusion_energy_per_pulse=2,
             fusion_power=3)
         assert len(results.keys()) == 2
-        assert len(results['mat1_neutron_spectra'].keys()) == 3
-        assert len(results['mat1_photon_spectra'].keys()) == 3
-        assert sum(results['mat1_neutron_spectra']
+        assert len(results['neutron_spectra'].keys()) == 3
+        assert len(results['photon_spectra'].keys()) == 3
+        assert sum(results['neutron_spectra']
                    ['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']
+        assert sum(results['photon_spectra']
                    ['flux per pulse']['result']) > photon_flux_sum
-        assert sum(results['mat1_neutron_spectra']
+        assert sum(results['neutron_spectra']
                    ['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']
+        assert sum(results['photon_spectra']
                    ['flux per second']['result']) > photon_flux_sum
 
-        spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
-        spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
-        energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
+        spectra_neutrons = results["neutron_spectra"]["flux per source particle"]["result"]
+        spectra_photons = results["photon_spectra"]["flux per source particle"]["result"]
+        energy = results["photon_spectra"]["flux per source particle"]["energy"]
 
         assert len(energy) == 710
         assert len(spectra_neutrons) == 709
