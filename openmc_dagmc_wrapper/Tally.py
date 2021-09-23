@@ -8,13 +8,13 @@ from openmc_dagmc_wrapper import Materials
 class CellTally(openmc.Tally):
     """
     Extends the openmc.Tally object to allow a range of standard tally_types.
-    Facilitates standardized combinations of tally openmc.Tally.scores and 
-    openmc.Tally.filters to allow convenient application of tallies to specified
-    materials or volumes.
+    Facilitates standardized combinations of tally openmc.Tally.scores and
+    openmc.Tally.filters to allow convenient application of tallies to
+    specified materials or volumes.
 
     Usage:
     my_mats = odw.Materials(....)
-    my_tally = odw.CellTally(tally_type='TBR', target="tungsten", materials=my_mats)
+    my_tally = odw.CellTally(tally_type='TBR', target="Be", materials=my_mats)
     my_tally2 = odw.CellTally(tally_type='TBR', target=2)
     my_tally3 = odw.CellTally(tally_type='TBR')
 
@@ -121,7 +121,11 @@ class CellTallies:
 
     Usage:
     my_mats = odw.Materials(....)
-    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
+    my_tallies = odw.CellTallies(
+        tally_types=['TBR', "flux"],
+        target=["Be", 2],
+        materials=my_mats
+    )
     my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
 
     Args:
@@ -155,7 +159,9 @@ class TetMeshTally(openmc.Tally):
 
         self.create_unstructured_mesh()
         self.filters = [openmc.MeshFilter(self.umesh)]
-        self.scores = [tally_type]  # @shimwell should this be done as in CellTally.set_score?
+
+        # @shimwell should this be done as in CellTally.set_score?
+        self.scores = [tally_type]
         self.name = tally_type + "_on_3D_u_mesh"
 
     def create_unstructured_mesh(self):
@@ -177,7 +183,10 @@ class TetMeshTally(openmc.Tally):
 
 class TetMeshTallies:
     """Collection of TetMeshTally objects stored in self.tallies
-    my_tally = odw.TetMeshTally(tally_types=['TBR'], filename=["file1.h5m", "file2.exo"])
+    my_tally = odw.TetMeshTally(
+        tally_types=['TBR'],
+        filenames=["file1.h5m", "file2.exo"]
+        )
     Args:
         tally_types (list): [description]
         filenames (list): [description]
@@ -329,7 +338,14 @@ class MeshTally2D(openmc.Tally):
         mesh_corners ([type], optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
     """
-    def __init__(self, tally_type, plane, mesh_resolution, mesh_corners=None, bounding_box=None):
+    def __init__(
+        self,
+        tally_type,
+        plane,
+        mesh_resolution,
+        mesh_corners=None,
+        bounding_box=None
+            ):
         self.tally_type = tally_type
         self.plane = plane
         self.set_bounding_box(bounding_box)
