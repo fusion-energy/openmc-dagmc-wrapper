@@ -248,7 +248,8 @@ class MeshTally3D(Tally):
         tally_type,
         mesh_resolution=(100, 100, 100),
         mesh_corners=None,
-        bounding_box=None
+        bounding_box=None,
+        **kwargs
             ):
         self.tally_type = tally_type
         super().__init__(tally_type, **kwargs)
