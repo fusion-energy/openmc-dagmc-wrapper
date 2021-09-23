@@ -1,29 +1,44 @@
+
+from typing import Union
+
 import openmc
-# my_mats = odw.Materials(....)
-
-# newtally = odw.CellTally(reaction='TBR', filter=openmc.MaterialFilter(my_-mats.materials[0]))
-# newtally = odw.CellTally(reaction='TBR', material_filter=["tungsten"])
-# newtally = odw.CellTally(reaction='TBR', target=1)
-# newtally = odw.CellTally(reaction='TBR', target="tungsten")
-# newtally = odw.CellTally(score='TBR', target="tungsten", materials=my_mats)
-
-# my_tallies = odw.CellTalliesOnVolumes(reaction='TBR', target, [1])
+from openmc_dagmc_wrapper import Materials
 
 
 class CellTally(openmc.Tally):
-    """Usage:
+    """
+    Extends the openmc.Tally object to allow a range of standard tally_types.
+    Facilitates standardized combinations of tally openmc.Tally.scores and 
+    openmc.Tally.filters to allow convenient application of tallies to specified
+    materials or volumes.
+
+    Usage:
     my_mats = odw.Materials(....)
-    my_tally = odw.CellTally(odw_score='TBR', target="tungsten", materials=my_mats)
-    my_tally2 = odw.CellTally(odw_score='TBR', target=2)
-    my_tally3 = odw.CellTally(odw_score='TBR')
+    my_tally = odw.CellTally(tally_type='TBR', target="tungsten", materials=my_mats)
+    my_tally2 = odw.CellTally(tally_type='TBR', target=2)
+    my_tally3 = odw.CellTally(tally_type='TBR')
+
 
     Args:
-        odw_score ([type]): [description]
-        target ([type]): [description]
-        materials ([type]): [description]
+        tally_type: specify the standard tally from a the folloing options
+             neutron_flux, photon_flux, neutron_fast_flux, photon_fast_flux,
+             neutron_spectra, photon_spectra, neutron_effective_dose,
+             photon_effective_dose, TBR. Also allows for standard openmc.scores
+             to be specified from the available scores.
+             https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
+        target: the volume id or the material tag to apply the tally to.
+        materials: the openmc_dagmc_wrapper.Materials used in the openmc
+            simulation. Only required if applying tallies to materials.
     """
-    def __init__(self, odw_score, target=None, materials=None, **kwargs):
-        self.odw_score = odw_score
+    def __init__(
+        self,
+        tally_type: str,
+        target: Union[int, str] = None,
+        materials: Materials = None,
+        **kwargs
+    ):
+
+        self.tally_type = tally_type
         self.targer = target
         self.materials = materials
         super().__init__(**kwargs)
@@ -38,18 +53,18 @@ class CellTally(openmc.Tally):
             "neutron_effective_dose", "photon_effective_dose"
         ]
 
-        if self.odw_score == "TBR":
+        if self.tally_type == "TBR":
             self.scores = "(n,Xt)"  # where X is a wild card
-        elif self.odw_score in flux_scores:
+        elif self.tally_type in flux_scores:
             self.scores = "flux"
         else:
-            self.scores = self.odw_score
+            self.scores = self.tally_type
 
     def set_name(self):
         if self.target is not None:
-            self.name = str(self.target) + "_" + self.odw_score
+            self.name = str(self.target) + "_" + self.tally_type
         else:
-            self.name = self.odw_score
+            self.name = self.tally_type
 
     def set_filter(self):
         energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
@@ -70,28 +85,28 @@ class CellTally(openmc.Tally):
             tally_filter = openmc.CellFilter(self.target)
 
         additional_filters = []
-        if self.odw_score == "neutron_fast_flux":
+        if self.tally_type == "neutron_fast_flux":
             energy_bins = [1e6, 1000e6]
             energy_filter = openmc.EnergyFilter(energy_bins)
             additional_filters = [neutron_particle_filter, energy_filter]
-        elif self.odw_score == "photon_fast_flux":
+        elif self.tally_type == "photon_fast_flux":
             energy_bins = [1e6, 1000e6]
             energy_filter = openmc.EnergyFilter(energy_bins)
             additional_filters = [photon_particle_filter, energy_filter]
-        elif self.odw_score == "neutron_spectra":
+        elif self.tally_type == "neutron_spectra":
             energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
             energy_filter = openmc.EnergyFilter(energy_bins)
             additional_filters = [neutron_particle_filter, energy_filter]
-        elif self.odw_score == "photon_spectra":
+        elif self.tally_type == "photon_spectra":
             energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
             energy_filter = openmc.EnergyFilter(energy_bins)
             additional_filters = [photon_particle_filter, energy_filter]
-        elif self.odw_score == "neutron_effective_dose":
+        elif self.tally_type == "neutron_effective_dose":
             energy_function_filter_n = openmc.EnergyFunctionFilter(
                 energy_bins_n, dose_coeffs_n)
             additional_filters = [
                 neutron_particle_filter, energy_function_filter_n]
-        elif self.odw_score == "photon_effective_dose":
+        elif self.tally_type == "photon_effective_dose":
             energy_function_filter_n = openmc.EnergyFunctionFilter(
                 energy_bins_n, dose_coeffs_n)
             additional_filters = [
@@ -141,27 +156,23 @@ class CellTallies:
 
     Usage:
     my_mats = odw.Materials(....)
-    my_tallies = odw.CellTallies(odw_scores=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
-    my_tallies = odw.CellTallies(odw_scores=['TBR', "flux"], target=[2])
+    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
+    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
 
     Args:
-        odw_scores ([type]): [description]
+        tally_types ([type]): [description]
         targets (list, optional): [description]. Defaults to [None].
         materials ([type], optional): [description]. Defaults to None.
     """
-    def __init__(self, odw_scores, targets=[None], materials=None):
+    def __init__(self, tally_types, targets=[None], materials=None):
         self.tallies = []
-        self.odw_scores = odw_scores
+        self.tally_types = tally_types
         self.targets = targets
         self.materials = materials
-        for score in self.odw_scores:
+        for score in self.tally_types:
             for target in self.targets:
-                self.tallies.append(
-                    CellTally(
-                        odw_score=score,
-                        target=target,
-                        materials=materials)
-                        )
+                self.tallies.append(CellTally(
+                    tally_type=score, target=target, materials=materials))
 
 
 class TetMeshTallies:
