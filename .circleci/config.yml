@@ -15,10 +15,10 @@ jobs:
           command: |
             python setup.py install
 
-      # - run:
-      #     name: run test_NeutronicModel
-      #     command: 
-      #       pytest tests/test_neutronics_model.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+      - run:
+          name: run test_NeutronicModel
+          command: 
+            pytest tests/test_neutronics_model.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       # - run:
       #     name: run test_shape_neutronics
