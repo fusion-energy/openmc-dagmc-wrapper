@@ -54,7 +54,7 @@ class TestShape(unittest.TestCase):
         self.settings.particles = 100
         self.settings.run_mode = "fixed source"
 
-        self.settings.photon_transport = self.photon_transport
+        self.settings.photon_transport = True
         self.settings.source = self.source
 
     def simulation_with_previous_h5m_file(self):
