@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import Union
 
+import dagmc_h5m_file_inspector as di
 import openmc
 import openmc.lib  # needed to find bounding box of h5m file
-from openmc_dagmc_wrapper import Materials
 from openmc.data import REACTION_MT, REACTION_NAME
+
+from openmc_dagmc_wrapper import Materials
 
 
 class Tally(openmc.Tally):
@@ -79,7 +81,7 @@ class CellTally(Tally):
 
 
     Args:
-        tally_type: specify the standard tally from a the folloing options
+        tally_type: specify the standard tally from a the following options
              neutron_flux, photon_flux, neutron_fast_flux, photon_fast_flux,
              neutron_spectra, photon_spectra, neutron_effective_dose,
              photon_effective_dose, TBR. Also allows for standard openmc.scores
@@ -178,14 +180,24 @@ class CellTallies:
         tally_types ([type]): [description]
         targets (list, optional): [description]. Defaults to [None].
         materials ([type], optional): [description]. Defaults to None.
+        h5m_filename
     """
-    def __init__(self, tally_types, targets=[None], materials=None):
+    def __init__(self, tally_types, targets=[None], materials=None, h5m_filename=None):
         self.tallies = []
         self.tally_types = tally_types
         self.targets = targets
         self.materials = materials
+        self.h5m_filename = h5m_filename
+
+        if self.targets == 'all_volumes':
+            all_targets = di.get_volumes_from_h5m(self.h5m_filename)
+        elif self.targets == 'all_materials':
+            all_targets = di.get_materials_from_h5m(self.h5m_filename)
+        else:
+            all_targets = self.targets
+
         for score in self.tally_types:
-            for target in self.targets:
+            for target in all_targets:
                 self.tallies.append(CellTally(
                     tally_type=score, target=target, materials=materials))
 
