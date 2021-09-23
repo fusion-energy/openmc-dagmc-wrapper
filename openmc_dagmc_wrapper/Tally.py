@@ -340,9 +340,8 @@ class MeshTallies3D:
     def __init__(
         self,
         tally_types,
-        planes,
-        meshes_resolutions,
-        meshes_corners=None,
+        meshes_resolutions=[(100, 100, 100)],
+        meshes_corners=[None],
         bounding_box=None
             ):
         self.tallies = []
