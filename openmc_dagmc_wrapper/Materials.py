@@ -7,12 +7,13 @@ from .utils import silently_remove_file
 
 
 class Materials(openmc.Materials):
-    """Extends the openmc.Material object to allow the matching materials with
-    the tags specified in the DAGMC file. Supports of a range of materials input
-    formats.
+    """Extended openmc.Material object to allow the matching materials with
+    the tags specified in the DAGMC file. Supports of a range of materials
+    input formats.
 
     Args:
-        h5m_filename: the filename of the h5m file containing the DAGMC geometry
+        h5m_filename: the filename of the h5m file containing the DAGMC
+            geometry
         correspondence_dict: A dictionary that maps the material tags present
             within the DAGMC file with materials. Materials can be provided in
             a variety of formats including neutronics_material_maker.Material
@@ -46,16 +47,16 @@ class Materials(openmc.Materials):
                 raise ValueError(msg)
 
         if "graveyard" in materials_in_h5m:
-            required_number_of_materials = len(materials_in_h5m) - 1
+            required_nb_of_materials = len(materials_in_h5m) - 1
         else:
-            required_number_of_materials = len(materials_in_h5m)
+            required_nb_of_materials = len(materials_in_h5m)
 
-        if required_number_of_materials != len(self.correspondence_dict.keys()):
+        if required_nb_of_materials != len(self.correspondence_dict.keys()):
             msg = (
                 f"the number of materials provided in the correspondence_dict "
                 f"{len(self.correspondence_dict.keys())} "
                 f"is not equal to the number of materials specified in the "
-                f"DAGMC h5m file {required_number_of_materials}")
+                f"DAGMC h5m file {required_nb_of_materials}")
             raise ValueError(msg)
 
         silently_remove_file("materials.xml")

@@ -6,7 +6,7 @@ import openmc
 
 
 class Geometry(openmc.Geometry):
-    """Creates an openmc.Geometry object with a DAGMC Universe. If the model
+    """A openmc.Geometry object with a DAGMC Universe. If the model
     requires a graveyard bounding box this will be auotmatically added. When
     simulating a sector model reflecting surfaces can be added to complete the
     boundary conditions.
