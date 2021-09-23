@@ -322,13 +322,13 @@ class TestShape(unittest.TestCase):
         )
 
         # extracts the heat from the results dictionary
-        print(results)
-        heat = results["mat1_heating"]["Watts"]["result"]
-        flux = results["mat1_flux"]["flux per source particle"]["result"]
+        print(results['mat1_heating'])
+        heat = results["heating"]["Watts"]["result"]
+        flux = results["flux"]["flux per source particle"]["result"]
         tbr = results["TBR"]["result"]
-        spectra_neutrons = results["mat1_neutron_spectra"]["flux per source particle"]["result"]
-        spectra_photons = results["mat1_photon_spectra"]["flux per source particle"]["result"]
-        energy = results["mat1_photon_spectra"]["flux per source particle"]["energy"]
+        spectra_neutrons = results["neutron_spectra"]["flux per source particle"]["result"]
+        spectra_photons = results["photon_spectra"]["flux per source particle"]["result"]
+        energy = results["photon_spectra"]["flux per source particle"]["energy"]
 
         assert heat > 0
         assert flux > 0
