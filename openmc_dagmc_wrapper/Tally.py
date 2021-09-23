@@ -544,10 +544,10 @@ class MeshTally2D(Tally):
         # The -p runs in plotting mode which avoids the check that OpenMC does
         # when looking for boundary surfaces and therefore avoids this error
         # ERROR: No boundary conditions were applied to any surfaces!
-        openmc.lib.init(["-p"])
+        # openmc.lib.init(["-p"])
 
-        bbox = openmc.lib.global_bounding_box()
-        openmc.lib.finalize()
+        # bbox = openmc.lib.global_bounding_box()
+        # openmc.lib.finalize()
 
         silently_remove_file("settings.xml")
         silently_remove_file("plots.xml")
