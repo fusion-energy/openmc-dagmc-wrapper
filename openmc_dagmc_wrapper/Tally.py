@@ -573,7 +573,7 @@ class MeshTallies2D:
         self,
         tally_types,
         planes,
-        meshes_resolutions=[None],
+        meshes_resolutions=[(400, 400)],
         meshes_corners=[None],
         bounding_box=None
             ):
