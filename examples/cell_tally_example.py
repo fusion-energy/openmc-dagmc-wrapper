@@ -54,7 +54,9 @@ tallies = openmc.Tallies([tally1] + tally2.tallies)
 # and the number of inactivate particles set to zero. Setting these to values
 # by default means less code is needed by the user and less chance of simulating
 # batches that don't contribute to the tallies
-settings = odw.FusionSettings(batches = 4, particles = 100)
+settings = odw.FusionSettings()
+settings.batches = 1
+settings.particles = 100
 
 
 # no modifications are made to the default openmc.Model object

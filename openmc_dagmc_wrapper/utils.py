@@ -209,11 +209,12 @@ def process_results(
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
             results[tally.name] = {
                 "result": tally_result,
-                "std. dev.": tally_std_dev,
             }
+            if "std. dev." in data_frame.keys():
+                tally_std_dev = data_frame["std. dev."].sum()
+                results[tally.name]["std. dev."] = tally_std_dev,
 
         elif tally.name.endswith("heating"):
 
@@ -249,11 +250,12 @@ def process_results(
 
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
             results[tally.name]["fast flux per source particle"] = {
                 "result": tally_result,
-                "std. dev.": tally_std_dev,
             }
+            if "std. dev." in data_frame.keys():
+                tally_std_dev = data_frame["std. dev."].sum()
+                results[tally.name]["fast flux per source particle"]["std. dev."] = tally_std_dev,
 
             if fusion_power is not None:
                 results[tally.name]["fast flux per second"] = {

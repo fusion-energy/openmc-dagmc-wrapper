@@ -8,18 +8,10 @@ class FusionSettings(openmc.Settings):
     particles.
     """
 
-    def __init__(self, batches, particles):
+    def __init__(self):
 
         super().__init__()
 
         # performed after the super init as these are setting attributes
         self.run_mode = 'fixed source'
         self.inactive = 0
-        self.batches = batches
-        self.particles = particles
-
-        self.checks()
-
-    def checks(self):
-        if self.batches < 2:
-            raise ValueError('FussionSettings.batches must be set to 2 or more')

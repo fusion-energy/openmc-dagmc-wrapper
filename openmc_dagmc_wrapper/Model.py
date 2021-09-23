@@ -8,4 +8,5 @@ class Model(openmc.model.Model):
         self.settings = settings
         self.tallies = tallies
 
+
         super().__init__(self.geometry, self.materials, self.settings, self.tallies)
