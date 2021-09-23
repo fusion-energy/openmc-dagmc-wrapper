@@ -117,21 +117,21 @@ class CellTally(openmc.Tally):
 
 class TetMeshTally(openmc.Tally):
     """Usage:
-    my_tally = odw.TetMeshTally(odw_score='TBR', filename="file.h5m")
-    my_tally2 = odw.TetMeshTally(odw_score='TBR', filename="file.exo")
+    my_tally = odw.TetMeshTally(tally_type='TBR', filename="file.h5m")
+    my_tally2 = odw.TetMeshTally(tally_type='TBR', filename="file.exo")
 
     Args:
-        odw_score ([type]): [description]
+        tally_type ([type]): [description]
         filename (str): [description]
     """
-    def __init__(self, odw_score, filename, **kwargs):
+    def __init__(self, tally_type, filename, **kwargs):
         self.filename = filename
         super().__init__(**kwargs)
 
         self.create_unstructured_mesh()
         self.filters = [openmc.MeshFilter(self.umesh)]
-        self.scores = [odw_score]  # @shimwell should this be done as in CellTally.set_score?
-        self.name = odw_score + "_on_3D_u_mesh"
+        self.scores = [tally_type]  # @shimwell should this be done as in CellTally.set_score?
+        self.name = tally_type + "_on_3D_u_mesh"
 
     def create_unstructured_mesh(self):
         if self.filename.endswith(".exo"):
@@ -177,18 +177,18 @@ class CellTallies:
 
 class TetMeshTallies:
     """Collection of TetMeshTally objects stored in self.tallies
-    my_tally = odw.TetMeshTally(odw_scores=['TBR'], filename=["file1.h5m", "file2.exo"])
+    my_tally = odw.TetMeshTally(tally_types=['TBR'], filename=["file1.h5m", "file2.exo"])
     Args:
-        odw_scores (list): [description]
+        tally_types (list): [description]
         filenames (list): [description]
     """
-    def __init__(self, odw_scores, filenames):
+    def __init__(self, tally_types, filenames):
         self.tallies = []
-        self.odw_scores = odw_scores
-        for score in self.odw_scores:
+        self.tally_types = tally_types
+        for score in self.tally_types:
             for filename in filenames:
                 self.tallies.append(
-                    TetMeshTally(odw_score=score, filename=filename))
+                    TetMeshTally(tally_type=score, filename=filename))
 
 
 class MeshTally3D(openmc.Tally):
@@ -294,6 +294,7 @@ class MeshTally2D(openmc.Tally):
         self.tally_type = tally_type
         self.plane = plane
         self.set_bounding_box(bounding_box)
+        self.mesh_resolution = mesh_resolution
         self.create_mesh()
 
         mesh_filter = openmc.MeshFilter(self.mesh)
