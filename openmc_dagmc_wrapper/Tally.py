@@ -510,7 +510,7 @@ class MeshTally2D(Tally):
 
         if self.mesh_corners is None:
 
-            if bounding_box is None:
+            if type(bounding_box) is str:
                 self.bounding_box = self.find_bounding_box(h5m_filename=bounding_box)
             else:
                 self.bounding_box = bounding_box
