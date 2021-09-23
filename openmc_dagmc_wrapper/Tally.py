@@ -190,6 +190,196 @@ class TetMeshTallies:
                 self.tallies.append(
                     TetMeshTally(odw_score=score, filename=filename))
 
+
+class MeshTally3D(openmc.Tally):
+    def __init__(
+        self,
+        tally_type,
+        mesh_resolution,
+        mesh_corners=None,
+        bounding_box=None
+            ):
+        self.tally_type = tally_type
+
+        self.set_bounding_box(bounding_box)
+
+        self.set_filter()
+        self.set_score()
+        self.set_name()
+
+    def set_bounding_box(self, bounding_box):
+        mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
+        mesh_xyz.dimension = self.mesh_3d_resolution
+        if self.mesh_3d_corners is None:
+
+            if bounding_box is None:
+                self.bounding_box = self.find_bounding_box()
+            else:
+                self.bounding_box = bounding_box
+
+            mesh_xyz.lower_left = self.bounding_box[0]
+            mesh_xyz.upper_right = self.bounding_box[1]
+        else:
+            mesh_xyz.lower_left = self.mesh_3d_corners[0]
+            mesh_xyz.upper_right = self.mesh_3d_corners[1]
+
+        self.mesh_xyz = mesh_xyz
+
+    def set_score(self):
+        # duplicate code
+        flux_scores = [
+            "neutron_fast_flux", "photon_fast_flux",
+            "neutron_spectra", "photon_spectra",
+            "neutron_effective_dose", "photon_effective_dose"
+        ]
+
+        if self.tally_type == "TBR":
+            self.scores = "(n,Xt)"  # where X is a wild card
+        elif self.tally_type in flux_scores:
+            self.scores = "flux"
+        else:
+            self.scores = self.tally_type
+
+    def set_filter(self):
+        mesh_filter = openmc.MeshFilter(self.mesh_xyz)
+
+        # everything here is duplicate code
+        energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+            particle="neutron",
+            geometry="ISO",
+        )
+        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+            particle="photon",
+            geometry="ISO",
+        )
+        photon_particle_filter = openmc.ParticleFilter(["photon"])
+        neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+
+        additional_filters = []
+        if self.tally_type == "neutron_fast_flux":
+            energy_bins = [1e6, 1000e6]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [neutron_particle_filter, energy_filter]
+        elif self.tally_type == "photon_fast_flux":
+            energy_bins = [1e6, 1000e6]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [photon_particle_filter, energy_filter]
+        elif self.tally_type == "neutron_spectra":
+            energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [neutron_particle_filter, energy_filter]
+        elif self.tally_type == "photon_spectra":
+            energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
+            energy_filter = openmc.EnergyFilter(energy_bins)
+            additional_filters = [photon_particle_filter, energy_filter]
+        elif self.tally_type == "neutron_effective_dose":
+            energy_function_filter_n = openmc.EnergyFunctionFilter(
+                energy_bins_n, dose_coeffs_n)
+            additional_filters = [
+                neutron_particle_filter, energy_function_filter_n]
+        elif self.tally_type == "photon_effective_dose":
+            energy_function_filter_n = openmc.EnergyFunctionFilter(
+                energy_bins_n, dose_coeffs_n)
+            additional_filters = [
+                photon_particle_filter, energy_function_filter_n]
+
+        self.filters = [mesh_filter] + additional_filters
+
+    def set_name(self):
+        self.name = self.tally_type + "_on_3D_mesh"
+
+
+class MeshTally2D(openmc.Tally):
+    def __init__(self, tally_type, plane, mesh_resolution, mesh_corners=None, bounding_box=None):
+        self.tally_type = tally_type
+        self.plane = plane
+        self.set_bounding_box(bounding_box)
+        self.create_mesh()
+
+        mesh_filter = openmc.MeshFilter(self.mesh)
+        self.name = self.tally_type + "_on_2D_mesh_" + self.plane
+        self.filters = [mesh_filter]
+        self.scores = [tally_type]
+
+    def create_mesh(self):
+        mesh_name = "2D_mesh_" + self.plane
+        mesh = openmc.RegularMesh(name=mesh_name)
+
+        # mesh dimension
+        if self.plane == "xy":
+            mesh.dimension = [
+                self.mesh_resolution[1],
+                self.mesh_resolution[0],
+                1,
+            ]
+        elif self.plane == "xz":
+            mesh.dimension = [
+                self.mesh_resolution[1],
+                1,
+                self.mesh_resolution[0],
+            ]
+        elif self.plane == "yz":
+            mesh.dimension = [
+                1,
+                self.mesh_resolution[1],
+                self.mesh_resolution[0],
+            ]
+
+        # mesh corners
+        if self.mesh_corners is None:
+            if self.plane == "xy":
+                mesh.lower_left = [
+                    self.bounding_box[0][0],
+                    self.bounding_box[0][1],
+                    -1,
+                ]
+
+                mesh.upper_right = [
+                    self.bounding_box[1][0],
+                    self.bounding_box[1][1],
+                    1,
+                ]
+            elif self.plane == "xz":
+                mesh.lower_left = [
+                    self.bounding_box[0][0],
+                    -1,
+                    self.bounding_box[0][2],
+                ]
+
+                mesh.upper_right = [
+                    self.bounding_box[1][0],
+                    1,
+                    self.bounding_box[1][2],
+                ]
+            elif self.plane == "yz":
+                mesh.lower_left = [
+                    -1,
+                    self.bounding_box[0][1],
+                    self.bounding_box[0][2],
+                ]
+
+                mesh.upper_right = [
+                    1,
+                    self.bounding_box[1][1],
+                    self.bounding_box[1][2],
+                ]
+
+        else:
+            mesh.lower_left = self.mesh_corners[0]
+            mesh.upper_right = self.mesh_corners[1]
+
+        self.mesh = mesh
+
+    def set_bounding_box(self, bounding_box):
+
+        if self.mesh_corners is None:
+
+            if bounding_box is None:
+                self.bounding_box = self.find_bounding_box()
+            else:
+                self.bounding_box = bounding_box
+
+
 # # in neutronicsModel
 # energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
 #     particle="neutron",
