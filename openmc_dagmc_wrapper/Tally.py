@@ -290,6 +290,15 @@ class MeshTally3D(openmc.Tally):
 
 
 class MeshTally2D(openmc.Tally):
+    """[summary]
+
+    Args:
+        tally_type (str): [description]
+        plane (str): "xy", "xz", "yz"
+        mesh_resolution (list): [description]
+        mesh_corners ([type], optional): [description]. Defaults to None.
+        bounding_box ([type], optional): [description]. Defaults to None.
+    """
     def __init__(self, tally_type, plane, mesh_resolution, mesh_corners=None, bounding_box=None):
         self.tally_type = tally_type
         self.plane = plane
@@ -381,6 +390,35 @@ class MeshTally2D(openmc.Tally):
                 self.bounding_box = bounding_box
 
 
+class MeshTallies2D:
+    """[summary]
+
+    Args:
+        tally_types (list): [description]
+        planes (list): list of str with planes
+        meshes_resolutions (list): [description]
+        meshes_corners (list, optional): [description]. Defaults to None.
+        bounding_box ([type], optional): [description]. Defaults to None.
+    """
+    def __init__(
+        self,
+        tally_types,
+        planes,
+        meshes_resolutions,
+        meshes_corners=None,
+        bounding_box=None
+            ):
+        self.tallies = []
+        self.tally_types = tally_types
+        for tally_type in self.tally_types:
+            for plane, mesh_res, mesh_corners in zip(
+                    planes, meshes_resolutions, meshes_corners):
+                self.tallies.append(
+                    MeshTally2D(
+                        tally_type=tally_type, plane=plane,
+                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
+                        bounding_box=bounding_box)
+                        )
 # # in neutronicsModel
 # energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
 #     particle="neutron",
