@@ -251,29 +251,33 @@ class MeshTally3D(Tally):
         bounding_box=None
             ):
         self.tally_type = tally_type
+        super().__init__(tally_type, **kwargs)
 
         self.set_bounding_box(bounding_box)
-        super().__init__(tally_type, **kwargs)
+        self.create_mesh()
         self.set_filters()
         self.set_name()
 
-    def set_bounding_box(self, bounding_box):
+    def create_mesh(self):
         mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
-        mesh_xyz.dimension = self.mesh_3d_resolution
-        if self.mesh_3d_corners is None:
+        mesh_xyz.dimension = self.mesh_resolution
+        if self.mesh_corners is None:
+            mesh_xyz.lower_left = self.bounding_box[0]
+            mesh_xyz.upper_right = self.bounding_box[1]
+        else:
+            mesh_xyz.lower_left = self.mesh_corners[0]
+            mesh_xyz.upper_right = self.mesh_corners[1]
+
+        self.mesh_xyz = mesh_xyz
+
+    def set_bounding_box(self, bounding_box):
+
+        if self.mesh_corners is None:
 
             if bounding_box is None:
                 self.bounding_box = self.find_bounding_box()
             else:
                 self.bounding_box = bounding_box
-
-            mesh_xyz.lower_left = self.bounding_box[0]
-            mesh_xyz.upper_right = self.bounding_box[1]
-        else:
-            mesh_xyz.lower_left = self.mesh_3d_corners[0]
-            mesh_xyz.upper_right = self.mesh_3d_corners[1]
-
-        self.mesh_xyz = mesh_xyz
 
     def set_filters(self):
         mesh_filter = openmc.MeshFilter(self.mesh_xyz)
