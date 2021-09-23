@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Union
 
 import openmc
+import openmc.lib  # needed to find bounding box of h5m file
 from openmc_dagmc_wrapper import Materials
 from openmc.data import REACTION_MT, REACTION_NAME
 
