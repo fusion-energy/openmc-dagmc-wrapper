@@ -68,7 +68,7 @@ class TestShape(unittest.TestCase):
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=None,
+            tallies=[],
             settings=self.settings
             )
 
@@ -364,12 +364,12 @@ class TestShape(unittest.TestCase):
 
         results = odw.process_results(statepoint_filename=h5m_filename)
         assert len(results.keys()) == 2
-        assert len(results['mat1_neutron_spectra'].keys()) == 1
-        assert len(results['mat1_photon_spectra'].keys()) == 1
+        assert len(results['neutron_spectra'].keys()) == 1
+        assert len(results['photon_spectra'].keys()) == 1
 
-        neutron_flux_sum = sum(results['mat1_neutron_spectra']
+        neutron_flux_sum = sum(results['neutron_spectra']
                                ["flux per source particle"]["result"])
-        photon_flux_sum = sum(results['mat1_photon_spectra']
+        photon_flux_sum = sum(results['photon_spectra']
                               ["flux per source particle"]["result"])
 
         # TODO change > to the actual ratio
@@ -378,9 +378,9 @@ class TestShape(unittest.TestCase):
             statepoint_filename=h5m_filename,
             fusion_energy_per_pulse=3)
         assert len(results.keys()) == 2
-        assert len(results['mat1_neutron_spectra'].keys()) == 2
-        assert len(results['mat1_photon_spectra'].keys()) == 2
-        assert sum(results['mat1_neutron_spectra']
+        assert len(results['neutron_spectra'].keys()) == 2
+        assert len(results['photon_spectra'].keys()) == 2
+        assert sum(results['neutron_spectra']
                    ['flux per pulse']['result']) > neutron_flux_sum
         assert sum(results['mat1_photon_spectra']
                    ['flux per pulse']['result']) > photon_flux_sum
@@ -389,11 +389,11 @@ class TestShape(unittest.TestCase):
             statepoint_filename=h5m_filename,
             fusion_power=2)
         assert len(results.keys()) == 2
-        assert len(results['mat1_neutron_spectra'].keys()) == 2
-        assert len(results['mat1_photon_spectra'].keys()) == 2
-        assert sum(results['mat1_neutron_spectra']
+        assert len(results['neutron_spectra'].keys()) == 2
+        assert len(results['photon_spectra'].keys()) == 2
+        assert sum(results['neutron_spectra']
                    ['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['mat1_photon_spectra']
+        assert sum(results['photon_spectra']
                    ['flux per second']['result']) > photon_flux_sum
 
         results = odw.process_results(
@@ -527,11 +527,12 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat1": "Be"})
 
         my_3D_tally = odw.MeshTally3D(
-            tally_type="heating")
+            tally_type="heating", bounding_box=self.h5m_filename_smaller)
 
         my_2D_tallies = odw.MeshTally2D(
             planes=["xz", "xy", "yz"],
-            tally_types=["heating"])
+            tally_types=["heating"],
+            bounding_box=self.h5m_filename_smaller)
 
         my_model = openmc.model.Model(
             geometry=geometry,
