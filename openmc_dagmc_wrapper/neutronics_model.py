@@ -19,7 +19,7 @@ from .utils import (
 )
 
 
-class NeutronicsModel:
+class NeutronicsModel(openmc.Model):
     """Creates a neutronics model of the provided shape geometry with assigned
     materials, source and neutronics tallies.
 
@@ -77,6 +77,10 @@ class NeutronicsModel:
         h5m_filename: str,
         source: openmc.Source(),
         materials: dict,
+        geometry: Optional[openmc.Geometry] = None,
+        simulation_batches: Optional[int] = 10,
+        simulation_particles_per_batch: Optional[int] = 100,
+        max_lost_particles: Optional[int] = 0,
         cell_tallies: Optional[List[str]] = None,
         tet_mesh_filename: Optional[str] = None,
         mesh_tally_2d: Optional[List[str]] = None,
@@ -121,6 +125,28 @@ class NeutronicsModel:
 
         # find_bounding_box can be used to populate this
         self.bounding_box = bounding_box
+
+        # TODO make a setter for these
+        if isinstance(simulation_batches, float):
+            simulation_batches = int(simulation_batches)
+        if not isinstance(simulation_batches, int):
+            raise TypeError("The simulation_batches argument must be an int")
+        if simulation_batches < 2:
+            msg = "The minimum of setting for simulation_batches is 2"
+            raise ValueError(msg)
+
+        self.simulation_batches = simulation_batches
+
+        if isinstance(simulation_particles_per_batch, float):
+            simulation_particles_per_batch = int(
+                simulation_particles_per_batch)
+        if not isinstance(simulation_particles_per_batch, int):
+            msg = (
+                "NeutronicsModelFromReactor.simulation_particles_per_batch"
+                "should be an int"
+            )
+            raise TypeError(msg)
+        self.simulation_particles_per_batch = simulation_particles_per_batch
 
     @property
     def reflective_angles(self):
@@ -335,8 +361,6 @@ class NeutronicsModel:
         self.openmc_materials = openmc_materials
 
         self.mats = openmc.Materials(list(self.openmc_materials.values()))
-
-        self.mats.export_to_xml()
         return self.mats
 
     def find_bounding_box(self):
@@ -383,22 +407,6 @@ class NeutronicsModel:
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
-    def export_geometry(self, h5m_filename=None):
-        """Creates the underlying container geometry that is filled with the
-        faceted DAGMC CAD model
-
-        Args:
-            geometry: the geometry to use for the simulation. If None then
-                Defaults to the openmc_dagmc_wrapper.h5m_filename
-        """
-
-        if h5m_filename is None:
-            h5m_filename = self.h5m_filename
-        dag_univ = openmc.DAGMCUniverse(h5m_filename)
-        geometry = openmc.Geometry(root=dag_univ)
-
-        return geometry
-
     def create_graveyard_surfaces(self):
         """Creates four vacuum surfaces that surround the geometry and can be
         used as an alternative to the traditionally DAGMC graveyard cell"""
@@ -431,126 +439,165 @@ class NeutronicsModel:
 
         return [upper_x, upper_y, lower_z, upper_z]
 
-    def export_xml(
-        self,
-        source: Optional[openmc.Source] = None,
-        geometry: Optional[openmc.Geometry] = None,
-        simulation_batches: Optional[int] = 10,
-        simulation_particles_per_batch: Optional[int] = 100,
-        max_lost_particles: Optional[int] = 0,
-        mesh_tally_3d: Optional[List[str]] = None,
-        mesh_tally_tet: Optional[List[str]] = None,
-        mesh_tally_2d: Optional[List[str]] = None,
-        cell_tallies: Optional[List[str]] = None,
-        mesh_2d_resolution: Optional[Tuple[int, int, int]] = None,
-        mesh_3d_resolution: Optional[Tuple[int, int, int]] = None,
-        mesh_2d_corners: Optional[
-            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
-        ] = None,
-        mesh_3d_corners: Optional[
-            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
-        ] = None,
-    ):
+    def export_xml(self):
         """Uses OpenMC python API to make a neutronics model, including tallies
         (cell_tallies and mesh_tally_2d), simulation settings (batches,
         particles per batch).
-
-        Arguments:
-            source: the particle source to use during the OpenMC simulation.
-            geometry: the geometry to use for the simulation. If None then
-                Defaults to the openmc-dagmc-wrapper.h5m_filename
-            simulation_batches: the number of batch to simulate.
-            simulation_particles_per_batch: particles per batch.
-            max_lost_particles: The maximum number of particles that can be
-                lost during the simulation before terminating the simulation.
-                Defaults to 0.
-            mesh_tally_3d: the 3D mesh based tallies to calculate, options
-                include heating and flux , MT numbers and OpenMC standard
-                scores such as (n,Xa) which is helium production are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
-                Defaults to None which uses the NeutronicsModel.mesh_tally_3d
-                attribute.
-            mesh_tally_tet: the tallies to calculate on the tet mesh, options
-                include heating and flux , MT numbers and OpenMC standard
-                scores such as (n,Xa) which is helium production are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores.
-                Defaults to None which uses the NeutronicsModel.mesh_tally_tet
-                attribute.
-            mesh_tally_2d: . the 2D mesh based tallies to calculate, options
-                include heating and flux , MT numbers and OpenMC standard
-                scores such as (n,Xa) which is helium production are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
-                Defaults to None which uses the NeutronicsModel.mesh_tally_2d
-                attribute.
-            cell_tallies: the cell based tallies to calculate, options include
-                TBR, heating, flux, MT numbers, effective_dose, fast_flux and
-                OpenMC standard scores such as (n,Xa) which is helium production
-                are also supported
-                https://docs.openmc.org/en/latest/usersguide/tallies.html#scores
-                Defaults to None which uses the NeutronicsModel.cell_tallies
-                attribute.
-            mesh_2d_resolution: The 2D mesh resolution in the height and
-                width directions. The larger the resolution the finer the mesh
-                and more computational intensity is required to converge each
-                mesh element. Defaults to None which uses the
-                NeutronicsModel.mesh_2d_resolution attribute
-            mesh_3d_resolution: The 3D mesh resolution in the height, width
-                and depth directions. The larger the resolution the finer the
-                mesh and the more computational intensity is required to
-                converge each mesh element. Defaults to None which uses the
-                NeutronicsModel.mesh_3d_resolution attribute.
-            mesh_2d_corners: The upper and lower corner locations for the 2d
-                mesh. Defaults to None which uses the
-                NeutronicsModel.mesh_2d_corners
-            mesh_3d_corners: The upper and lower corner locations for the 2d
-                mesh. Defaults to None which uses the
-                NeutronicsModel.mesh_2d_corners
 
         Returns:
             openmc.model.Model(): The openmc model object created
         """
 
-        if isinstance(simulation_batches, float):
-            simulation_batches = int(simulation_batches)
-        if not isinstance(simulation_batches, int):
-            raise TypeError("The simulation_batches argument must be an int")
-        if simulation_batches < 2:
-            msg = "The minimum of setting for simulation_batches is 2"
-            raise ValueError(msg)
-
-        if isinstance(simulation_particles_per_batch, float):
-            simulation_particles_per_batch = int(
-                simulation_particles_per_batch)
-        if not isinstance(simulation_particles_per_batch, int):
-            msg = (
-                "NeutronicsModelFromReactor.simulation_particles_per_batch"
-                "should be an int"
-            )
-            raise TypeError(msg)
-
-        if source is None:
-            source = self.source
-        if mesh_tally_3d is None:
-            mesh_tally_3d = self.mesh_tally_3d
-        if mesh_tally_tet is None:
-            mesh_tally_tet = self.mesh_tally_tet
-        if mesh_tally_2d is None:
-            mesh_tally_2d = self.mesh_tally_2d
-        if cell_tallies is None:
-            cell_tallies = self.cell_tallies
-        if mesh_2d_resolution is None:
-            mesh_2d_resolution = self.mesh_2d_resolution
-        if mesh_3d_resolution is None:
-            mesh_3d_resolution = self.mesh_3d_resolution
-        if mesh_2d_corners is None:
-            mesh_2d_corners = self.mesh_2d_corners
-        if mesh_3d_corners is None:
-            mesh_3d_corners = self.mesh_3d_corners
-
         # this removes any old file from previous simulations
         silently_remove_file("settings.xml")
         silently_remove_file("tallies.xml")
+        silently_remove_file("geometry.xml")
 
+        # settings for the number of neutrons to simulate
+        self.settings = openmc.Settings()
+        self.settings.batches = self.simulation_batches
+        self.settings.inactive = 0
+        self.settings.particles = self.simulation_particles_per_batch
+        self.settings.run_mode = "fixed source"
+
+        self.settings.photon_transport = self.photon_transport
+        self.settings.source = self.source
+        if max_lost_particles > 0:
+            self.settings.max_lost_particles = max_lost_particles
+        self.settings.export_to_xml()
+
+        # details about what neutrons interactions to keep track of (tally)
+        self.create_tallies()
+        self.tallies.export_to_xml()
+
+        # materials.xml is removed in this function
+        self.create_openmc_materials()
+        self.mats.export_to_xml()
+
+        # make geometry
+        if self.geometry is None:
+            self.geometry = self.create_geometry()
+        self.geometry.export_to_xml()
+
+        # make the model from geometry, materials, settings and tallies
+        model = openmc.model.Model(
+            self.geometry, self.mats, self.settings, self.tallies)
+
+        self.model = model
+        return model
+
+    def create_tallies(self):
+        """Creates the .tallies attribute
+        """
+        # details about what neutrons interactions to keep track of (tally)
+        self.tallies = openmc.Tallies()
+
+        if self.tet_mesh_filename is not None:
+            self.create_tet_mesh_tally()
+
+        if self.mesh_tally_3d is not None:
+            self.create_mesh_tally_3d()
+
+        if self.mesh_tally_2d is not None:
+            # Create mesh which will be used for tally
+            self.create_mesh_tally_2d()
+
+        if self.cell_tallies is not None:
+            self.create_cell_tallies()
+
+    def create_cell_tallies(self):
+        # defines filters that are used in multiple places including particle
+        # and dose filters.
+        # ISO defines the direction of the source to person,
+        # for more details see documentation
+        # https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
+        # a few more details on dose tallies can be found here
+        # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
+        energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
+            particle="neutron",
+            geometry="ISO",
+        )
+        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
+            particle="photon",
+            geometry="ISO",
+        )
+        photon_particle_filter = openmc.ParticleFilter(["photon"])
+        neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+        for standard_tally in self.cell_tallies:
+            if standard_tally == "TBR":
+                score = "(n,Xt)"  # where X is a wild card
+                suffix = "TBR"
+                tally = openmc.Tally(name="TBR")
+                tally.scores = [score]
+                self.tallies.append(tally)
+                self._add_tally_for_every_material(suffix, score)
+
+            elif standard_tally == "fast_flux":
+
+                energy_bins = [1e6, 1000e6]
+                energy_filter = openmc.EnergyFilter(energy_bins)
+
+                self._add_tally_for_every_material(
+                    "neutron_fast_flux",
+                    "flux",
+                    [neutron_particle_filter, energy_filter],
+                )
+                if self.photon_transport is True:
+                    self._add_tally_for_every_material(
+                        "photon_fast_flux",
+                        "flux",
+                        [photon_particle_filter, energy_filter],
+                    )
+
+            elif standard_tally == "spectra":
+
+                energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
+                energy_filter = openmc.EnergyFilter(energy_bins)
+
+                self._add_tally_for_every_material(
+                    "neutron_spectra",
+                    "flux",
+                    [neutron_particle_filter, energy_filter],
+                )
+                if self.photon_transport is True:
+                    self._add_tally_for_every_material(
+                        "photon_spectra",
+                        "flux",
+                        [photon_particle_filter, energy_filter],
+                    )
+            elif standard_tally == "effective_dose":
+
+                energy_function_filter_n = openmc.EnergyFunctionFilter(
+                    energy_bins_n, dose_coeffs_n
+                )
+
+                self._add_tally_for_every_material(
+                    "neutron_effective_dose",
+                    "flux",
+                    [energy_function_filter_n, neutron_particle_filter],
+                )
+
+                if self.photon_transport:
+
+                    energy_function_filter_p = openmc.EnergyFunctionFilter(
+                        energy_bins_p, dose_coeffs_p
+                    )
+
+                    self._add_tally_for_every_material(
+                        "photon_effective_dose",
+                        "flux",
+                        [energy_function_filter_p, photon_particle_filter],
+                    )
+
+            else:
+                score = standard_tally
+                suffix = standard_tally
+                self._add_tally_for_every_material(suffix, score)
+
+                # todo add photon tallys for standard tallies that starts with (p,
+                # if self.photon_transport:
+
+    def create_geometry(self):
         # this is the underlying geometry container that is filled with the
         # faceted DAGMC CAD model
         dag_univ = openmc.DAGMCUniverse(self.h5m_filename)
@@ -612,310 +659,182 @@ class NeutronicsModel:
 
             root = [containing_cell]
 
-        openmc.Geometry(root=root)
+        return openmc.Geometry(root=root)
 
-        # settings for the number of neutrons to simulate
-        settings = openmc.Settings()
-        settings.batches = simulation_batches
-        settings.inactive = 0
-        settings.particles = simulation_particles_per_batch
-        settings.run_mode = "fixed source"
+    def create_tet_mesh_tally(self):
+        if self.tet_mesh_filename.endswith(".exo"):
+            # requires a exo file export from cubit
+            umesh = openmc.UnstructuredMesh(
+                self.tet_mesh_filename, library="libmesh"
+            )
+        elif self.tet_mesh_filename.endswith(".h5m"):
+            # requires a .cub file export from cubit and mbconvert to h5m
+            # format
+            umesh = openmc.UnstructuredMesh(
+                self.tet_mesh_filename, library="moab")
+        else:
+            msg = ("only h5m or exo files are accepted as valid "
+                   "tet_mesh_filename values")
+            raise ValueError(msg)
 
-        settings.photon_transport = self.photon_transport
-        settings.source = self.source
-        if max_lost_particles > 0:
-            settings.max_lost_particles = max_lost_particles
+        umesh_filter = openmc.MeshFilter(umesh)
 
-        # details about what neutrons interactions to keep track of (tally)
-        self.tallies = openmc.Tallies()
+        for standard_tally in self.mesh_tally_tet:
+            score = standard_tally
+            prefix = standard_tally
+            tally = openmc.Tally(name=prefix + "_on_3D_u_mesh")
+            tally.filters = [umesh_filter]
+            tally.scores = [score]
+            self.tallies.append(tally)
 
-        # defines filters that are used in multiple places including particle
-        # and dose filters.
-        # ISO defines the direction of the source to person,
-        # for more details see documentation
-        # https://docs.openmc.org/en/stable/pythonapi/generated/openmc.data.dose_coefficients.html
-        # a few more details on dose tallies can be found here
-        # https://github.com/fusion-energy/neutronics-workshop/blob/main/tasks/task_09_CSG_surface_tally_dose/1_surface_dose_from_gamma_source.ipynb
-        energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
-            particle="neutron",
-            geometry="ISO",
-        )
-        energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
-            particle="photon",
-            geometry="ISO",
-        )
-        photon_particle_filter = openmc.ParticleFilter(["photon"])
-        neutron_particle_filter = openmc.ParticleFilter(["neutron"])
+    def create_mesh_tally_3d(self):
+        mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
+        mesh_xyz.dimension = self.mesh_3d_resolution
+        if self.mesh_3d_corners is None:
 
-        if self.tet_mesh_filename is not None:
-            if self.tet_mesh_filename.endswith(".exo"):
-                # requires a exo file export from cubit
-                umesh = openmc.UnstructuredMesh(
-                    self.tet_mesh_filename, library="libmesh"
+            if self.bounding_box is None:
+                self.bounding_box = self.find_bounding_box()
+
+            mesh_xyz.lower_left = self.bounding_box[0]
+            mesh_xyz.upper_right = self.bounding_box[1]
+        else:
+            mesh_xyz.lower_left = self.mesh_3d_corners[0]
+            mesh_xyz.upper_right = self.mesh_3d_corners[1]
+
+        for standard_tally in self.mesh_tally_3d:
+
+            if standard_tally == "effective_dose":
+
+                energy_function_filter_n = openmc.EnergyFunctionFilter(
+                    energy_bins_n, dose_coeffs_n
                 )
-            elif self.tet_mesh_filename.endswith(".h5m"):
-                # requires a .cub file export from cubit and mbconvert to h5m
-                # format
-                umesh = openmc.UnstructuredMesh(
-                    self.tet_mesh_filename, library="moab")
-            else:
-                msg = ("only h5m or exo files are accepted as valid "
-                       "tet_mesh_filename values")
-                raise ValueError(msg)
 
-            umesh_filter = openmc.MeshFilter(umesh)
-
-            for standard_tally in self.mesh_tally_tet:
-                score = standard_tally
+                score = "flux"
                 prefix = standard_tally
-                tally = openmc.Tally(name=prefix + "_on_3D_u_mesh")
-                tally.filters = [umesh_filter]
+                mesh_filter = openmc.MeshFilter(mesh_xyz)
+                tally = openmc.Tally(name=f"{prefix}_neutron_on_3D_mesh")
+                tally.filters = [
+                    mesh_filter,
+                    neutron_particle_filter,
+                    energy_function_filter_n,
+                ]
                 tally.scores = [score]
                 self.tallies.append(tally)
 
-        if self.mesh_tally_3d is not None:
-            mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
-            mesh_xyz.dimension = self.mesh_3d_resolution
-            if self.mesh_3d_corners is None:
+                if self.photon_transport:
 
-                if self.bounding_box is None:
-                    self.bounding_box = self.find_bounding_box()
-
-                mesh_xyz.lower_left = self.bounding_box[0]
-                mesh_xyz.upper_right = self.bounding_box[1]
-            else:
-                mesh_xyz.lower_left = self.mesh_3d_corners[0]
-                mesh_xyz.upper_right = self.mesh_3d_corners[1]
-
-            for standard_tally in self.mesh_tally_3d:
-
-                if standard_tally == "effective_dose":
-
-                    energy_function_filter_n = openmc.EnergyFunctionFilter(
-                        energy_bins_n, dose_coeffs_n
+                    energy_function_filter_p = openmc.EnergyFunctionFilter(
+                        energy_bins_p, dose_coeffs_p
                     )
 
                     score = "flux"
                     prefix = standard_tally
                     mesh_filter = openmc.MeshFilter(mesh_xyz)
-                    tally = openmc.Tally(name=f"{prefix}_neutron_on_3D_mesh")
+                    tally = openmc.Tally(
+                        name=f"{prefix}_photon_on_3D_mesh")
                     tally.filters = [
                         mesh_filter,
-                        neutron_particle_filter,
-                        energy_function_filter_n,
+                        photon_particle_filter,
+                        energy_function_filter_p,
                     ]
                     tally.scores = [score]
                     self.tallies.append(tally)
-
-                    if self.photon_transport:
-
-                        energy_function_filter_p = openmc.EnergyFunctionFilter(
-                            energy_bins_p, dose_coeffs_p
-                        )
-
-                        score = "flux"
-                        prefix = standard_tally
-                        mesh_filter = openmc.MeshFilter(mesh_xyz)
-                        tally = openmc.Tally(
-                            name=f"{prefix}_photon_on_3D_mesh")
-                        tally.filters = [
-                            mesh_filter,
-                            photon_particle_filter,
-                            energy_function_filter_p,
-                        ]
-                        tally.scores = [score]
-                        self.tallies.append(tally)
-                else:
-                    score = standard_tally
-                    prefix = standard_tally
-                    mesh_filter = openmc.MeshFilter(mesh_xyz)
-                    tally = openmc.Tally(name=prefix + "_on_3D_mesh")
-                    tally.filters = [mesh_filter]
-                    tally.scores = [score]
-                    self.tallies.append(tally)
-
-        if self.mesh_tally_2d is not None:
-
-            # Create mesh which will be used for tally
-            mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")
-
-            mesh_xz.dimension = [
-                self.mesh_2d_resolution[1],
-                1,
-                self.mesh_2d_resolution[0],
-            ]
-
-            mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
-            mesh_xy.dimension = [
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-                1,
-            ]
-
-            mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
-            mesh_yz.dimension = [
-                1,
-                self.mesh_2d_resolution[1],
-                self.mesh_2d_resolution[0],
-            ]
-
-            if self.mesh_2d_corners is None:
-
-                if self.bounding_box is None:
-                    self.bounding_box = self.find_bounding_box()
-
-                mesh_xz.lower_left = [
-                    self.bounding_box[0][0],
-                    -1,
-                    self.bounding_box[0][2],
-                ]
-
-                mesh_xz.upper_right = [
-                    self.bounding_box[1][0],
-                    1,
-                    self.bounding_box[1][2],
-                ]
-
-                mesh_xy.lower_left = [
-                    self.bounding_box[0][0],
-                    self.bounding_box[0][1],
-                    -1,
-                ]
-
-                mesh_xy.upper_right = [
-                    self.bounding_box[1][0],
-                    self.bounding_box[1][1],
-                    1,
-                ]
-
-                mesh_yz.lower_left = [
-                    -1,
-                    self.bounding_box[0][1],
-                    self.bounding_box[0][2],
-                ]
-
-                mesh_yz.upper_right = [
-                    1,
-                    self.bounding_box[1][1],
-                    self.bounding_box[1][2],
-                ]
-
             else:
-                mesh_xz.lower_left = self.mesh_2d_corners[0]
-                mesh_xz.upper_right = self.mesh_2d_corners[1]
-
-                mesh_xy.lower_left = self.mesh_2d_corners[0]
-                mesh_xy.upper_right = self.mesh_2d_corners[1]
-
-                mesh_yz.lower_left = self.mesh_2d_corners[0]
-                mesh_yz.upper_right = self.mesh_2d_corners[1]
-
-            for standard_tally in self.mesh_tally_2d:
                 score = standard_tally
                 prefix = standard_tally
+                mesh_filter = openmc.MeshFilter(mesh_xyz)
+                tally = openmc.Tally(name=prefix + "_on_3D_mesh")
+                tally.filters = [mesh_filter]
+                tally.scores = [score]
+                self.tallies.append(tally)
 
-                for mesh_filter, plane in zip(
-                    [mesh_xz, mesh_xy, mesh_yz], ["xz", "xy", "yz"]
-                ):
-                    mesh_filter = openmc.MeshFilter(mesh_filter)
-                    tally = openmc.Tally(name=prefix + "_on_2D_mesh_" + plane)
-                    tally.filters = [mesh_filter]
-                    tally.scores = [score]
-                    self.tallies.append(tally)
+    def create_mesh_tally_2d(self):
+        # Create mesh which will be used for tally
+        mesh_xz = openmc.RegularMesh(mesh_id=2, name="2d_mesh_xz")
 
-        # materials.xml is removed in this function
-        self.create_openmc_materials()
+        mesh_xz.dimension = [
+            self.mesh_2d_resolution[1],
+            1,
+            self.mesh_2d_resolution[0],
+        ]
 
-        if self.cell_tallies is not None:
+        mesh_xy = openmc.RegularMesh(mesh_id=3, name="2d_mesh_xy")
+        mesh_xy.dimension = [
+            self.mesh_2d_resolution[1],
+            self.mesh_2d_resolution[0],
+            1,
+        ]
 
-            for standard_tally in self.cell_tallies:
-                if standard_tally == "TBR":
-                    score = "(n,Xt)"  # where X is a wild card
-                    suffix = "TBR"
-                    tally = openmc.Tally(name="TBR")
-                    tally.scores = [score]
-                    self.tallies.append(tally)
-                    self._add_tally_for_every_material(suffix, score)
+        mesh_yz = openmc.RegularMesh(mesh_id=4, name="2d_mesh_yz")
+        mesh_yz.dimension = [
+            1,
+            self.mesh_2d_resolution[1],
+            self.mesh_2d_resolution[0],
+        ]
 
-                elif standard_tally == "fast_flux":
+        if self.mesh_2d_corners is None:
 
-                    energy_bins = [1e6, 1000e6]
-                    energy_filter = openmc.EnergyFilter(energy_bins)
+            if self.bounding_box is None:
+                self.bounding_box = self.find_bounding_box()
 
-                    self._add_tally_for_every_material(
-                        "neutron_fast_flux",
-                        "flux",
-                        [neutron_particle_filter, energy_filter],
-                    )
-                    if self.photon_transport is True:
-                        self._add_tally_for_every_material(
-                            "photon_fast_flux",
-                            "flux",
-                            [photon_particle_filter, energy_filter],
-                        )
+            mesh_xz.lower_left = [
+                self.bounding_box[0][0],
+                -1,
+                self.bounding_box[0][2],
+            ]
 
-                elif standard_tally == "spectra":
+            mesh_xz.upper_right = [
+                self.bounding_box[1][0],
+                1,
+                self.bounding_box[1][2],
+            ]
 
-                    energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
-                    energy_filter = openmc.EnergyFilter(energy_bins)
+            mesh_xy.lower_left = [
+                self.bounding_box[0][0],
+                self.bounding_box[0][1],
+                -1,
+            ]
 
-                    self._add_tally_for_every_material(
-                        "neutron_spectra",
-                        "flux",
-                        [neutron_particle_filter, energy_filter],
-                    )
-                    if self.photon_transport is True:
-                        self._add_tally_for_every_material(
-                            "photon_spectra",
-                            "flux",
-                            [photon_particle_filter, energy_filter],
-                        )
-                elif standard_tally == "effective_dose":
+            mesh_xy.upper_right = [
+                self.bounding_box[1][0],
+                self.bounding_box[1][1],
+                1,
+            ]
 
-                    energy_function_filter_n = openmc.EnergyFunctionFilter(
-                        energy_bins_n, dose_coeffs_n
-                    )
+            mesh_yz.lower_left = [
+                -1,
+                self.bounding_box[0][1],
+                self.bounding_box[0][2],
+            ]
 
-                    self._add_tally_for_every_material(
-                        "neutron_effective_dose",
-                        "flux",
-                        [energy_function_filter_n, neutron_particle_filter],
-                    )
+            mesh_yz.upper_right = [
+                1,
+                self.bounding_box[1][1],
+                self.bounding_box[1][2],
+            ]
 
-                    if self.photon_transport:
+        else:
+            mesh_xz.lower_left = self.mesh_2d_corners[0]
+            mesh_xz.upper_right = self.mesh_2d_corners[1]
 
-                        energy_function_filter_p = openmc.EnergyFunctionFilter(
-                            energy_bins_p, dose_coeffs_p
-                        )
+            mesh_xy.lower_left = self.mesh_2d_corners[0]
+            mesh_xy.upper_right = self.mesh_2d_corners[1]
 
-                        self._add_tally_for_every_material(
-                            "photon_effective_dose",
-                            "flux",
-                            [energy_function_filter_p, photon_particle_filter],
-                        )
+            mesh_yz.lower_left = self.mesh_2d_corners[0]
+            mesh_yz.upper_right = self.mesh_2d_corners[1]
 
-                else:
-                    score = standard_tally
-                    suffix = standard_tally
-                    self._add_tally_for_every_material(suffix, score)
+        for standard_tally in self.mesh_tally_2d:
+            score = standard_tally
+            prefix = standard_tally
 
-                    # todo add photon tallys for standard tallies that starts with (p,
-                    # if self.photon_transport:
-
-        if geometry is None:
-            geometry = self.export_geometry()
-
-        # make the model from geometry, materials, settings and tallies
-        model = openmc.model.Model(geometry, self.mats, settings, self.tallies)
-
-        silently_remove_file("geometry.xml")
-        geometry.export_to_xml()
-
-        settings.export_to_xml()
-        self.tallies.export_to_xml()
-
-        self.model = model
-        return model
+            for mesh_filter, plane in zip(
+                [mesh_xz, mesh_xy, mesh_yz], ["xz", "xy", "yz"]
+            ):
+                mesh_filter = openmc.MeshFilter(mesh_filter)
+                tally = openmc.Tally(name=prefix + "_on_2D_mesh_" + plane)
+                tally.filters = [mesh_filter]
+                tally.scores = [score]
+                self.tallies.append(tally)
 
     def _add_tally_for_every_material(
         self, suffix: str, score: str, additional_filters: List = None
@@ -940,8 +859,7 @@ class NeutronicsModel:
 
     def simulate(
         self,
-        verbose: Optional[bool] = True,
-        threads: Optional[int] = None,
+        **kwargs
     ) -> str:
         """Run the OpenMC simulation. Deletes existing simulation output
         (summary.h5) if files exists.
@@ -984,8 +902,7 @@ class NeutronicsModel:
         simulation_batches = self.model.settings.batches
         silently_remove_file(f"statepoint.{simulation_batches}.h5")
 
-        self.statepoint_filename = self.model.run(
-            output=verbose, threads=threads)
+        self.statepoint_filename = self.model.run(**kwargs)
 
         return self.statepoint_filename
 
