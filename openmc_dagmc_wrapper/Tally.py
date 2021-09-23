@@ -419,106 +419,33 @@ class MeshTallies2D:
                         mesh_resolution=mesh_res, mesh_corners=mesh_corners,
                         bounding_box=bounding_box)
                         )
-# # in neutronicsModel
-# energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
-#     particle="neutron",
-#     geometry="ISO",
-# )
-# energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
-#     particle="photon",
-#     geometry="ISO",
-# )
-# photon_particle_filter = openmc.ParticleFilter(["photon"])
-# neutron_particle_filter = openmc.ParticleFilter(["neutron"])
 
-# for standard_tally in self.cell_tallies:
-#     if standard_tally == "TBR":
-#         score = "(n,Xt)"  # where X is a wild card
-#         suffix = "TBR"
-#         tally = openmc.Tally(name="TBR")
-#         tally.scores = [score]
-#         self.tallies.append(tally)
-#         self._add_tally_for_every_material(suffix, score)
 
-#     elif standard_tally == "fast_flux":
+class MeshTallies3D:
+    """[summary]
 
-#         energy_bins = [1e6, 1000e6]
-#         energy_filter = openmc.EnergyFilter(energy_bins)
-
-#         self._add_tally_for_every_material(
-#             "neutron_fast_flux",
-#             "flux",
-#             [neutron_particle_filter, energy_filter],
-#         )
-#         if self.photon_transport is True:
-#             self._add_tally_for_every_material(
-#                 "photon_fast_flux",
-#                 "flux",
-#                 [photon_particle_filter, energy_filter],
-#             )
-
-#     elif standard_tally == "spectra":
-
-#         energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
-#         energy_filter = openmc.EnergyFilter(energy_bins)
-
-#         self._add_tally_for_every_material(
-#             "neutron_spectra",
-#             "flux",
-#             [neutron_particle_filter, energy_filter],
-#         )
-#         if self.photon_transport is True:
-#             self._add_tally_for_every_material(
-#                 "photon_spectra",
-#                 "flux",
-#                 [photon_particle_filter, energy_filter],
-#             )
-#     elif standard_tally == "effective_dose":
-
-#         energy_function_filter_n = openmc.EnergyFunctionFilter(
-#             energy_bins_n, dose_coeffs_n
-#         )
-
-#         self._add_tally_for_every_material(
-#             "neutron_effective_dose",
-#             "flux",
-#             [energy_function_filter_n, neutron_particle_filter],
-#         )
-
-#         if self.photon_transport:
-
-#             energy_function_filter_p = openmc.EnergyFunctionFilter(
-#                 energy_bins_p, dose_coeffs_p
-#             )
-
-#             self._add_tally_for_every_material(
-#                 "photon_effective_dose",
-#                 "flux",
-#                 [energy_function_filter_p, photon_particle_filter],
-#             )
-
-#     else:
-#         score = standard_tally
-#         suffix = standard_tally
-#         self._add_tally_for_every_material(suffix, score)
-
-# def _add_tally_for_every_material(
-#     self, suffix: str, score: str, additional_filters: List = None
-# ) -> None:
-#     """Adds a tally to self.tallies for every material.
-
-#     Arguments:
-#         suffix: the string to append to the end of the tally name to help
-#             identify the tally later.
-#         score: the openmc.Tally().scores value that contribute to the tally
-#         additional_filters: A list of  filters to ad
-#     """
-#     if additional_filters is None:
-#         additional_filters = []
-#     for key, value in self.openmc_materials.items():
-#         if key != "DT_plasma":
-#             material_filter = openmc.MaterialFilter(value)
-#             tally = openmc.Tally(name=key + "_" + suffix)
-#             tally.filters = [material_filter] + additional_filters
-#             tally.scores = [score]
-#             self.tallies.append(tally)
+    Args:
+        tally_types (list): [description]
+        meshes_resolutions (list): [description]
+        meshes_corners (list, optional): [description]. Defaults to None.
+        bounding_box ([type], optional): [description]. Defaults to None.
+    """
+    def __init__(
+        self,
+        tally_types,
+        planes,
+        meshes_resolutions,
+        meshes_corners=None,
+        bounding_box=None
+            ):
+        self.tallies = []
+        self.tally_types = tally_types
+        for tally_type in self.tally_types:
+            for mesh_res, mesh_corners in zip(
+                    meshes_resolutions, meshes_corners):
+                self.tallies.append(
+                    MeshTally3D(
+                        tally_type=tally_type,
+                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
+                        bounding_box=bounding_box)
+                        )
