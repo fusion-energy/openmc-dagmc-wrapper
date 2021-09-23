@@ -113,8 +113,9 @@ class TestShape(unittest.TestCase):
             tallies=[my_tally],
             settings=self.settings
         )
-
+        self.settings.batches = 2
         h5m_filename = my_model.run()
+        self.settings.batches = 10
         assert h5m_filename.name == "statepoint.2.h5"
 
         results = openmc.StatePoint(h5m_filename)
@@ -124,7 +125,7 @@ class TestShape(unittest.TestCase):
             statepoint_filename=h5m_filename,
             fusion_power=1e9)
         # extracts the heat from the results dictionary
-        assert results["mat1_heating"]["Watts"]["result"] > 0
+        assert results[my_tally.name]["Watts"]["result"] > 0
 
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
