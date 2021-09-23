@@ -359,7 +359,7 @@ class TestShape(unittest.TestCase):
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=my_tally,
+            tallies=[my_tally],
             settings=self.settings
         )
 
@@ -440,7 +440,7 @@ class TestShape(unittest.TestCase):
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=my_tally,
+            tallies=[my_tally],
             settings=self.settings
         )
         # performs an openmc simulation on the model
@@ -540,7 +540,7 @@ class TestShape(unittest.TestCase):
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=openmc.Tallies([my_3D_tally] + my_2D_tallies.tallies),
+            tallies=[my_3D_tally] + my_2D_tallies.tallies,
             settings=self.settings
         )
         # performs an openmc simulation on the model
