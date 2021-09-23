@@ -53,11 +53,11 @@ class Tally(openmc.Tally):
         ]
 
         if self.tally_type == "TBR":
-            self.scores = "(n,Xt)"  # where X is a wild card
+            self.scores = ["(n,Xt)"]  # where X is a wild card
         elif self.tally_type in flux_scores:
-            self.scores = "flux"
+            self.scores = ["flux"]
         else:
-            self.scores = self.tally_type
+            self.scores = [self.tally_type]
 
 
 class CellTally(Tally):
