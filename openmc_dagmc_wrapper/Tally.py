@@ -346,7 +346,7 @@ class MeshTally3D(Tally):
 
         # exports materials.xml
         # replace this with a empty materisl with the correct names
-        self.create_openmc_materials()
+        # self.create_openmc_materials()  # @shimwell do we need this?
         # openmc.Materials().export_to_xml()
 
         openmc.Plots().export_to_xml()
@@ -528,7 +528,7 @@ class MeshTally2D(Tally):
 
         # exports materials.xml
         # replace this with a empty materisl with the correct names
-        self.create_openmc_materials()
+        # self.create_openmc_materials()  # @shimwell do we need this?
         # openmc.Materials().export_to_xml()
 
         openmc.Plots().export_to_xml()
