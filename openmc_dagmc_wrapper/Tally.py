@@ -115,6 +115,31 @@ class CellTally(openmc.Tally):
         self.filters = [tally_filter] + additional_filters
 
 
+class CellTallies:
+    """
+    Collection of odw.CellTally objects stored in self.tallies
+
+    Usage:
+    my_mats = odw.Materials(....)
+    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
+    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
+
+    Args:
+        tally_types ([type]): [description]
+        targets (list, optional): [description]. Defaults to [None].
+        materials ([type], optional): [description]. Defaults to None.
+    """
+    def __init__(self, tally_types, targets=[None], materials=None):
+        self.tallies = []
+        self.tally_types = tally_types
+        self.targets = targets
+        self.materials = materials
+        for score in self.tally_types:
+            for target in self.targets:
+                self.tallies.append(CellTally(
+                    tally_type=score, target=target, materials=materials))
+
+
 class TetMeshTally(openmc.Tally):
     """Usage:
     my_tally = odw.TetMeshTally(tally_type='TBR', filename="file.h5m")
@@ -148,31 +173,6 @@ class TetMeshTally(openmc.Tally):
             msg = ("only h5m or exo files are accepted as valid "
                    "filename values")
             raise ValueError(msg)
-
-
-class CellTallies:
-    """
-    Collection of odw.CellTally objects stored in self.tallies
-
-    Usage:
-    my_mats = odw.Materials(....)
-    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=["tungsten", 2], materials=my_mats)
-    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
-
-    Args:
-        tally_types ([type]): [description]
-        targets (list, optional): [description]. Defaults to [None].
-        materials ([type], optional): [description]. Defaults to None.
-    """
-    def __init__(self, tally_types, targets=[None], materials=None):
-        self.tallies = []
-        self.tally_types = tally_types
-        self.targets = targets
-        self.materials = materials
-        for score in self.tally_types:
-            for target in self.targets:
-                self.tallies.append(CellTally(
-                    tally_type=score, target=target, materials=materials))
 
 
 class TetMeshTallies:
@@ -287,6 +287,36 @@ class MeshTally3D(openmc.Tally):
 
     def set_name(self):
         self.name = self.tally_type + "_on_3D_mesh"
+
+
+class MeshTallies3D:
+    """[summary]
+
+    Args:
+        tally_types (list): [description]
+        meshes_resolutions (list): [description]
+        meshes_corners (list, optional): [description]. Defaults to None.
+        bounding_box ([type], optional): [description]. Defaults to None.
+    """
+    def __init__(
+        self,
+        tally_types,
+        planes,
+        meshes_resolutions,
+        meshes_corners=None,
+        bounding_box=None
+            ):
+        self.tallies = []
+        self.tally_types = tally_types
+        for tally_type in self.tally_types:
+            for mesh_res, mesh_corners in zip(
+                    meshes_resolutions, meshes_corners):
+                self.tallies.append(
+                    MeshTally3D(
+                        tally_type=tally_type,
+                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
+                        bounding_box=bounding_box)
+                        )
 
 
 class MeshTally2D(openmc.Tally):
@@ -416,36 +446,6 @@ class MeshTallies2D:
                 self.tallies.append(
                     MeshTally2D(
                         tally_type=tally_type, plane=plane,
-                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
-                        bounding_box=bounding_box)
-                        )
-
-
-class MeshTallies3D:
-    """[summary]
-
-    Args:
-        tally_types (list): [description]
-        meshes_resolutions (list): [description]
-        meshes_corners (list, optional): [description]. Defaults to None.
-        bounding_box ([type], optional): [description]. Defaults to None.
-    """
-    def __init__(
-        self,
-        tally_types,
-        planes,
-        meshes_resolutions,
-        meshes_corners=None,
-        bounding_box=None
-            ):
-        self.tallies = []
-        self.tally_types = tally_types
-        for tally_type in self.tally_types:
-            for mesh_res, mesh_corners in zip(
-                    meshes_resolutions, meshes_corners):
-                self.tallies.append(
-                    MeshTally3D(
-                        tally_type=tally_type,
                         mesh_resolution=mesh_res, mesh_corners=mesh_corners,
                         bounding_box=bounding_box)
                         )
