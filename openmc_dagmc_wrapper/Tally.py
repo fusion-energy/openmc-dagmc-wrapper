@@ -426,8 +426,10 @@ class MeshTally2D(Tally):
             ):
         self.tally_type = tally_type
         self.plane = plane
-        self.set_bounding_box(bounding_box)
         self.mesh_resolution = mesh_resolution
+        self.mesh_corners = mesh_corners
+
+        self.set_bounding_box(bounding_box)
         self.create_mesh()
 
         super().__init__(tally_type, **kwargs)
