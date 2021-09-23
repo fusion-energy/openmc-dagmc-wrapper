@@ -10,19 +10,24 @@ class Geometry(openmc.Geometry):
     requires a graveyard bounding box this will be auotmatically added. When
     simulating a sector model reflecting surfaces can be added to complete the
     boundary conditions.
-    
+
     Args:
-        h5m_filename: the filename of the h5m file containing the DAGMC geometry
-        reflective_angles: if a sector model is being simulated this argument
-            can be used to specify the angles to use when creating reflecting
-            surfaces for a sector model.
+        h5m_filename: the filename of the h5m file containing the DAGMC
+            geometry reflective_angles: if a sector model is being simulated
+            this argument can be used to specify the angles to use when
+            creating reflecting surfaces for a sector model.
         graveyard_box: If a graveyard is required then the upper left and lower
-            right corners can be specified. 
+            right corners can be specified.
     """
 
-    def __init__(self, h5m_filename=None, reflective_angles=None, graveyard_box=None):
-        self.h5m_filename: str = h5m_filename
-        self.reflective_angles: Tuple[float, float] = reflective_angles
+    def __init__(
+        self,
+        h5m_filename: str = None,
+        reflective_angles: Tuple[float, float] = None,
+        graveyard_box=None
+            ):
+        self.h5m_filename = h5m_filename
+        self.reflective_angles = reflective_angles
         self.graveyard_box = graveyard_box
         super().__init__(root=self.make_root())
 
