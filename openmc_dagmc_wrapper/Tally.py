@@ -3,9 +3,64 @@ from typing import Union
 
 import openmc
 from openmc_dagmc_wrapper import Materials
+from openmc.data import REACTION_MT, REACTION_NAME
 
 
-class CellTally(openmc.Tally):
+class Tally(openmc.Tally):
+    def __init__(
+        self,
+        tally_type,
+        **kwargs
+    ):
+
+        self.tally_type = tally_type
+        super().__init__(**kwargs)
+        self.set_score()
+
+    @property
+    def tally_type(self):
+        return self._tally_type
+
+    @tally_type.setter
+    def tally_type(self, value):
+        output_options = (
+            [
+                "TBR",
+                "heating",
+                "flux",
+                "spectra",
+                "absorption",
+                "effective_dose",
+                "fast_flux",
+            ]
+            + list(REACTION_MT.keys())
+            + list(REACTION_NAME.keys())
+        )
+        if value not in output_options:
+            raise ValueError(
+                "tally_type argument",
+                entry,
+                "not allowed, the following options are supported",
+                output_options,
+            )
+        self._tally_type = value
+
+    def set_score(self):
+        flux_scores = [
+            "neutron_fast_flux", "photon_fast_flux",
+            "neutron_spectra", "photon_spectra",
+            "neutron_effective_dose", "photon_effective_dose"
+        ]
+
+        if self.tally_type == "TBR":
+            self.scores = "(n,Xt)"  # where X is a wild card
+        elif self.tally_type in flux_scores:
+            self.scores = "flux"
+        else:
+            self.scores = self.tally_type
+
+
+class CellTally(Tally):
     """
     Extends the openmc.Tally object to allow a range of standard tally_types.
     Facilitates standardized combinations of tally openmc.Tally.scores and
@@ -41,24 +96,9 @@ class CellTally(openmc.Tally):
         self.tally_type = tally_type
         self.targer = target
         self.materials = materials
-        super().__init__(**kwargs)
-        self.set_score()
+        super().__init__(tally_type, **kwargs)
         self.set_name()
         self.set_filter()
-
-    def set_score(self):
-        flux_scores = [
-            "neutron_fast_flux", "photon_fast_flux",
-            "neutron_spectra", "photon_spectra",
-            "neutron_effective_dose", "photon_effective_dose"
-        ]
-
-        if self.tally_type == "TBR":
-            self.scores = "(n,Xt)"  # where X is a wild card
-        elif self.tally_type in flux_scores:
-            self.scores = "flux"
-        else:
-            self.scores = self.tally_type
 
     def set_name(self):
         if self.target is not None:
@@ -144,7 +184,7 @@ class CellTallies:
                     tally_type=score, target=target, materials=materials))
 
 
-class TetMeshTally(openmc.Tally):
+class TetMeshTally(Tally):
     """Usage:
     my_tally = odw.TetMeshTally(tally_type='TBR', filename="file.h5m")
     my_tally2 = odw.TetMeshTally(tally_type='TBR', filename="file.exo")
@@ -200,7 +240,7 @@ class TetMeshTallies:
                     TetMeshTally(tally_type=score, filename=filename))
 
 
-class MeshTally3D(openmc.Tally):
+class MeshTally3D(Tally):
     def __init__(
         self,
         tally_type,
@@ -211,9 +251,8 @@ class MeshTally3D(openmc.Tally):
         self.tally_type = tally_type
 
         self.set_bounding_box(bounding_box)
-
-        self.set_filter()
-        self.set_score()
+        super().__init__(tally_type, **kwargs)
+        self.set_filters()
         self.set_name()
 
     def set_bounding_box(self, bounding_box):
@@ -234,22 +273,7 @@ class MeshTally3D(openmc.Tally):
 
         self.mesh_xyz = mesh_xyz
 
-    def set_score(self):
-        # duplicate code
-        flux_scores = [
-            "neutron_fast_flux", "photon_fast_flux",
-            "neutron_spectra", "photon_spectra",
-            "neutron_effective_dose", "photon_effective_dose"
-        ]
-
-        if self.tally_type == "TBR":
-            self.scores = "(n,Xt)"  # where X is a wild card
-        elif self.tally_type in flux_scores:
-            self.scores = "flux"
-        else:
-            self.scores = self.tally_type
-
-    def set_filter(self):
+    def set_filters(self):
         mesh_filter = openmc.MeshFilter(self.mesh_xyz)
 
         # everything here is duplicate code
@@ -328,7 +352,7 @@ class MeshTallies3D:
                         )
 
 
-class MeshTally2D(openmc.Tally):
+class MeshTally2D(Tally):
     """[summary]
 
     Args:
@@ -352,10 +376,9 @@ class MeshTally2D(openmc.Tally):
         self.mesh_resolution = mesh_resolution
         self.create_mesh()
 
-        mesh_filter = openmc.MeshFilter(self.mesh)
+        super().__init__(tally_type, **kwargs)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
-        self.filters = [mesh_filter]
-        self.scores = [tally_type]
+        self.filters = [openmc.MeshFilter(self.mesh)]
 
     def create_mesh(self):
         mesh_name = "2D_mesh_" + self.plane
