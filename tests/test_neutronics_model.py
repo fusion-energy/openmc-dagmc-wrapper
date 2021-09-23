@@ -106,14 +106,13 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat1": test_mat})
 
         my_tally = odw.CellTally("heating")
-
+        self.settings.batches = 2
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
             settings=self.settings
         )
-        self.settings.batches = 2
         h5m_filename = my_model.run()
         self.settings.batches = 10
         assert h5m_filename.name == "statepoint.2.h5"
