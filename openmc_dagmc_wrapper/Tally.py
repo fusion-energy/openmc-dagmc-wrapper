@@ -120,9 +120,11 @@ class CellTally(Tally):
         if type(self.target) is str:  # material filter
             for mat in self.materials.materials:
                 if mat.name == self.target:
-                    tally_filter = openmc.MaterialFilter(mat)
+                    tally_filter = [openmc.MaterialFilter(mat)]
         elif type(self.target) is int:  # volume filter
-            tally_filter = openmc.CellFilter(self.target)
+            tally_filter = [openmc.CellFilter(self.target)]
+        else:
+            tally_filter = []
 
         additional_filters = []
         if self.tally_type == "neutron_fast_flux":
@@ -152,7 +154,7 @@ class CellTally(Tally):
             additional_filters = [
                 photon_particle_filter, energy_function_filter_n]
 
-        self.filters = [tally_filter] + additional_filters
+        self.filters = tally_filter + additional_filters
 
 
 class CellTallies:
