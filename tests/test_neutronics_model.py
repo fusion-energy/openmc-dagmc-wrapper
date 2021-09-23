@@ -468,7 +468,8 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat1": "Be"})
 
         my_tallies = odw.MeshTallies3D(
-            tally_types=["heating", "(n,Xt)"])
+            tally_types=["heating", "(n,Xt)"],
+            bounding_box=self.h5m_filename_smaller)
 
         my_model = openmc.model.Model(
             geometry=geometry,
