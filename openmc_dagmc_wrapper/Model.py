@@ -8,11 +8,4 @@ class Model(openmc.model.Model):
         self.settings = settings
         self.tallies = tallies
 
-        self.add_filters_to_tallies()
-
-        super().__init__(self.materials, self.geometry, self.settings, self.tallies)
-
-    # def add_filters_to_tallies(self):
-    #     for tally in tallies:
-    #         if isinstance(tally, odw.CellTally):
-    #             tally.filter = 
+        super().__init__(self.geometry, self.materials, self.settings, self.tallies)
