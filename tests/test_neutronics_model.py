@@ -469,14 +469,14 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": "Be"})
 
-        my_tallies = odw.MeshTallies3D(
-            tally_types=["heating", "(n,Xt)"],
-            bounding_box=self.h5m_filename_smaller)
+        # my_tallies = odw.MeshTallies3D(
+        #     tally_types=["heating", "(n,Xt)"],
+        #     bounding_box=self.h5m_filename_smaller)
 
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=my_tallies.tallies,
+            tallies=None,#my_tallies.tallies,
             settings=self.settings
         )
         # performs an openmc simulation on the model
@@ -532,10 +532,10 @@ class TestShape(unittest.TestCase):
         my_3D_tally = odw.MeshTally3D(
             tally_type="heating", bounding_box=self.h5m_filename_smaller)
 
-        my_2D_tallies = odw.MeshTally2D(
-            planes=["xz", "xy", "yz"],
-            tally_types=["heating"],
-            bounding_box=self.h5m_filename_smaller)
+        # my_2D_tallies = odw.MeshTally2D(
+        #     planes=["xz", "xy", "yz"],
+        #     tally_types=["heating"],
+        #     bounding_box=self.h5m_filename_smaller)
 
         my_model = openmc.model.Model(
             geometry=geometry,
