@@ -27,6 +27,18 @@ class Materials(openmc.Materials):
         self.set_openmc_materials()
         super().__init__(list(self.openmc_materials.values()))
 
+    @property
+    def correspondence_dict(self):
+        return self._correspondence_dict
+
+    @correspondence_dict.setter
+    def correspondence_dict(self, value):
+        if not isinstance(value, dict):
+            raise TypeError(
+                ".correspondence_dict should be a dictionary"
+            )
+        self._correspondence_dict = value
+
     def set_openmc_materials(self):
         openmc_materials = {}
         for material_tag, material_entry in self.correspondence_dict.items():
