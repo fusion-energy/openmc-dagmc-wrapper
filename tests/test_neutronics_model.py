@@ -193,17 +193,13 @@ class TestShape(unittest.TestCase):
     #     assert output_filename.name == "statepoint.3.h5"
     #     assert Path("results.json").exists() is True
 
-    # def test_incorrect_cell_tallies(self):
-    #     def incorrect_cell_tallies():
-    #         """Set a cell tally that is not accepted which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             cell_tallies=["coucou"],
-    #         )
+    def test_incorrect_cell_tallies(self):
+        def incorrect_cell_tallies():
+            """Set a cell tally that is not accepted which should raise an error"""
 
-    #     self.assertRaises(ValueError, incorrect_cell_tallies)
+            my_tally = odw.CellTally("coucou")
+
+        self.assertRaises(ValueError, incorrect_cell_tallies)
 
     # def test_incorrect_cell_tally_type(self):
     #     def incorrect_cell_tally_type():
