@@ -28,10 +28,13 @@ class Tally(openmc.Tally):
                 "TBR",
                 "heating",
                 "flux",
-                "spectra",
                 "absorption",
-                "effective_dose",
-                "fast_flux",
+                "neutron_effective_dose",
+                "photon_effective_dose",
+                "neutron_fast_flux",
+                "photon_fast_flux",
+                "neutron_spectra",
+                "photon_spectra",
             ]
             + list(REACTION_MT.keys())
             + list(REACTION_NAME.keys())
