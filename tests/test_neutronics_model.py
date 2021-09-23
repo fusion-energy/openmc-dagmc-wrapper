@@ -197,7 +197,7 @@ class TestShape(unittest.TestCase):
         """Set a mesh_tally_2d that is not accepted which should raise an
         error"""
         def incorrect_mesh_tally_2d():
-            my_tally = odw.MeshTally2D("coucou")
+            my_tally = odw.MeshTally2D("coucou", plane="xy")
 
         self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
@@ -205,7 +205,7 @@ class TestShape(unittest.TestCase):
         """Set a mesh_tally_2d that is the wrong type which should raise an
         error"""
         def incorrect_mesh_tally_2d_type():
-            my_tally = odw.MeshTally2D(1)
+            my_tally = odw.MeshTally2D(1, plane="xy")
 
         self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
 

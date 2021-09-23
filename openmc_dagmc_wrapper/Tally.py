@@ -246,7 +246,7 @@ class MeshTally3D(Tally):
     def __init__(
         self,
         tally_type,
-        mesh_resolution,
+        mesh_resolution=(100, 100, 100),
         mesh_corners=None,
         bounding_box=None
             ):
@@ -368,7 +368,7 @@ class MeshTally2D(Tally):
         self,
         tally_type,
         plane,
-        mesh_resolution,
+        mesh_resolution=(400, 400),
         mesh_corners=None,
         bounding_box=None
             ):
