@@ -94,7 +94,7 @@ class CellTally(Tally):
     ):
 
         self.tally_type = tally_type
-        self.targer = target
+        self.target = target
         self.materials = materials
         super().__init__(tally_type, **kwargs)
         self.set_name()
