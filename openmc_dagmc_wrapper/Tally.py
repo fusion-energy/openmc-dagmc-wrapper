@@ -13,9 +13,9 @@ import openmc
 class CellTally(openmc.Tally):
     """Usage:
     my_mats = odw.Materials(....)
-    my_tally = odw.CellTally(odw_scores='TBR', target="tungsten", materials=my_mats)
-    my_tally2 = odw.CellTally(odw_scores='TBR', target=2)
-    my_tally3 = odw.CellTally(odw_scores='TBR')
+    my_tally = odw.CellTally(odw_score='TBR', target="tungsten", materials=my_mats)
+    my_tally2 = odw.CellTally(odw_score='TBR', target=2)
+    my_tally3 = odw.CellTally(odw_score='TBR')
 
     Args:
         odw_score ([type]): [description]
@@ -100,6 +100,41 @@ class CellTally(openmc.Tally):
         self.filters = [tally_filter] + additional_filters
 
 
+class TetMeshTally(openmc.Tally):
+    """Usage:
+    my_tally = odw.TetMeshTally(odw_score='TBR', filename="file.h5m")
+    my_tally2 = odw.TetMeshTally(odw_score='TBR', filename="file.exo")
+
+    Args:
+        odw_score ([type]): [description]
+        filename (str): [description]
+    """
+    def __init__(self, odw_score, filename, **kwargs):
+        self.filename = filename
+        super().__init__(**kwargs)
+
+        self.create_unstructured_mesh()
+        self.filters = [openmc.MeshFilter(self.umesh)]
+        self.scores = [odw_score]  # @shimwell should this be done as in CellTally.set_score?
+        self.name = odw_score + "_on_3D_u_mesh"
+
+    def create_unstructured_mesh(self):
+        if self.filename.endswith(".exo"):
+            # requires a exo file export from cubit
+            self.umesh = openmc.UnstructuredMesh(
+                self.filename, library="libmesh"
+            )
+        elif self.filename.endswith(".h5m"):
+            # requires a .cub file export from cubit and mbconvert to h5m
+            # format
+            self.umesh = openmc.UnstructuredMesh(
+                self.filename, library="moab")
+        else:
+            msg = ("only h5m or exo files are accepted as valid "
+                   "filename values")
+            raise ValueError(msg)
+
+
 class CellTallies:
     """
     Collection of odw.CellTally objects stored in self.tallies
@@ -128,6 +163,21 @@ class CellTallies:
                         materials=materials)
                         )
 
+
+class TetMeshTallies:
+    """Collection of TetMeshTally objects stored in self.tallies
+    my_tally = odw.TetMeshTally(odw_scores=['TBR'], filename=["file1.h5m", "file2.exo"])
+    Args:
+        odw_scores (list): [description]
+        filenames (list): [description]
+    """
+    def __init__(self, odw_scores, filenames):
+        self.tallies = []
+        self.odw_scores = odw_scores
+        for score in self.odw_scores:
+            for filename in filenames:
+                self.tallies.append(
+                    TetMeshTally(odw_score=score, filename=filename))
 
 # # in neutronicsModel
 # energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
