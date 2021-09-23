@@ -39,7 +39,7 @@ class Tally(openmc.Tally):
         if value not in output_options:
             raise ValueError(
                 "tally_type argument",
-                entry,
+                value,
                 "not allowed, the following options are supported",
                 output_options,
             )
