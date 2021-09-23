@@ -57,7 +57,7 @@ class TestShape(unittest.TestCase):
         self.settings.photon_transport = True
         self.settings.source = self.source
 
-    def simulation_with_previous_h5m_file(self):
+    def test_simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
@@ -126,72 +126,72 @@ class TestShape(unittest.TestCase):
         # extracts the heat from the results dictionary
         assert results["mat1_heating"]["Watts"]["result"] > 0
 
-    # def test_neutronics_component_simulation_with_nmm(self):
-    #     """Makes a neutronics model and simulates with a cell tally"""
+    def test_neutronics_component_simulation_with_nmm(self):
+        """Makes a neutronics model and simulates with a cell tally"""
 
-    #     test_mat = nmm.Material.from_library("Be")
+        test_mat = nmm.Material.from_library("Be")
+
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": test_mat})
+
+        my_tally = odw.CellTally("heating")
+
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[my_tally],
+            settings=self.settings
+        )
+
+        h5m_filename = my_model.run()
+
+        results = openmc.StatePoint(h5m_filename)
+        assert len(results.tallies.items()) == 1
+
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9)
+        # extracts the heat from the results dictionary
+        assert results["mat1_heating"]["Watts"]["result"] > 0
+
+    # def test_cell_tally_output_file_creation(self):
+    #     """Performs a neutronics simulation and checks the cell tally output
+    #     file is created and named correctly"""
+
+    #     os.system("rm custom_name.json")
+    #     os.system("rm results.json")
+
+    #     test_mat = openmc.Material()
+    #     test_mat.add_element("Fe", 1.0)
+    #     test_mat.set_density(units="g/cm3", density=4.2)
 
     #     # converts the geometry into a neutronics geometry
+    #     # this simulation has no tally to test this edge case
     #     my_model = odw.NeutronicsModel(
     #         h5m_filename=self.h5m_filename_smaller,
     #         source=self.source,
     #         materials={"mat1": test_mat},
-    #         cell_tallies=["heating"],
-    #     )
-
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=20,
     #     )
 
     #     # performs an openmc simulation on the model
-    #     h5m_filename = my_model.simulate()
+    #     output_filename = my_model.simulate(
+    #         simulation_batches=2,
+    #         simulation_particles_per_batch=2,
+    #         cell_tally_results_filename="custom_name.json"
+    #     )
 
-    #     results = openmc.StatePoint(h5m_filename)
-    #     assert len(results.tallies.items()) == 1
+    #     assert output_filename.name == "statepoint.2.h5"
+    #     assert Path("custom_name.json").exists() is True
 
-    #     results = odw.process_results(
-    #         statepoint_filename=h5m_filename,
-    #         fusion_power=1e9)
-    #     # extracts the heat from the results dictionary
-    #     assert results["mat1_heating"]["Watts"]["result"] > 0
-
-    # # def test_cell_tally_output_file_creation(self):
-    # #     """Performs a neutronics simulation and checks the cell tally output
-    # #     file is created and named correctly"""
-
-    # #     os.system("rm custom_name.json")
-    # #     os.system("rm results.json")
-
-    # #     test_mat = openmc.Material()
-    # #     test_mat.add_element("Fe", 1.0)
-    # #     test_mat.set_density(units="g/cm3", density=4.2)
-
-    # #     # converts the geometry into a neutronics geometry
-    # #     # this simulation has no tally to test this edge case
-    # #     my_model = odw.NeutronicsModel(
-    # #         h5m_filename=self.h5m_filename_smaller,
-    # #         source=self.source,
-    # #         materials={"mat1": test_mat},
-    # #     )
-
-    # #     # performs an openmc simulation on the model
-    # #     output_filename = my_model.simulate(
-    # #         simulation_batches=2,
-    # #         simulation_particles_per_batch=2,
-    # #         cell_tally_results_filename="custom_name.json"
-    # #     )
-
-    # #     assert output_filename.name == "statepoint.2.h5"
-    # #     assert Path("custom_name.json").exists() is True
-
-    # #     assert Path("results.json").exists() is False
-    # #     output_filename = my_model.simulate(
-    # #         simulation_batches=3,
-    # #         simulation_particles_per_batch=2,
-    # #     )
-    # #     assert output_filename.name == "statepoint.3.h5"
-    # #     assert Path("results.json").exists() is True
+    #     assert Path("results.json").exists() is False
+    #     output_filename = my_model.simulate(
+    #         simulation_batches=3,
+    #         simulation_particles_per_batch=2,
+    #     )
+    #     assert output_filename.name == "statepoint.3.h5"
+    #     assert Path("results.json").exists() is True
 
     # def test_incorrect_cell_tallies(self):
     #     def incorrect_cell_tallies():
