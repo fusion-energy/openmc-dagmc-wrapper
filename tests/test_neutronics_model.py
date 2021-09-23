@@ -84,22 +84,6 @@ class TestShape(unittest.TestCase):
         test_mat.add_element("Fe", 1.0)
         test_mat.set_density(units="g/cm3", density=4.2)
 
-        # # converts the geometry into a neutronics geometry
-        # my_model = odw.NeutronicsModel(
-        #     h5m_filename=self.h5m_filename_smaller,
-        #     source=self.source,
-        #     materials={"mat1": test_mat},
-        #     cell_tallies=["heating"],
-        # )
-
-        # my_model.export_xml(
-        #     simulation_batches=2,
-        #     simulation_particles_per_batch=20,
-        # )
-
-        # # performs an openmc simulation on the model
-        # h5m_filename = my_model.simulate()
-
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
@@ -194,96 +178,73 @@ class TestShape(unittest.TestCase):
     #     assert Path("results.json").exists() is True
 
     def test_incorrect_cell_tallies(self):
+        """Set a cell tally that is not accepted which should raise an
+        error"""
         def incorrect_cell_tallies():
-            """Set a cell tally that is not accepted which should raise an error"""
-
             my_tally = odw.CellTally("coucou")
 
         self.assertRaises(ValueError, incorrect_cell_tallies)
 
-    # def test_incorrect_cell_tally_type(self):
-    #     def incorrect_cell_tally_type():
-    #         """Set a cell tally that is the wrong type which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             cell_tallies=1,
-    #         )
+    def test_incorrect_cell_tally_type(self):
+        """Set a cell tally that is the wrong type which should raise an
+        error"""
+        def incorrect_cell_tally_type():
+            my_tally = odw.CellTally(1)
 
-    #     self.assertRaises(TypeError, incorrect_cell_tally_type)
+        self.assertRaises(TypeError, incorrect_cell_tally_type)
 
-    # def test_incorrect_mesh_tally_2d(self):
-    #     def incorrect_mesh_tally_2d():
-    #         """Set a mesh_tally_2d that is not accepted which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             mesh_tally_2d=["coucou"],
-    #         )
+    def test_incorrect_mesh_tally_2d(self):
+        """Set a mesh_tally_2d that is not accepted which should raise an
+        error"""
+        def incorrect_mesh_tally_2d():
+            my_tally = odw.MeshTally2D("coucou")
 
-    #     self.assertRaises(ValueError, incorrect_mesh_tally_2d)
+        self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
-    # def test_incorrect_mesh_tally_2d_type(self):
-    #     def incorrect_mesh_tally_2d_type():
-    #         """Set a mesh_tally_2d that is the wrong type which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             mesh_tally_2d=1,
-    #         )
+    def test_incorrect_mesh_tally_2d_type(self):
+        """Set a mesh_tally_2d that is the wrong type which should raise an
+        error"""
+        def incorrect_mesh_tally_2d_type():
+            my_tally = odw.MeshTally2D(1)
 
-    #     self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
+        self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
 
-    # def test_incorrect_mesh_tally_3d(self):
-    #     def incorrect_mesh_tally_3d():
-    #         """Set a mesh_tally_3d that is not accepted which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             mesh_tally_3d=["coucou"],
-    #         )
+    def test_incorrect_mesh_tally_3d(self):
+        """Set a mesh_tally_3d that is not accepted which should raise an
+        error"""
 
-    #     self.assertRaises(ValueError, incorrect_mesh_tally_3d)
+        def incorrect_mesh_tally_3d():
+            my_tally = odw.MeshTally3D("coucou")
 
-    # def test_incorrect_mesh_tally_3d_type(self):
-    #     def incorrect_mesh_tally_3d_type():
-    #         """Set a mesh_tally_3d that is the wrong type which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #             mesh_tally_3d=1,
-    #         )
+        self.assertRaises(ValueError, incorrect_mesh_tally_3d)
 
-    #     self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
+    def test_incorrect_mesh_tally_3d_type(self):
+        """Set a mesh_tally_3d that is the wrong type which should raise an
+        error"""
 
-    # def test_incorrect_materials(self):
-    #     def incorrect_materials():
-    #         """Set a material as a string which should raise an error"""
-    #         odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials="coucou",
-    #         )
+        def incorrect_mesh_tally_3d_type():
+            my_tally = odw.MeshTally3D(1)
 
-    #     self.assertRaises(TypeError, incorrect_materials)
+        self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
 
-    # def test_incorrect_materials_type(self):
-    #     def incorrect_materials_type():
-    #         """Sets a material as an int which should raise an error"""
-    #         test_model = odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": 23},
-    #         )
+    def test_incorrect_materials(self):
+        """Set a material as a string which should raise an error"""
 
-    #         test_model.create_openmc_materials()
+        def incorrect_materials():
+            odw.Materials(self.h5m_filename_smaller, "coucou")
 
-    #     self.assertRaises(TypeError, incorrect_materials_type)
+        self.assertRaises(TypeError, incorrect_materials)
+
+    def test_incorrect_materials_type(self):
+        """Sets a material as an int which should raise an error"""
+
+        def incorrect_materials_type():
+            odw.Materials(
+                h5m_filename=self.h5m_filename_smaller,
+                correspondence_dict={"mat1": 23},
+            )
+
+        self.assertRaises(TypeError, incorrect_materials_type)
 
     # def test_incorrect_simulation_batches_to_small(self):
     #     def incorrect_simulation_batches_to_small():
