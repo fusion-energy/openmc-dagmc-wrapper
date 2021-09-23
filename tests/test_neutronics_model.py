@@ -430,13 +430,12 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": "Be"})
-        my_tally = odw.CellTally(
-            tally_type="heating")
+        my_tallies = odw.MeshTallies2D(tally_types=["heating"], planes=["xy", "xz", "yz"])
 
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=[my_tally],
+            tallies=my_tallies.tallies,
             settings=self.settings
         )
         # performs an openmc simulation on the model
