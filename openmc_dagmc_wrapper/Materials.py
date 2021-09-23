@@ -33,7 +33,6 @@ class Materials(openmc.Materials):
 
         super().__init__(list(self.openmc_materials.values()))
 
-
     def checks(self):
         materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
         # # checks all the required materials are present
