@@ -13,11 +13,14 @@ class Geometry(openmc.Geometry):
 
     Args:
         h5m_filename: the filename of the h5m file containing the DAGMC
-            geometry reflective_angles: if a sector model is being simulated
-            this argument can be used to specify the angles to use when
-            creating reflecting surfaces for a sector model.
-        graveyard_box: If a graveyard is required then the upper left and lower
-            right corners can be specified.
+            geometry.
+        reflective_angles: if a sector model is being simulated this argument
+            can be used to specify the angles to use when creating reflecting
+            surfaces for a sector model.
+        graveyard_box: If a certain size of graveyard is required then the
+            upper left and lower right corners can be specified. If this is not
+            specified then the code checks to see if a graveyard exists and if
+            none are found then it makes the graveyard to encompass the geometry
     """
 
     def __init__(
