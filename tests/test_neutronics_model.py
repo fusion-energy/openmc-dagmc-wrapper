@@ -580,7 +580,7 @@ class TestShape(unittest.TestCase):
         my_2D_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
-            mesh_corners=[(5, 5, 5), (15, 15, 15)]
+            meshes_corners=[(5, 5, 5), (15, 15, 15)]
             )
 
         assert my_3D_tally.mesh_corners == [(0, 0, 0), (10, 10, 10)]
