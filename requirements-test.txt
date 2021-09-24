@@ -5,3 +5,4 @@ pytest-runner
 nbformat
 nbconvert
 requests
+openmc-plasma-source

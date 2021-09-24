@@ -4,14 +4,27 @@
 # Particular emphasis is placed on explaining the openmc-dagmc-wrapper
 # extentions of openmc base classes.
 
+import tarfile
+import urllib.request
+
 import openmc
 import openmc_dagmc_wrapper as odw
+from openmc_plasma_source import FusionRingSource
+
+# downloads a dagmc file for use in the example
+url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
+tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
+tar.extractall(".")
+tar.close()
+h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+
 
 # creates a geometry object from a DAGMC geometry.
 # In this case the geometry doen't have a graveyard cell.
 # So a set of 6 CSG surfaces are automatically made and added to the geometry
 geometry = odw.Geometry(
-    h5m_filename='dagmc_bigger.h5m'
+    h5m_filename=h5m_filename
 )
 
 # Creates the materials to use in the problem using by linking the material
@@ -19,7 +32,7 @@ geometry = odw.Geometry(
 # neutronics-material-maker. One could also use openmc.Material or nmm.Material
 # objects instead of the strings used here
 materials = odw.Materials(
-    h5m_filename='dagmc_bigger.h5m',
+    h5m_filename=h5m_filename,
     correspondence_dict={
         'blanket_mat': 'Li4SiO4',
         'blanket_rear_wall_mat': 'Be',
@@ -49,7 +62,9 @@ tallies = openmc.Tallies([tally1])
 settings = odw.FusionSettings()
 settings.batches = 1
 settings.particles = 100
-
+# assigns a ring source of DT energy neutrons to the source using the
+# openmc_plasma_source package
+settings.source = FusionRingSource(fuel='DT', radius=350)
 
 # no modifications are made to the default openmc.Model object
 my_model = openmc.Model(
