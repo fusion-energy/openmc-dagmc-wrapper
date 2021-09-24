@@ -54,15 +54,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_bigger,
-            correspondence_dict=self.material_description_bigger)
-
-        my_tally = odw.MeshTally3D(
-            "heating", h5m_filename=self.h5m_filename_bigger)
-
-        bounding_box = my_tally.find_bounding_box()
+        bounding_box = odw.find_bounding_box(self.h5m_filename_bigger)
 
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
