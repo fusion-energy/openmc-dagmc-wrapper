@@ -609,35 +609,37 @@ class TestShape(unittest.TestCase):
         assert Path("heating_on_2D_mesh_xy.png").exists() is True
         assert Path("heating_on_2D_mesh_yz.png").exists() is True
 
-    # def test_reactor_from_shapes_cell_tallies(self):
-    #     """Makes a reactor from two shapes, then makes a neutronics model
-    #     and tests the TBR simulation value"""
+    def test_reactor_from_shapes_cell_tallies(self):
+        """Makes a reactor from two shapes, then makes a neutronics model
+        and tests the TBR simulation value"""
 
-    #     os.system("rm results.json")
+        os.system("rm results.json")
 
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": "Be"},
-    #         # materials=self.material_description,
-    #         cell_tallies=["TBR", "heating", "flux"],
-    #     )
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": "Be"})
 
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=10,
-    #     )
+        my_tallies = odw.CellTallies(
+            tally_types=["TBR", "heating", "flux"])
 
-    #     # starts the neutronics simulation
-    #     h5m_filename = my_model.simulate()
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=my_tallies.tallies,
+            settings=self.settings
+        )
 
-    #     results = odw.process_results(
-    #         statepoint_filename=h5m_filename,
-    #         fusion_power=1e9
-    #     )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.run()
 
-    #     assert isinstance(results["TBR"]["result"], float)
-    #     assert Path("results.json").exists() is True
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9
+        )
+
+        assert isinstance(results["TBR"]["result"], float)
+        assert Path("results.json").exists() is True
 
     # def test_cell_tallies_simulation_fast_flux(self):
     #     """Performs simulation with h5m file and tallies neutron and photon
