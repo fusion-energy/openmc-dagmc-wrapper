@@ -13,12 +13,13 @@ from openmc_plasma_source import FusionRingSource
 
 
 # downloads a dagmc file for use in the example
-url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
-tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
-tar.extractall(".")
-tar.close()
+# url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+# urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
+# tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
+# tar.extractall(".")
+# tar.close()
 h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc_no_grave_yard.h5m"
 
 
 # creates a geometry object from a DAGMC geometry.
@@ -52,17 +53,19 @@ materials = odw.Materials(
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
 tally1 = odw.MeshTally2D(tally_type='photon_effective_dose', plane="xy", bounding_box=h5m_filename)
+tally2 = odw.MeshTally2D(tally_type='neutron_effective_dose', plane="xy", bounding_box=h5m_filename)
 
 # no modifications are made to the default openmc.Tallies
-tallies = openmc.Tallies([tally1])
+tallies = openmc.Tallies([tally1, tally2])
 
 # Creates and openmc settings object with the run mode set to 'fixed source'
 # and the number of inactivate particles set to zero. Setting these to values
 # by default means less code is needed by the user and less chance of simulating
 # batches that don't contribute to the tallies
 settings = odw.FusionSettings()
-settings.batches = 1
+settings.batches = 2
 settings.particles = 100
+settings.photon_transport = True
 # assigns a ring source of DT energy neutrons to the source using the
 # openmc_plasma_source package
 settings.source = FusionRingSource(fuel='DT', radius=350)

@@ -12,11 +12,11 @@ import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
 
 # downloads a dagmc file for use in the example
-url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
-tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
-tar.extractall(".")
-tar.close()
+# url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+# urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
+# tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
+# tar.extractall(".")
+# tar.close()
 h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
 
@@ -50,7 +50,7 @@ materials = odw.Materials(
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
-tally1 = odw.MeshTally3D(tally_type='neutron_effective_dose')
+tally1 = odw.MeshTally3D(tally_type='neutron_effective_dose', bounding_box=h5m_filename)
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1])
