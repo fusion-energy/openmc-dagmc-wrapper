@@ -1,4 +1,7 @@
+import tarfile
 import unittest
+import urllib.request
+from pathlib import Path
 
 
 import openmc
