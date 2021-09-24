@@ -426,18 +426,18 @@ class TestShape(unittest.TestCase):
 
         my_3D_tally = odw.MeshTally3D(
             tally_type="heating",
-            mesh_corners=[(0, 0, 0), (10, 10, 10)],
+            bounding_box=[(0, 0, 0), (10, 10, 10)],
         )
 
         my_2D_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
-            meshes_corners=[(5, 5, 5), (15, 15, 15)]
+            bounding_box=[(5, 5, 5), (15, 15, 15)]
         )
 
-        assert my_3D_tally.mesh_corners == [(0, 0, 0), (10, 10, 10)]
+        assert my_3D_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
         for tally in my_2D_tallies.tallies:
-            assert tally.mesh_corners == [(5, 5, 5), (15, 15, 15)]
+            assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
 
         my_model = openmc.model.Model(
             geometry=geometry,
