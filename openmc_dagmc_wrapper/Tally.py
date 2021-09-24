@@ -548,7 +548,7 @@ class MeshTally2D(Tally):
         # materials = self.create_openmc_materials(h5m_filename)  # @shimwell do we need this?
         # materials.export_xml()
         silently_remove_file("materials.xml")
-        materials = create_openmc_materials(h5m_filename)
+        materials = self.create_openmc_materials(h5m_filename)
         materials.export_to_xml()
 
         openmc.Plots().export_to_xml()
