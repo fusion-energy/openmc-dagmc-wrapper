@@ -445,6 +445,7 @@ class TestShape(unittest.TestCase):
         h5m_filename = my_model.run()
 
         results = openmc.StatePoint(h5m_filename)
+        print(results.meshes)
         assert len(results.meshes) == 3
         assert len(results.tallies.items()) == 3
 
