@@ -231,18 +231,17 @@ class TetMeshTally(Tally):
     def create_unstructured_mesh(self):
         if self.filename.endswith(".exo"):
             # requires a exo file export from cubit
-            self.umesh = openmc.UnstructuredMesh(
-                self.filename, library="libmesh"
-            )
+            library = "libmesh"
         elif self.filename.endswith(".h5m"):
             # requires a .cub file export from cubit and mbconvert to h5m
             # format
-            self.umesh = openmc.UnstructuredMesh(
-                self.filename, library="moab")
+            library = "moab"
         else:
             msg = ("only h5m or exo files are accepted as valid "
                    "filename values")
             raise ValueError(msg)
+        self.umesh = openmc.UnstructuredMesh(
+            self.filename, library=library)
 
 
 class TetMeshTallies:
