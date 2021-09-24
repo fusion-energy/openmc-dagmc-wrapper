@@ -44,10 +44,18 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
-        self.source = openmc.Source()
-        self.source.space = openmc.stats.Point((0, 0, 0))
-        self.source.angle = openmc.stats.Isotropic()
-        self.source.energy = openmc.stats.Discrete([14e6], [1])
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.angle = openmc.stats.Isotropic()
+        source.energy = openmc.stats.Discrete([14e6], [1])
+        self.settings = openmc.Settings()
+        self.settings.batches = 10
+        self.settings.inactive = 0
+        self.settings.particles = 100
+        self.settings.run_mode = "fixed source"
+
+        self.settings.photon_transport = True
+        self.settings.source = source
 
     def test_cell_tally_simulation(self):
 
@@ -71,11 +79,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        my_tally = odw.MeshTally3D(
-            "heating",
-            bounding_box=self.h5m_filename_bigger)
-
-        bounding_box = my_tally.find_bounding_box()
+        bounding_box = find_bounding_box(self.h5m_filename_bigger)
 
         print(bounding_box)
         assert len(bounding_box) == 2
@@ -90,13 +94,9 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        my_tally = odw.MeshTally3D(
-            "heating",
-            bounding_box=self.h5m_filename_smaller)
+        bounding_box = my_tally.find_bounding_box(self.h5m_filename_smaller)
 
-        bounding_box = my_tally.find_bounding_box()
         print(bounding_box)
-
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
