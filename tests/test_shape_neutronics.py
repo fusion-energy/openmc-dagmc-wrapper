@@ -73,7 +73,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         my_tally = odw.MeshTally3D(
             "heating",
-            h5m_filename=self.h5m_filename_bigger)
+            bounding_box=self.h5m_filename_bigger)
 
         bounding_box = my_tally.find_bounding_box()
 
