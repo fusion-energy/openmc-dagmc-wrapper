@@ -67,3 +67,7 @@ class TestMaterial(unittest.TestCase):
             )
 
         self.assertRaises(TypeError, incorrect_materials_type)
+
+
+if __name__ == "__main__":
+    unittest.main()
