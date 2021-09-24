@@ -51,19 +51,19 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_cell_tally_simulation(self):
 
-        my_model = odw.NeutronicsModel(
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
+        materials = odw.Materials(
             h5m_filename=self.h5m_filename_bigger,
-            source=self.source,
-            materials=self.material_description_bigger,
-            cell_tallies=["TBR"],
+            correspondence_dict=self.material_description_bigger)
+        my_tally = odw.CellTally("TBR")
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[my_tally],
+            settings=self.settings
         )
 
-        my_model.export_xml(
-            simulation_batches=2,
-            simulation_particles_per_batch=20,
-        )
-
-        h5m_filename = my_model.simulate()
+        h5m_filename = my_model.run()
 
         results = odw.process_results(statepoint_filename=h5m_filename)
 
@@ -90,13 +90,11 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        my_model = odw.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller,
-            source=self.source,
-            materials=self.material_description_smaller,
-        )
+        my_tally = odw.MeshTally3D(
+            "heating",
+            bounding_box=self.h5m_filename_smaller)
 
-        bounding_box = my_model.find_bounding_box()
+        bounding_box = my_tally.find_bounding_box()
         print(bounding_box)
 
         assert len(bounding_box) == 2
