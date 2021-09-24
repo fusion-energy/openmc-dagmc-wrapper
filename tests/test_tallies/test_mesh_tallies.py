@@ -72,9 +72,6 @@ class TestMeshTallies(unittest.TestCase):
         # test
         assert produced_mesh.lower_left == expected_mesh.lower_left
         assert produced_mesh.upper_right == expected_mesh.upper_right
-        for produced_width, expected_width in zip(
-                produced_mesh.width, expected_mesh.width):
-            assert produced_width == expected_width
         for produced_index, expected_index in zip(
                 produced_mesh.indices, expected_mesh.indices):
             assert produced_index == expected_index
@@ -95,9 +92,6 @@ class TestMeshTallies(unittest.TestCase):
         # test
         assert produced_mesh.lower_left == expected_mesh.lower_left
         assert produced_mesh.upper_right == expected_mesh.upper_right
-        for produced_width, expected_width in zip(
-                produced_mesh.width, expected_mesh.width):
-            assert produced_width == expected_width
         for produced_index, expected_index in zip(
                 produced_mesh.indices, expected_mesh.indices):
             assert produced_index == expected_index
