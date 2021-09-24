@@ -1,110 +1,97 @@
-# import json
-# import os
-# import unittest
-# from pathlib import Path
+import os
+import tarfile
+import unittest
+import urllib.request
+from pathlib import Path
 
-# import openmc
-# import openmc_dagmc_wrapper
-# import requests
+import openmc
+import openmc_dagmc_wrapper
 
 
-# class TestNeutronicsUtilityFunctions(unittest.TestCase):
-#     def setUp(self):
+class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
-#         url = "https://github.com/fusion-energy/neutronics_workflow/raw/main/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+    def test_create_initial_source_file(self):
+        """Creates an initial_source.h5 from a point source"""
 
-#         local_filename = "dagmc_bigger.h5m"
+        os.system("rm *.h5")
 
-#         if not Path(local_filename).is_file():
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.energy = openmc.stats.Discrete([14e6], [1])
 
-#             r = requests.get(url, stream=True)
-#             with open(local_filename, "wb") as f:
-#                 for chunk in r.iter_content(chunk_size=1024):
-#                     if chunk:
-#                         f.write(chunk)
+        openmc_dagmc_wrapper.create_initial_particles(source, 100)
 
-# def test_create_initial_source_file(self):
-#     """Creates an initial_source.h5 from a point source"""
+        assert Path("initial_source.h5").exists() is True
 
-#     os.system("rm *.h5")
+    def test_extract_points_from_initial_source(self):
+        """Creates an initial_source.h5 from a point source reads in the file
+        and checks the first point is 0, 0, 0 as expected."""
 
-#     source = openmc.Source()
-#     source.space = openmc.stats.Point((0, 0, 0))
-#     source.energy = openmc.stats.Discrete([14e6], [1])
+        os.system("rm *.h5")
 
-#     openmc_dagmc_wrapper.create_initial_particles(source, 100)
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.energy = openmc.stats.Discrete([14e6], [1])
 
-#     assert Path("initial_source.h5").exists() is True
+        openmc_dagmc_wrapper.create_initial_particles(source, 10)
 
-# def test_extract_points_from_initial_source(self):
-#     """Creates an initial_source.h5 from a point source reads in the file
-#     and checks the first point is 0, 0, 0 as expected."""
+        for view_plane in ["XZ", "XY", "YZ", "YX", "ZY", "ZX", "RZ", "XYZ"]:
 
-#     os.system("rm *.h5")
+            points = openmc_dagmc_wrapper.extract_points_from_initial_source(
+                view_plane=view_plane
+            )
 
-#     source = openmc.Source()
-#     source.space = openmc.stats.Point((0, 0, 0))
-#     source.energy = openmc.stats.Discrete([14e6], [1])
+            assert len(points) == 10
 
-#     openmc_dagmc_wrapper.create_initial_particles(source, 10)
+            for point in points:
+                if view_plane == "XYZ":
+                    assert len(point) == 3
+                    assert point[0] == 0
+                    assert point[1] == 0
+                    assert point[2] == 0
+                else:
+                    assert len(point) == 2
+                    assert point[0] == 0
+                    assert point[1] == 0
 
-#     for view_plane in ["XZ", "XY", "YZ", "YX", "ZY", "ZX", "RZ", "XYZ"]:
+    def test_extract_points_from_initial_source_incorrect_view_plane(self):
+        """Tries to make extract points on to viewplane that is not accepted"""
 
-#         points = openmc_dagmc_wrapper.extract_points_from_initial_source(
-#             view_plane=view_plane
-#         )
+        def incorrect_viewplane():
+            """Inccorect view_plane should raise a ValueError"""
 
-#         assert len(points) == 10
+            source = openmc.Source()
+            source.space = openmc.stats.Point((0, 0, 0))
+            source.energy = openmc.stats.Discrete([14e6], [1])
 
-#         for point in points:
-#             if view_plane == "XYZ":
-#                 assert len(point) == 3
-#                 assert point[0] == 0
-#                 assert point[1] == 0
-#                 assert point[2] == 0
-#             else:
-#                 assert len(point) == 2
-#                 assert point[0] == 0
-#                 assert point[1] == 0
+            openmc_dagmc_wrapper.create_initial_particles(source, 10)
 
-# def test_extract_points_from_initial_source_incorrect_view_plane(self):
-#     """Tries to make extract points on to viewplane that is not accepted"""
+            openmc_dagmc_wrapper.extract_points_from_initial_source(view_plane="coucou")
 
-#     def incorrect_viewplane():
-#         """Inccorect view_plane should raise a ValueError"""
+        self.assertRaises(ValueError, incorrect_viewplane)
 
-#         source = openmc.Source()
-#         source.space = openmc.stats.Point((0, 0, 0))
-#         source.energy = openmc.stats.Discrete([14e6], [1])
+    def test_create_initial_particles(self):
+        """Creates an initial source file using create_initial_particles utility
+        and checks the file exists and that the points are correct"""
 
-#         openmc_dagmc_wrapper.create_initial_particles(source, 10)
+        os.system("rm *.h5")
 
-#         openmc_dagmc_wrapper.extract_points_from_initial_source(view_plane="coucou")
+        source = openmc.Source()
+        source.space = openmc.stats.Point((1, 2, 3))
+        source.energy = openmc.stats.Discrete([14e6], [1])
+        source.angle = openmc.stats.Isotropic()
 
-#     self.assertRaises(ValueError, incorrect_viewplane)
+        source_file = openmc_dagmc_wrapper.create_initial_particles(
+            source=source, number_of_source_particles=10
+        )
 
-# def test_create_initial_particles(self):
-#     """Creates an initial source file using create_initial_particles utility
-#     and checks the file exists and that the points are correct"""
+        assert source_file == "initial_source.h5"
+        assert Path(source_file).exists() is True
 
-#     os.system("rm *.h5")
+        points = openmc_dagmc_wrapper.extract_points_from_initial_source(
+            view_plane="XYZ", input_filename=source_file
+        )
 
-#     source = openmc.Source()
-#     source.space = openmc.stats.Point((1, 2, 3))
-#     source.energy = openmc.stats.Discrete([14e6], [1])
-#     source.angle = openmc.stats.Isotropic()
-
-#     source_file = openmc_dagmc_wrapper.create_initial_particles(
-#         source=source, number_of_source_particles=10
-#     )
-
-#     assert source_file == "initial_source.h5"
-#     assert Path(source_file).exists() is True
-
-#     points = openmc_dagmc_wrapper.extract_points_from_initial_source(
-#         view_plane="XYZ", input_filename=source_file
-#     )
-
-#     assert len(points) == 10
-#     for point in points:
-#         assert point == (1, 2, 3)
+        assert len(points) == 10
+        for point in points:
+            assert point == (1, 2, 3)

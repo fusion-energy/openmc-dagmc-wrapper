@@ -1,4 +1,5 @@
-from .utils import process_results
+from .utils import process_results, create_initial_particles, \
+    extract_points_from_initial_source
 
 from .Geometry import Geometry
 from .Materials import Materials
