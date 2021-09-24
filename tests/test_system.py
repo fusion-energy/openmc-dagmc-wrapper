@@ -144,7 +144,7 @@ class TestShape(unittest.TestCase):
         """Set a cell tally that is not accepted which should raise an
         error"""
         def incorrect_cell_tallies():
-            my_tally = odw.CellTally("coucou")
+            odw.CellTally("coucou")
 
         self.assertRaises(ValueError, incorrect_cell_tallies)
 
@@ -152,7 +152,7 @@ class TestShape(unittest.TestCase):
         """Set a cell tally that is the wrong type which should raise an
         error"""
         def incorrect_cell_tally_type():
-            my_tally = odw.CellTally(1)
+            odw.CellTally(1)
 
         self.assertRaises(TypeError, incorrect_cell_tally_type)
 
@@ -382,10 +382,10 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": "Be"})
 
-        my_3D_tally = odw.MeshTally3D(
+        my_3d_tally = odw.MeshTally3D(
             tally_type="heating", bounding_box=self.h5m_filename_smaller)
 
-        my_2D_tallies = odw.MeshTallies2D(
+        my_2d_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
             bounding_box=self.h5m_filename_smaller)
@@ -393,7 +393,7 @@ class TestShape(unittest.TestCase):
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=[my_3D_tally] + my_2D_tallies.tallies,
+            tallies=[my_3d_tally] + my_2d_tallies.tallies,
             settings=self.settings
         )
         # performs an openmc simulation on the model
@@ -424,25 +424,25 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": "Be"})
 
-        my_3D_tally = odw.MeshTally3D(
+        my_3d_tally = odw.MeshTally3D(
             tally_type="heating",
             bounding_box=[(0, 0, 0), (10, 10, 10)],
         )
 
-        my_2D_tallies = odw.MeshTallies2D(
+        my_2d_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
             bounding_box=[(5, 5, 5), (15, 15, 15)]
         )
 
-        assert my_3D_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
-        for tally in my_2D_tallies.tallies:
+        assert my_3d_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
+        for tally in my_2d_tallies.tallies:
             assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
 
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
-            tallies=[my_3D_tally] + my_2D_tallies.tallies,
+            tallies=[my_3d_tally] + my_2d_tallies.tallies,
             settings=self.settings
         )
 
@@ -698,9 +698,10 @@ class TestShape(unittest.TestCase):
             os.system("touch tallies.xml")
             os.system("rm dagmc.h5m")
 
-            materials = odw.Materials(
+            odw.Materials(
                 h5m_filename="dagmc.h5m",
-                correspondence_dict={"mat1": "Be"})
+                correspondence_dict={"mat1": "Be"}
+            )
 
         self.assertRaises(
             FileNotFoundError,
