@@ -233,41 +233,30 @@ class MeshTally3D(Tally):
         self,
         tally_type,
         mesh_resolution=(100, 100, 100),
-        mesh_corners=None,
         bounding_box=None,
         **kwargs
     ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
-        self.mesh_corners = mesh_corners
         super().__init__(tally_type, **kwargs)
 
-        self.set_bounding_box(bounding_box)
-        self.create_mesh()
-        self.filters.append(openmc.MeshFilter(self.mesh_xyz))
+        self.add_mesh_filter(bounding_box)
         self.name = self.tally_type + "_on_3D_mesh"
 
-    def create_mesh(self):
-        mesh_xyz = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
-        mesh_xyz.dimension = self.mesh_resolution
-        if self.mesh_corners is None:
-            mesh_xyz.lower_left = self.bounding_box[0]
-            mesh_xyz.upper_right = self.bounding_box[1]
+    def add_mesh_filter(self, bounding_box):
+
+        if isinstance(bounding_box, str):
+            self.bounding_box = find_bounding_box(
+                h5m_filename=bounding_box)
         else:
-            mesh_xyz.lower_left = self.mesh_corners[0]
-            mesh_xyz.upper_right = self.mesh_corners[1]
+            self.bounding_box = bounding_box
 
-        self.mesh_xyz = mesh_xyz
+        mesh = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
+        mesh.dimension = self.mesh_resolution
+        mesh.lower_left = self.bounding_box[0]
+        mesh.upper_right = self.bounding_box[1]
 
-    def set_bounding_box(self, bounding_box):
-
-        if self.mesh_corners is None:
-
-            if isinstance(bounding_box, str):
-                self.bounding_box = find_bounding_box(
-                    h5m_filename=bounding_box)
-            else:
-                self.bounding_box = bounding_box
+        self.filters.append(openmc.MeshFilter(self.mesh))
 
 
 class MeshTallies3D:
