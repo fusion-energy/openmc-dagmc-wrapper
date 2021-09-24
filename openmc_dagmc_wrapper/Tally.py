@@ -293,8 +293,8 @@ class MeshTally2D(Tally):
         tally_type (str): [description]
         plane (str): "xy", "xz", "yz"
         mesh_resolution (list): [description]
-        mesh_corners ([type], optional): [description]. Defaults to None.
-        bounding_box ([type], optional): [description]. Defaults to None.
+        bounding_box ([type], optional): either a .h5m filename or
+            [point1, point2]. Defaults to None.
     """
 
     def __init__(
@@ -302,15 +302,12 @@ class MeshTally2D(Tally):
         tally_type,
         plane,
         mesh_resolution=(400, 400),
-        mesh_corners=None,
         bounding_box=None
     ):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
-        self.mesh_corners = mesh_corners
 
-        self.set_bounding_box(bounding_box)
         self.create_mesh()
 
         super().__init__(tally_type)
@@ -345,7 +342,9 @@ class MeshTally2D(Tally):
             mesh.id = 4
 
         # mesh corners
-        if self.mesh_corners is None:
+        self.set_bounding_box(bounding_box)
+
+        if self.bbox_from_h5:
             if self.plane == "xy":
                 mesh.lower_left = [
                     self.bounding_box[0][0],
@@ -384,20 +383,20 @@ class MeshTally2D(Tally):
                 ]
 
         else:
-            mesh.lower_left = self.mesh_corners[0]
-            mesh.upper_right = self.mesh_corners[1]
+            mesh.lower_left = self.bounding_box[0]
+            mesh.upper_right = self.bounding_box[1]
 
         self.mesh = mesh
 
     def set_bounding_box(self, bounding_box):
 
-        if self.mesh_corners is None:
-
-            if isinstance(bounding_box, str):
-                self.bounding_box = find_bounding_box(
-                    h5m_filename=bounding_box)
-            else:
-                self.bounding_box = bounding_box
+        if isinstance(bounding_box, str):
+            self.bbox_from_h5 = True
+            self.bounding_box = find_bounding_box(
+                h5m_filename=bounding_box)
+        else:
+            self.bbox_from_h5 = False
+            self.bounding_box = bounding_box
 
 
 class MeshTallies2D:
