@@ -12,6 +12,31 @@ import numpy as np
 import openmc
 import plotly.graph_objects as go
 
+import neutronics_material_maker as nmm
+
+
+def create_material(material_tag: str, material_entry):
+    if isinstance(material_entry, str):
+        openmc_material = nmm.Material.from_library(
+            name=material_entry, material_id=None
+        ).openmc_material
+    elif isinstance(material_entry, openmc.Material):
+        # sets the material name in the event that it had not been set
+        openmc_material = material_entry
+    elif isinstance(material_entry, (nmm.Material)):
+        # sets the material tag in the event that it had not been set
+        openmc_material = material_entry.openmc_material
+    else:
+        raise TypeError(
+            "materials must be either a str, \
+            openmc.Material, nmm.MultiMaterial or nmm.Material object \
+            not a ",
+            type(material_entry),
+            material_entry,
+        )
+    openmc_material.name = material_tag
+    return openmc_material
+
 
 def plotly_trace(
     points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],

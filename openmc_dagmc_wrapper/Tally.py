@@ -7,6 +7,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
+from .utils import create_material
 
 
 class Tally(openmc.Tally):
@@ -541,7 +542,7 @@ class MeshTally2D(Tally):
 
         # exports materials.xml
         # replace this with a empty materisl with the correct names
-        # self.create_openmc_materials()  # @shimwell do we need this?
+        self.create_openmc_materials()  # @shimwell do we need this?
         # openmc.Materials().export_to_xml()
 
         openmc.Plots().export_to_xml()
@@ -570,6 +571,19 @@ class MeshTally2D(Tally):
             (bbox[0][0], bbox[0][1], bbox[0][2]),
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
+
+    def create_openmc_materials(self):
+
+        materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
+
+        openmc_materials = {}
+        for material_tag in materials_in_h5m:
+            openmc_material = create_material(
+                material_tag, "Be")
+            openmc_materials[material_tag] = openmc_material
+
+        openmc.Materials(list(self.openmc_materials.values()))
+        return
 
 
 class MeshTallies2D:
