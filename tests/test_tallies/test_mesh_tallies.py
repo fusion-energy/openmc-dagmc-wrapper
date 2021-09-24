@@ -56,35 +56,49 @@ class TestMeshTallies(unittest.TestCase):
 
         self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
 
-    def test_mesh_from_h5m_file(self):
-        my_tally = odw.MeshTally3D(
-            "heating", bounding_box=self.h5m_filename_smaller)
-        bounding_box = odw.find_bounding_box(self.h5m_filename_smaller)
-
-        assert my_tally.mesh_xyz.lower_left == bounding_box[0]
-        assert my_tally.mesh_xyz.upper_right == bounding_box[1]
-
-    def test_mesh_custom(self):
-
-        bbox = [(0, 0, 0), (1, 2, 3)]
-        my_tally = odw.MeshTally3D(
-            "heating", bounding_box=bbox)
-
-        assert my_tally.mesh_xyz.lower_left == bbox[0]
-        assert my_tally.mesh_xyz.upper_right == bbox[1]
-
     def test_meshfilter_from_h5m_file(self):
+        # build
+        bbox = odw.find_bounding_box(self.h5m_filename_smaller)
+        expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
+        expected_mesh.lower_left = bounding_box[0]
+        expected_mesh.upper_right = bounding_box[1]
+
+        # run
         my_tally = odw.MeshTally3D(
             "heating", bounding_box=self.h5m_filename_smaller)
-
-        assert my_tally.filters[-1].mesh == my_tally.mesh_xyz
+        produced_filter = my_tally.filters[-1]
+        produced_mesh = produced_filter.mesh
+        # test
+        assert produced_mesh.lower_left == expected_mesh.lower_left
+        assert produced_mesh.upper_right == expected_mesh.upper_right
+        for produced_width, expected_width in zip(
+                produced_mesh.width, expected_mesh.width):
+            assert produced_width == expected_width
+        for produced_index, expected_index in zip(
+                produced_mesh.indices, expected_mesh.indices):
+            assert produced_index == expected_index
 
     def test_meshfilter_from_custom_mesh(self):
+        # build
         bbox = [(0, 0, 0), (1, 2, 3)]
+        expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
+        expected_mesh.lower_left = bounding_box[0]
+        expected_mesh.upper_right = bounding_box[1]
+
+        # run
         my_tally = odw.MeshTally3D(
             "heating", bounding_box=bbox)
-
-        assert my_tally.filters[-1].mesh == my_tally.mesh_xyz
+        produced_filter = my_tally.filters[-1]
+        produced_mesh = produced_filter.mesh
+        # test
+        assert produced_mesh.lower_left == expected_mesh.lower_left
+        assert produced_mesh.upper_right == expected_mesh.upper_right
+        for produced_width, expected_width in zip(
+                produced_mesh.width, expected_mesh.width):
+            assert produced_width == expected_width
+        for produced_index, expected_index in zip(
+                produced_mesh.indices, expected_mesh.indices):
+            assert produced_index == expected_index
 
 
 if __name__ == "__main__":
