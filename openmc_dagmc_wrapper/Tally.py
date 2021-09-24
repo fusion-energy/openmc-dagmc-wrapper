@@ -382,6 +382,7 @@ class MeshTally2D(Tally):
                 ]
 
         else:
+            print(self.bounding_box)
             mesh.lower_left = self.bounding_box[0]
             mesh.upper_right = self.bounding_box[1]
 

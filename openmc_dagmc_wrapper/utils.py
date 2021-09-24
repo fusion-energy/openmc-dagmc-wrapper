@@ -52,74 +52,6 @@ def create_openmc_materials(h5m_filename):
 
     return openmc.Materials(list(openmc_materials.values()))
 
-# @shimwell are we keeping this?
-# def plotly_trace(
-#     points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
-#     mode: str = "markers+lines",
-#     name: str = None,
-#     color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None,
-# ) -> Union[go.Scatter, go.Scatter3d]:
-#     """Creates a plotly trace representation of the points of the Shape
-#     object. This method is intended for internal use by Shape.export_html.
-
-#     Args:
-#         points: A list of tuples containing the X, Z points of to add to
-#             the trace.
-#         mode: The mode to use for the Plotly.Scatter graph. Options include
-#             "markers", "lines" and "markers+lines". Defaults to
-#             "markers+lines"
-#         name: The name to use in the graph legend color
-
-#     Returns:
-#         plotly trace: trace object
-#     """
-
-#     if color is not None:
-#         color_list = [i * 255 for i in color]
-
-#         if len(color_list) == 3:
-#             color = "rgb(" + str(color_list).strip("[]") + ")"
-#         elif len(color_list) == 4:
-#             color = "rgba(" + str(color_list).strip("[]") + ")"
-
-#     if name is None:
-#         name = "Shape not named"
-#     else:
-#         name = name
-
-#     text_values = []
-
-#     for i, point in enumerate(points):
-#         text = "point number= {i} <br> x={point[0]} <br> y= {point[1]}"
-#         if len(point) == 3:
-#             text = text + "<br> z= {point[2]} <br>"
-
-#         text_values.append(text)
-
-#     if all(len(entry) == 3 for entry in points):
-#         trace = go.Scatter3d(
-#             x=[row[0] for row in points],
-#             y=[row[1] for row in points],
-#             z=[row[2] for row in points],
-#             mode=mode,
-#             marker={"size": 3, "color": color},
-#             name=name,
-#         )
-
-#         return trace
-
-#     trace = go.Scatter(
-#         x=[row[0] for row in points],
-#         y=[row[1] for row in points],
-#         hoverinfo="text",
-#         text=text_values,
-#         mode=mode,
-#         marker={"size": 5, "color": color},
-#         name=name,
-#     )
-
-#     return trace
-
 
 def silently_remove_file(filename: str):
     """Allows files to be deleted without printing warning messages int the
@@ -696,8 +628,15 @@ def diff_between_angles(angle_a: float, angle_b: float) -> float:
     return delta_mod
 
 
-def find_bounding_box(h5m_filename):
-    """Computes the bounding box of the DAGMC geometry"""
+def find_bounding_box(h5m_filename: str) -> List[Tuple[float, float, float]]:
+    """Computes the bounding box of the DAGMC geometry
+    
+    Args:
+        h5m_filename: the filename of the DAGMC h5m file
+
+    Returns:
+        x,y,z coordinates for the upper left and lower right corner
+    """
     if not Path(h5m_filename).is_file:
         msg = f"h5m file with filename {h5m_filename} not found"
         raise FileNotFoundError(msg)

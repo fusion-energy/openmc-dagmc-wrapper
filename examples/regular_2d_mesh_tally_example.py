@@ -51,7 +51,7 @@ materials = odw.Materials(
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
-tally1 = odw.MeshTally2D(tally_type='photon_effective_dose')
+tally1 = odw.MeshTally2D(tally_type='photon_effective_dose', plane="xy", bounding_box=h5m_filename)
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1])
