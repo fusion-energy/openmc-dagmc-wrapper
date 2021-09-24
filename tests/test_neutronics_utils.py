@@ -6,7 +6,7 @@ from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper
-from .utils import create_material
+from openmc_dagmc_wrapper import create_material
 
 import neutronics_material_maker as nmm
 
