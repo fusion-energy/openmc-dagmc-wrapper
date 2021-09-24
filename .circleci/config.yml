@@ -16,6 +16,11 @@ jobs:
             python setup.py install
 
       - run:
+          name: run tests Settings()
+          command: 
+            pytest tests/test_settings.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+
+      - run:
           name: run tests Materials()
           command: 
             pytest tests/test_materials.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
