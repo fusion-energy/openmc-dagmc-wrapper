@@ -63,19 +63,19 @@ def silently_remove_file(filename: str):
         pass  # in some cases the file will not exist
 
 
-def _save_2d_mesh_tally_as_png(score: str, filename: str, tally) -> str:
+def _save_2d_mesh_tally_as_png(filename: str, tally) -> str:
     """Extracts 2D mesh tally results from a tally and saves the result as
     a png image.
 
     Arguments:
-        score (str): The tally score to filter the tally with, e.g. ‘flux’,
-            ‘heating’, etc.
+        score (str): The tally score to filter the tally with, e.g. 'flux',
+            'heating', etc.
         filename (str): The filename to use when saving the png output file
         tally (opencmc.tally()): The OpenMC to extract the mesh tally
-            resutls  from.
+            results from.
     """
 
-    my_slice = tally.get_slice(scores=[score])
+    my_slice = tally.get_slice(scores=tally.scores)
     tally_filter = tally.find_filter(filter_type=openmc.MeshFilter)
     shape = tally_filter.mesh.dimension.tolist()
     shape.remove(1)
@@ -313,9 +313,8 @@ def process_results(
                 }
 
         elif "_on_2D_mesh" in tally.name:
-            score = tally.name.split("_")[0]
+            # score = tally.name.split("_")[0]
             _save_2d_mesh_tally_as_png(
-                score=score,
                 tally=tally,
                 filename=tally.name.replace(
                     "(",
