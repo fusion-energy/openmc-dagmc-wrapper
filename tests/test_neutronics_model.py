@@ -641,45 +641,47 @@ class TestShape(unittest.TestCase):
         assert isinstance(results["TBR"]["result"], float)
         assert Path("results.json").exists() is True
 
-    # def test_cell_tallies_simulation_fast_flux(self):
-    #     """Performs simulation with h5m file and tallies neutron and photon
-    #     fast flux. Checks that entries exist in the results."""
+    def test_cell_tallies_simulation_fast_flux(self):
+        """Performs simulation with h5m file and tallies neutron and photon
+        fast flux. Checks that entries exist in the results."""
 
-    #     os.system("rm results.json")
+        os.system("rm results.json")
 
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": "Be"},
-    #         cell_tallies=["fast_flux", "flux"],
-    #         photon_transport=True,
-    #     )
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": "Be"})
 
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=1000,
-    #     )
+        my_tallies = odw.CellTallies(
+            tally_types=["photon_fast_flux", "neutron_fast_flux", "flux"])
 
-    #     # starts the neutronics simulation
-    #     h5m_filename = my_model.simulate()
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=my_tallies.tallies,
+            settings=self.settings
+        )
 
-    #     results = odw.process_results(
-    #         statepoint_filename=h5m_filename,
-    #         fusion_power=1e9,
-    #         fusion_energy_per_pulse=1.2e6
-    #     )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.run()
 
-    #     assert isinstance(
-    #         results["mat1_neutron_fast_flux"]["fast flux per source particle"]["result"],
-    #         float,
-    #     )
-    #     assert isinstance(
-    #         results["mat1_flux"]["flux per source particle"]["result"],
-    #         float,
-    #     )
+        results = odw.process_results(
+            statepoint_filename=h5m_filename,
+            fusion_power=1e9,
+            fusion_energy_per_pulse=1.2e6
+        )
 
-    #     assert results["mat1_flux"]["flux per source particle"]["result"] > results[
-    #         "mat1_neutron_fast_flux"]["fast flux per source particle"]["result"]
+        assert isinstance(
+            results["neutron_fast_flux"]["fast flux per source particle"]["result"],
+            float,
+        )
+        assert isinstance(
+            results["flux"]["flux per source particle"]["result"],
+            float,
+        )
+
+        assert results["flux"]["flux per source particle"]["result"] > results[
+            "neutron_fast_flux"]["fast flux per source particle"]["result"]
 
     # def test_cell_tallies_simulation_effective_dose(self):
     #     """Performs simulation with h5m file and tallies neutron and photon
