@@ -60,8 +60,8 @@ class TestMeshTallies(unittest.TestCase):
         # build
         bbox = odw.find_bounding_box(self.h5m_filename_smaller)
         expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
-        expected_mesh.lower_left = bounding_box[0]
-        expected_mesh.upper_right = bounding_box[1]
+        expected_mesh.lower_left = bbox[0]
+        expected_mesh.upper_right = bbox[1]
 
         # run
         my_tally = odw.MeshTally3D(
@@ -82,8 +82,8 @@ class TestMeshTallies(unittest.TestCase):
         # build
         bbox = [(0, 0, 0), (1, 2, 3)]
         expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
-        expected_mesh.lower_left = bounding_box[0]
-        expected_mesh.upper_right = bounding_box[1]
+        expected_mesh.lower_left = bbox[0]
+        expected_mesh.upper_right = bbox[1]
 
         # run
         my_tally = odw.MeshTally3D(
