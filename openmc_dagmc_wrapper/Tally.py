@@ -606,18 +606,18 @@ class MeshTallies2D:
         self,
         tally_types,
         planes,
-        meshes_resolutions=[(400, 400)],
-        meshes_corners=[None],
+        meshes_resolution=(400, 400),
+        meshes_corners=None,
         bounding_box=None,
             ):
         self.tallies = []
         self.tally_types = tally_types
         for tally_type in self.tally_types:
-            for plane, mesh_res, mesh_corners in zip(
-                    planes, meshes_resolutions, meshes_corners):
+            for plane in planes:
                 self.tallies.append(
                     MeshTally2D(
                         tally_type=tally_type, plane=plane,
-                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
+                        mesh_resolution=meshes_resolution,
+                        mesh_corners=meshes_corners,
                         bounding_box=bounding_box)
                         )
