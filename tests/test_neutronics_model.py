@@ -518,46 +518,46 @@ class TestShape(unittest.TestCase):
     #     assert isinstance(my_model.simulation_particles_per_batch, int)
     #     assert my_model.simulation_particles_per_batch == 2
 
-    # def test_neutronics_component_3d_and_2d_mesh_simulation(self):
-    #     """Makes a neutronics model and simulates with a 3D and 2D mesh tally
-    #     and checks that the vtk and png files are produced. This checks the
-    #     mesh ID values don't overlap"""
+    def test_neutronics_component_3d_and_2d_mesh_simulation(self):
+        """Makes a neutronics model and simulates with a 3D and 2D mesh tally
+        and checks that the vtk and png files are produced. This checks the
+        mesh ID values don't overlap"""
 
-    #     os.system("rm *.h5")
+        os.system("rm *.h5")
 
-    #     geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-    #     materials = odw.Materials(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         correspondence_dict={"mat1": "Be"})
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": "Be"})
 
-    #     my_3D_tally = odw.MeshTally3D(
-    #         tally_type="heating", bounding_box=self.h5m_filename_smaller)
+        my_3D_tally = odw.MeshTally3D(
+            tally_type="heating", bounding_box=self.h5m_filename_smaller)
 
-    #     # my_2D_tallies = odw.MeshTally2D(
-    #     #     planes=["xz", "xy", "yz"],
-    #     #     tally_types=["heating"],
-    #     #     bounding_box=self.h5m_filename_smaller)
+        my_2D_tallies = odw.MeshTallies2D(
+            planes=["xz", "xy", "yz"],
+            tally_types=["heating"],
+            bounding_box=self.h5m_filename_smaller)
 
-    #     my_model = openmc.model.Model(
-    #         geometry=geometry,
-    #         materials=materials,
-    #         tallies=None,#[my_3D_tally] + my_2D_tallies.tallies,
-    #         settings=self.settings
-    #     )
-    #     # performs an openmc simulation on the model
-    #     h5m_filename = my_model.run()
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[my_3D_tally] + my_2D_tallies.tallies,
+            settings=self.settings
+        )
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.run()
 
-    #     results = openmc.StatePoint(h5m_filename)
-    #     assert len(results.meshes) == 4  # one 3D and three 2D
-    #     assert len(results.tallies.items()) == 4  # one 3D and three 2D
+        results = openmc.StatePoint(h5m_filename)
+        assert len(results.meshes) == 4  # one 3D and three 2D
+        assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-    #     odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
 
-    #     assert Path(h5m_filename).exists() is True
-    #     assert Path("heating_on_3D_mesh.vtk").exists() is True
-    #     assert Path("heating_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_yz.png").exists() is True
+        assert Path(h5m_filename).exists() is True
+        assert Path("heating_on_3D_mesh.vtk").exists() is True
+        assert Path("heating_on_2D_mesh_xz.png").exists() is True
+        assert Path("heating_on_2D_mesh_xy.png").exists() is True
+        assert Path("heating_on_2D_mesh_yz.png").exists() is True
 
     # def test_neutronics_component_3d_and_2d_mesh_simulation_with_corner_points(
     #         self):
