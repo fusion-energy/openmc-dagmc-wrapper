@@ -79,7 +79,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        bounding_box = find_bounding_box(self.h5m_filename_bigger)
+        bounding_box = odw.find_bounding_box(self.h5m_filename_bigger)
 
         print(bounding_box)
         assert len(bounding_box) == 2
@@ -94,7 +94,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        bounding_box = my_tally.find_bounding_box(self.h5m_filename_smaller)
+        bounding_box = odw.find_bounding_box(self.h5m_filename_smaller)
 
         print(bounding_box)
         assert len(bounding_box) == 2
