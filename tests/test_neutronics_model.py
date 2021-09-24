@@ -791,39 +791,41 @@ class TestShape(unittest.TestCase):
 
         assert Path("results.json").exists() is True
 
-    # def test_reactor_from_shapes_2d_mesh_tallies(self):
-    #     """Makes a reactor from two shapes, then makes a neutronics model
-    #     and tests the TBR simulation value"""
+    def test_reactor_from_shapes_2d_mesh_tallies(self):
+        """Makes a reactor from two shapes, then makes a neutronics model
+        and tests the TBR simulation value"""
 
-    #     os.system("rm *_on_2D_mesh_*.png")
+        os.system("rm *_on_2D_mesh_*.png")
 
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         # materials=self.material_description,
-    #         materials={"mat1": "Be"},
-    #         mesh_tally_2d=["(n,Xt)", "heating", "flux"],
-    #     )
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+        materials = odw.Materials(
+            h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": "Be"})
 
-    #     my_model.export_xml(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=10,
-    #     )
+        my_tallies = odw.CellTallies(
+            tally_types=["(n,Xt)", "heating", "flux"])
 
-    #     # starts the neutronics simulation
-    #     h5m_filename = my_model.simulate()
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=my_tallies.tallies,
+            settings=self.settings
+        )
 
-    #     odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+        # performs an openmc simulation on the model
+        h5m_filename = my_model.run()
 
-    #     assert Path("n-Xt_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("n-Xt_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("n-Xt_on_2D_mesh_yz.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_yz.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_yz.png").exists() is True
+        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
+
+        assert Path("n-Xt_on_2D_mesh_xz.png").exists() is True
+        assert Path("n-Xt_on_2D_mesh_xy.png").exists() is True
+        assert Path("n-Xt_on_2D_mesh_yz.png").exists() is True
+        assert Path("heating_on_2D_mesh_xz.png").exists() is True
+        assert Path("heating_on_2D_mesh_xy.png").exists() is True
+        assert Path("heating_on_2D_mesh_yz.png").exists() is True
+        assert Path("flux_on_2D_mesh_xz.png").exists() is True
+        assert Path("flux_on_2D_mesh_xy.png").exists() is True
+        assert Path("flux_on_2D_mesh_yz.png").exists() is True
 
     # def test_simulations_with_missing_xml_files(self):
     #     """Creates NeutronicsModel objects and tries to perform simulation
