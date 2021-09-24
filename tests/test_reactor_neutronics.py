@@ -59,7 +59,7 @@ class TestNeutronicsModelWithReactor(unittest.TestCase):
             h5m_filename=self.h5m_filename_bigger,
             correspondence_dict=self.material_description_bigger)
 
-        my_tally = odw.MeshTally3D("heating")
+        my_tally = odw.MeshTally3D("heating", h5m_filename=self.h5m_filename_bigger)
 
         bounding_box = my_tally.find_bounding_box()
 
