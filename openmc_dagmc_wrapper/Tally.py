@@ -416,7 +416,6 @@ class MeshTallies2D:
         tally_types,
         planes,
         meshes_resolution=(400, 400),
-        meshes_corners=None,
         bounding_box=None,
     ):
         self.tallies = []
@@ -427,7 +426,6 @@ class MeshTallies2D:
                     MeshTally2D(
                         tally_type=tally_type, plane=plane,
                         mesh_resolution=meshes_resolution,
-                        mesh_corners=meshes_corners,
                         bounding_box=bounding_box)
                 )
 
