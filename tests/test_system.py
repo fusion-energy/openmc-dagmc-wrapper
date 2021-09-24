@@ -89,7 +89,7 @@ class TestShape(unittest.TestCase):
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": test_mat})
 
-        my_tally = odw.CellTally("heating", target="mat1")
+        my_tally = odw.CellTally("heating", target="mat1", materials=materials)
         self.settings.batches = 2
         my_model = openmc.model.Model(
             geometry=geometry,
