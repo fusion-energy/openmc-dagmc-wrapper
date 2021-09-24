@@ -62,6 +62,7 @@ class TestMeshTallies(unittest.TestCase):
         expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
         expected_mesh.lower_left = bbox[0]
         expected_mesh.upper_right = bbox[1]
+        expected_mesh.dimension = (100, 100, 100)
 
         # run
         my_tally = odw.MeshTally3D(
@@ -84,6 +85,7 @@ class TestMeshTallies(unittest.TestCase):
         expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
         expected_mesh.lower_left = bbox[0]
         expected_mesh.upper_right = bbox[1]
+        expected_mesh.dimension = (100, 100, 100)
 
         # run
         my_tally = odw.MeshTally3D(
