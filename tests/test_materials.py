@@ -48,3 +48,22 @@ class TestMaterial(unittest.TestCase):
         assert my_material[0].nuclides[0][0] == 'Be9'
         assert my_material[0].nuclides[0][1] == 1.
         assert my_material[0].name == 'mat1'
+
+    def test_incorrect_materials(self):
+        """Set a material as a string which should raise an error"""
+
+        def incorrect_materials():
+            odw.Materials(self.h5m_filename_smaller, "coucou")
+
+        self.assertRaises(TypeError, incorrect_materials)
+
+    def test_incorrect_materials_type(self):
+        """Sets a material as an int which should raise an error"""
+
+        def incorrect_materials_type():
+            odw.Materials(
+                h5m_filename=self.h5m_filename_smaller,
+                correspondence_dict={"mat1": 23},
+            )
+
+        self.assertRaises(TypeError, incorrect_materials_type)

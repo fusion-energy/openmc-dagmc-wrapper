@@ -190,25 +190,6 @@ class TestShape(unittest.TestCase):
 
         self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
 
-    def test_incorrect_materials(self):
-        """Set a material as a string which should raise an error"""
-
-        def incorrect_materials():
-            odw.Materials(self.h5m_filename_smaller, "coucou")
-
-        self.assertRaises(TypeError, incorrect_materials)
-
-    def test_incorrect_materials_type(self):
-        """Sets a material as an int which should raise an error"""
-
-        def incorrect_materials_type():
-            odw.Materials(
-                h5m_filename=self.h5m_filename_smaller,
-                correspondence_dict={"mat1": 23},
-            )
-
-        self.assertRaises(TypeError, incorrect_materials_type)
-
     def test_neutronics_component_cell_simulation_heating(self):
         """Makes a neutronics model and simulates with a cell tally"""
 
