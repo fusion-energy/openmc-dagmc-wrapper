@@ -851,35 +851,31 @@ class TestShape(unittest.TestCase):
     #         FileNotFoundError,
     #         test_missing_xml_file_error_handling)
 
-    # def test_simulations_with_missing_h5m_files(self):
-    #     """Creates NeutronicsModel objects and tries to perform simulation
-    #     without necessary input files to check if error handeling is working"""
+    def test_simulations_with_missing_h5m_files(self):
+        """Creates NeutronicsModel objects and tries to perform simulation
+        without necessary input files to check if error handeling is working"""
 
-    #     def test_missing_h5m_file_error_handling():
-    #         """Attempts to simulate without a dagmc_smaller.h5m file which should fail
-    #         with a FileNotFoundError"""
+        def test_missing_h5m_file_error_handling():
+            """Attempts to simulate without a dagmc_smaller.h5m file which
+            should fail with a FileNotFoundError"""
 
-    #         import shutil
-    #         shutil.copy(self.h5m_filename_smaller, '.')
+            import shutil
+            shutil.copy(self.h5m_filename_smaller, '.')
 
-    #         my_model = odw.NeutronicsModel(
-    #             h5m_filename='dagmc.h5m',
-    #             source=self.source,
-    #             materials={"mat1": "WC"},
-    #         )
+            # creates xml files so that the code passes the xml file check
+            os.system("touch geometry.xml")
+            os.system("touch materials.xml")
+            os.system("touch settings.xml")
+            os.system("touch tallies.xml")
+            os.system("rm dagmc.h5m")
 
-    #         # creates xml files so that the code passes the xml file check
-    #         os.system("touch geometry.xml")
-    #         os.system("touch materials.xml")
-    #         os.system("touch settings.xml")
-    #         os.system("touch tallies.xml")
-    #         os.system("rm dagmc.h5m")
+            materials = odw.Materials(
+                h5m_filename="dagmc.h5m",
+                correspondence_dict={"mat1": "Be"})
 
-    #         my_model.simulate()
-
-    #     self.assertRaises(
-    #         FileNotFoundError,
-    #         test_missing_h5m_file_error_handling)
+        self.assertRaises(
+            FileNotFoundError,
+            test_missing_h5m_file_error_handling)
 
     # def test_neutronics_model_attributes(self):
     #     """Makes a BallReactor neutronics model and simulates the TBR"""
