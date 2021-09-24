@@ -630,7 +630,7 @@ def diff_between_angles(angle_a: float, angle_b: float) -> float:
 
 def find_bounding_box(h5m_filename: str) -> List[Tuple[float, float, float]]:
     """Computes the bounding box of the DAGMC geometry
-    
+
     Args:
         h5m_filename: the filename of the DAGMC h5m file
 
