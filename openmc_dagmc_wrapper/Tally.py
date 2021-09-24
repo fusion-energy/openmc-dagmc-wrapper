@@ -7,7 +7,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
-from .utils import create_material
+from .utils import create_material, silently_remove_file
 
 
 class Tally(openmc.Tally):
@@ -542,8 +542,11 @@ class MeshTally2D(Tally):
 
         # exports materials.xml
         # replace this with a empty materisl with the correct names
-        self.create_openmc_materials()  # @shimwell do we need this?
-        # openmc.Materials().export_to_xml()
+        # materials = self.create_openmc_materials(h5m_filename)  # @shimwell do we need this?
+        # materials.export_xml()
+        silently_remove_file("materials.xml")
+        materials = openmc.Materials([create_material('mat1', 'Be')])
+        materials.export_to_xml()
 
         openmc.Plots().export_to_xml()
 
@@ -572,18 +575,18 @@ class MeshTally2D(Tally):
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
-    def create_openmc_materials(self):
+    def create_openmc_materials(self, h5m_filename):
 
-        materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
-
+        materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
+        print(materials_in_h5m)
         openmc_materials = {}
         for material_tag in materials_in_h5m:
-            openmc_material = create_material(
-                material_tag, "Be")
-            openmc_materials[material_tag] = openmc_material
+            if material_tag != "graveyard":
+                openmc_material = create_material(
+                    material_tag, "Be")
+                openmc_materials[material_tag] = openmc_material
 
-        openmc.Materials(list(self.openmc_materials.values()))
-        return
+        return openmc.Materials(list(openmc_materials.values()))
 
 
 class MeshTallies2D:
@@ -602,7 +605,7 @@ class MeshTallies2D:
         planes,
         meshes_resolutions=[(400, 400)],
         meshes_corners=[None],
-        bounding_box=None
+        bounding_box=None,
             ):
         self.tallies = []
         self.tally_types = tally_types
