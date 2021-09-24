@@ -23,7 +23,7 @@ jobs:
       - run:
           name: run tests MeshTally()
           command: 
-            pytest tests/test_mesh_tallies.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+            pytest tests/test_tallies/test_mesh_tallies.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: System tests
