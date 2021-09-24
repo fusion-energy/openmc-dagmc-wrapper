@@ -14,6 +14,7 @@ import openmc
 import plotly.graph_objects as go
 
 import neutronics_material_maker as nmm
+import dagmc_h5m_file_inspector as di
 
 
 def create_material(material_tag: str, material_entry):
@@ -38,6 +39,18 @@ def create_material(material_tag: str, material_entry):
     openmc_material.name = material_tag
     return openmc_material
 
+
+def create_openmc_materials(h5m_filename):
+
+    materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
+    openmc_materials = {}
+    for material_tag in materials_in_h5m:
+        if material_tag != "graveyard":
+            openmc_material = create_material(
+                material_tag, "Be")
+            openmc_materials[material_tag] = openmc_material
+
+    return openmc.Materials(list(openmc_materials.values()))
 
 # @shimwell are we keeping this?
 # def plotly_trace(

@@ -428,19 +428,6 @@ class MeshTallies2D:
                 )
 
 
-def create_openmc_materials(h5m_filename):
-
-    materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
-    openmc_materials = {}
-    for material_tag in materials_in_h5m:
-        if material_tag != "graveyard":
-            openmc_material = create_material(
-                material_tag, "Be")
-            openmc_materials[material_tag] = openmc_material
-
-    return openmc.Materials(list(openmc_materials.values()))
-
-
 def compute_filters(tally_type):
     energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
         particle="neutron",
