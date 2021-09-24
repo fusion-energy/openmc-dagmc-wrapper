@@ -256,7 +256,7 @@ class MeshTally3D(Tally):
         mesh.lower_left = self.bounding_box[0]
         mesh.upper_right = self.bounding_box[1]
 
-        self.filters.append(openmc.MeshFilter(self.mesh))
+        self.filters.append(openmc.MeshFilter(mesh))
 
 
 class MeshTallies3D:
