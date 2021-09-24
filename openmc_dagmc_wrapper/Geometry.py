@@ -3,6 +3,7 @@ from typing import Tuple
 
 import dagmc_h5m_file_inspector as di
 import openmc
+from numpy import cos, sin
 
 
 class Geometry(openmc.Geometry):
