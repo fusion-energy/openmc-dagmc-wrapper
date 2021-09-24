@@ -30,10 +30,10 @@ jobs:
           command: 
             pytest tests/test_system.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
-      # - run:
-      #     name: run test_shape_neutronics
-      #     command: 
-      #       pytest tests/test_shape_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+      - run:
+          name: run test_shape_neutronics
+          command: 
+            pytest tests/test_shape_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
           name: run test_reactor_neutronics

@@ -71,13 +71,11 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        my_model = odw.NeutronicsModel(
-            h5m_filename=self.h5m_filename_bigger,
-            source=self.source,
-            materials=self.material_description_bigger,
-        )
+        my_tally = odw.MeshTally3D(
+            "heating",
+            h5m_filename=self.h5m_filename_bigger)
 
-        bounding_box = my_model.find_bounding_box()
+        bounding_box = my_tally.find_bounding_box()
 
         print(bounding_box)
         assert len(bounding_box) == 2
