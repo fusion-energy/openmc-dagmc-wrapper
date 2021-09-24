@@ -273,7 +273,6 @@ class MeshTallies3D:
         self,
         tally_types,
         meshes_resolution=(100, 100, 100),
-        meshes_corners=None,
         bounding_box=None
     ):
         self.tallies = []
@@ -283,7 +282,6 @@ class MeshTallies3D:
                 MeshTally3D(
                     tally_type=tally_type,
                     mesh_resolution=meshes_resolution,
-                    mesh_corners=meshes_corners,
                     bounding_box=bounding_box)
             )
 
