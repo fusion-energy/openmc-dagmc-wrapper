@@ -425,14 +425,13 @@ class MeshTallies3D:
         self.tallies = []
         self.tally_types = tally_types
         for tally_type in self.tally_types:
-            for mesh_res, mesh_corners in zip(
-                    meshes_resolutions, meshes_corners):
-                self.tallies.append(
-                    MeshTally3D(
-                        tally_type=tally_type,
-                        mesh_resolution=mesh_res, mesh_corners=mesh_corners,
-                        bounding_box=bounding_box)
-                        )
+            self.tallies.append(
+                MeshTally3D(
+                    tally_type=tally_type,
+                    mesh_resolution=meshes_resolution,
+                    mesh_corners=meshes_corners,
+                    bounding_box=bounding_box)
+                    )
 
 
 class MeshTally2D(Tally):
