@@ -5,6 +5,8 @@ import dagmc_h5m_file_inspector as di
 import openmc
 from numpy import cos, sin
 
+from openmc_dagmc_wrapper import find_bounding_box
+
 
 class Geometry(openmc.Geometry):
     """A openmc.Geometry object with a DAGMC Universe. If the model
@@ -98,7 +100,7 @@ class Geometry(openmc.Geometry):
         used as an alternative to the traditionally DAGMC graveyard cell"""
 
         if self.graveyard_box is None:
-            self.graveyard_box = self.find_graveyard_box()
+            self.graveyard_box = find_bounding_box(self.h5m_filename)
         bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
         # add reflective surfaces
         # fix the x and y minimums to zero to get the universe boundary co
