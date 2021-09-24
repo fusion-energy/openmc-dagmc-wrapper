@@ -301,7 +301,7 @@ class MeshTally3D(Tally):
         if self.mesh_corners is None:
 
             if isinstance(bounding_box, str):
-                self.bounding_box = self.find_bounding_box(
+                self.bounding_box = find_bounding_box(
                     h5m_filename=bounding_box)
             else:
                 self.bounding_box = bounding_box
@@ -354,63 +354,65 @@ class MeshTally3D(Tally):
     def set_name(self):
         self.name = self.tally_type + "_on_3D_mesh"
 
-    def find_bounding_box(self, h5m_filename):
-        """Computes the bounding box of the DAGMC geometry"""
-        if not Path(h5m_filename).is_file:
-            msg = f"h5m file with filename {h5m_filename} not found"
-            raise FileNotFoundError(msg)
-        dag_univ = openmc.DAGMCUniverse(h5m_filename, auto_geom_ids=False)
 
-        geometry = openmc.Geometry(root=dag_univ)
-        geometry.root_universe = dag_univ
-        geometry.export_to_xml()
+def find_bounding_box(h5m_filename):
+    """Computes the bounding box of the DAGMC geometry"""
+    if not Path(h5m_filename).is_file:
+        msg = f"h5m file with filename {h5m_filename} not found"
+        raise FileNotFoundError(msg)
+    dag_univ = openmc.DAGMCUniverse(h5m_filename, auto_geom_ids=False)
 
-        # exports materials.xml
-        # replace this with a empty materisl with the correct names
-        # self.create_openmc_materials()  # @shimwell do we need this?
-        # openmc.Materials().export_to_xml()
-        silently_remove_file("materials.xml")
-        materials = self.create_openmc_materials(h5m_filename)
-        materials.export_to_xml()
+    geometry = openmc.Geometry(root=dag_univ)
+    geometry.root_universe = dag_univ
+    geometry.export_to_xml()
 
-        openmc.Plots().export_to_xml()
+    # exports materials.xml
+    # replace this with a empty materisl with the correct names
+    # self.create_openmc_materials()  # @shimwell do we need this?
+    # openmc.Materials().export_to_xml()
+    silently_remove_file("materials.xml")
+    materials = create_openmc_materials(h5m_filename)
+    materials.export_to_xml()
 
-        # a minimal settings .xml to allow openmc to init
-        settings = openmc.Settings()
-        settings.verbosity = 1
-        settings.batches = 1
-        settings.particles = 1
-        settings.export_to_xml()
+    openmc.Plots().export_to_xml()
 
-        # The -p runs in plotting mode which avoids the check that OpenMC does
-        # when looking for boundary surfaces and therefore avoids this error
-        # ERROR: No boundary conditions were applied to any surfaces!
-        openmc.lib.init(["-p"])
+    # a minimal settings .xml to allow openmc to init
+    settings = openmc.Settings()
+    settings.verbosity = 1
+    settings.batches = 1
+    settings.particles = 1
+    settings.export_to_xml()
 
-        bbox = openmc.lib.global_bounding_box()
-        openmc.lib.finalize()
+    # The -p runs in plotting mode which avoids the check that OpenMC does
+    # when looking for boundary surfaces and therefore avoids this error
+    # ERROR: No boundary conditions were applied to any surfaces!
+    openmc.lib.init(["-p"])
 
-        silently_remove_file("settings.xml")
-        silently_remove_file("plots.xml")
-        silently_remove_file("geometry.xml")
-        silently_remove_file("materials.xml")
+    bbox = openmc.lib.global_bounding_box()
+    openmc.lib.finalize()
 
-        return (
-            (bbox[0][0], bbox[0][1], bbox[0][2]),
-            (bbox[1][0], bbox[1][1], bbox[1][2]),
-        )
+    silently_remove_file("settings.xml")
+    silently_remove_file("plots.xml")
+    silently_remove_file("geometry.xml")
+    silently_remove_file("materials.xml")
 
-    def create_openmc_materials(self, h5m_filename):
+    return (
+        (bbox[0][0], bbox[0][1], bbox[0][2]),
+        (bbox[1][0], bbox[1][1], bbox[1][2]),
+    )
 
-        materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
-        openmc_materials = {}
-        for material_tag in materials_in_h5m:
-            if material_tag != "graveyard":
-                openmc_material = create_material(
-                    material_tag, "Be")
-                openmc_materials[material_tag] = openmc_material
 
-        return openmc.Materials(list(openmc_materials.values()))
+def create_openmc_materials(h5m_filename):
+
+    materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
+    openmc_materials = {}
+    for material_tag in materials_in_h5m:
+        if material_tag != "graveyard":
+            openmc_material = create_material(
+                material_tag, "Be")
+            openmc_materials[material_tag] = openmc_material
+
+    return openmc.Materials(list(openmc_materials.values()))
 
 
 class MeshTallies3D:
@@ -550,69 +552,10 @@ class MeshTally2D(Tally):
         if self.mesh_corners is None:
 
             if isinstance(bounding_box, str):
-                self.bounding_box = self.find_bounding_box(
+                self.bounding_box = find_bounding_box(
                     h5m_filename=bounding_box)
             else:
                 self.bounding_box = bounding_box
-
-    def find_bounding_box(self, h5m_filename):
-        """Computes the bounding box of the DAGMC geometry"""
-
-        if not Path(h5m_filename).is_file:
-            msg = f"h5m file with filename {h5m_filename} not found"
-            raise FileNotFoundError(msg)
-        dag_univ = openmc.DAGMCUniverse(h5m_filename, auto_geom_ids=False)
-
-        geometry = openmc.Geometry(root=dag_univ)
-        geometry.root_universe = dag_univ
-        geometry.export_to_xml()
-
-        # exports materials.xml
-        # replace this with a empty materisl with the correct names
-        # materials = self.create_openmc_materials(h5m_filename)  # @shimwell do we need this?
-        # materials.export_xml()
-        silently_remove_file("materials.xml")
-        materials = self.create_openmc_materials(h5m_filename)
-        materials.export_to_xml()
-
-        openmc.Plots().export_to_xml()
-
-        # a minimal settings .xml to allow openmc to init
-        settings = openmc.Settings()
-        settings.verbosity = 1
-        settings.batches = 1
-        settings.particles = 1
-        settings.export_to_xml()
-
-        # The -p runs in plotting mode which avoids the check that OpenMC does
-        # when looking for boundary surfaces and therefore avoids this error
-        # ERROR: No boundary conditions were applied to any surfaces!
-        openmc.lib.init(["-p"])
-
-        bbox = openmc.lib.global_bounding_box()
-        openmc.lib.finalize()
-
-        silently_remove_file("settings.xml")
-        silently_remove_file("plots.xml")
-        silently_remove_file("geometry.xml")
-        silently_remove_file("materials.xml")
-
-        return (
-            (bbox[0][0], bbox[0][1], bbox[0][2]),
-            (bbox[1][0], bbox[1][1], bbox[1][2]),
-        )
-
-    def create_openmc_materials(self, h5m_filename):
-
-        materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
-        openmc_materials = {}
-        for material_tag in materials_in_h5m:
-            if material_tag != "graveyard":
-                openmc_material = create_material(
-                    material_tag, "Be")
-                openmc_materials[material_tag] = openmc_material
-
-        return openmc.Materials(list(openmc_materials.values()))
 
 
 class MeshTallies2D:
