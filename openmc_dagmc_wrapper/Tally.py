@@ -157,10 +157,10 @@ class CellTally(Tally):
             additional_filters = [
                 neutron_particle_filter, energy_function_filter_n]
         elif self.tally_type == "photon_effective_dose":
-            energy_function_filter_n = openmc.EnergyFunctionFilter(
+            energy_function_filter_p = openmc.EnergyFunctionFilter(
                 energy_bins_p, dose_coeffs_p)
             additional_filters = [
-                photon_particle_filter, energy_function_filter_n]
+                photon_particle_filter, energy_function_filter_p]
 
         self.filters = tally_filter + additional_filters
 
@@ -344,10 +344,10 @@ class MeshTally3D(Tally):
             additional_filters = [
                 neutron_particle_filter, energy_function_filter_n]
         elif self.tally_type == "photon_effective_dose":
-            energy_function_filter_n = openmc.EnergyFunctionFilter(
-                energy_bins_n, dose_coeffs_n)
+            energy_function_filter_p = openmc.EnergyFunctionFilter(
+                energy_bins_p, dose_coeffs_p)
             additional_filters = [
-                photon_particle_filter, energy_function_filter_n]
+                photon_particle_filter, energy_function_filter_p]
 
         self.filters = [mesh_filter] + additional_filters
 
