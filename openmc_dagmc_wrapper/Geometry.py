@@ -157,5 +157,4 @@ class Geometry(openmc.Geometry):
             surface_id=9994,
             boundary_type='vacuum')
 
-
         return [lower_x, upper_x, lower_y, upper_y, lower_z, upper_z]
