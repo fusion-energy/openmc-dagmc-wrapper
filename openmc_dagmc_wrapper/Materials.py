@@ -42,7 +42,7 @@ class Materials(openmc.Materials):
     def set_openmc_materials(self):
         openmc_materials = {}
         for material_tag, material_entry in self.correspondence_dict.items():
-            openmc_material = self.create_material(
+            openmc_material = create_material(
                 material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
