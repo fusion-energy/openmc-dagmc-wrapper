@@ -218,9 +218,6 @@ class TetMeshTally(Tally):
 
         self.create_unstructured_mesh()
         self.filters = [openmc.MeshFilter(self.umesh)]
-
-        # @shimwell should this be done as in CellTally.set_score?
-        self.scores = [tally_type]
         self.name = tally_type + "_on_3D_u_mesh"
 
     def create_unstructured_mesh(self):
