@@ -140,43 +140,6 @@ class TestShape(unittest.TestCase):
         # extracts the heat from the results dictionary
         assert results[my_tally.name]["Watts"]["result"] > 0
 
-    # def test_cell_tally_output_file_creation(self):
-    #     """Performs a neutronics simulation and checks the cell tally output
-    #     file is created and named correctly"""
-
-    #     os.system("rm custom_name.json")
-    #     os.system("rm results.json")
-
-    #     test_mat = openmc.Material()
-    #     test_mat.add_element("Fe", 1.0)
-    #     test_mat.set_density(units="g/cm3", density=4.2)
-
-    #     # converts the geometry into a neutronics geometry
-    #     # this simulation has no tally to test this edge case
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": test_mat},
-    #     )
-
-    #     # performs an openmc simulation on the model
-    #     output_filename = my_model.simulate(
-    #         simulation_batches=2,
-    #         simulation_particles_per_batch=2,
-    #         cell_tally_results_filename="custom_name.json"
-    #     )
-
-    #     assert output_filename.name == "statepoint.2.h5"
-    #     assert Path("custom_name.json").exists() is True
-
-    #     assert Path("results.json").exists() is False
-    #     output_filename = my_model.simulate(
-    #         simulation_batches=3,
-    #         simulation_particles_per_batch=2,
-    #     )
-    #     assert output_filename.name == "statepoint.3.h5"
-    #     assert Path("results.json").exists() is True
-
     def test_incorrect_cell_tallies(self):
         """Set a cell tally that is not accepted which should raise an
         error"""
@@ -245,47 +208,6 @@ class TestShape(unittest.TestCase):
             )
 
         self.assertRaises(TypeError, incorrect_materials_type)
-
-    # def test_incorrect_simulation_batches_to_small(self):
-    #     def incorrect_simulation_batches_to_small():
-    #         """Sets simulation batch below 2 which should raise an error"""
-    #         my_model = odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #         )
-    #         my_model.export_xml(simulation_batches=1)
-    #         my_model.simulate()
-
-    #     self.assertRaises(ValueError, incorrect_simulation_batches_to_small)
-
-    # def test_incorrect_simulation_batches_wrong_type(self):
-    #     def incorrect_simulation_batches_wrong_type():
-    #         """Sets simulation_batches as a string which should raise an error"""
-    #         my_model = odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #         )
-    #         my_model.export_xml(simulation_batches="one")
-    #         my_model.simulate()
-
-    #     self.assertRaises(TypeError, incorrect_simulation_batches_wrong_type)
-
-    # def test_incorrect_simulation_particles_per_batch_wrong_type(self):
-    #     def incorrect_simulation_particles_per_batch_wrong_type():
-    #         """Sets simulation_particles_per_batch below 2 which should raise an error"""
-    #         my_model = odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "eurofer"},
-    #         )
-    #         my_model.export_xml(simulation_batches=1)
-    #         my_model.simulate()
-
-    #     self.assertRaises(
-    #         ValueError, incorrect_simulation_particles_per_batch_wrong_type
-    #     )
 
     def test_neutronics_component_cell_simulation_heating(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -495,28 +417,6 @@ class TestShape(unittest.TestCase):
 
         assert Path("heating_on_3D_mesh.vtk").exists() is True
         assert Path("n-Xt_on_3D_mesh.vtk").exists() is True
-
-    #  Todo refactor now that simulate takes batchs and particles
-    # def test_batches_and_particles_convert_to_int(self):
-    #     """Makes a neutronics model and simulates with a 3D and 2D mesh tally
-    #     and checks that the vtk and png files are produced. This checks the
-    #     mesh ID values don't overlap"""
-
-    #     os.system("rm *.h5")
-
-    #     # converts the geometry into a neutronics geometry
-    #     my_model = odw.NeutronicsModel(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         source=self.source,
-    #         materials={"mat1": "Be"},
-    #         simulation_batches=3.1,
-    #         simulation_particles_per_batch=2.1,
-    #     )
-
-    #     assert isinstance(my_model.simulation_batches, int)
-    #     assert my_model.simulation_batches == 3
-    #     assert isinstance(my_model.simulation_particles_per_batch, int)
-    #     assert my_model.simulation_particles_per_batch == 2
 
     def test_neutronics_component_3d_and_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
@@ -827,30 +727,6 @@ class TestShape(unittest.TestCase):
         assert Path("flux_on_2D_mesh_xy.png").exists() is True
         assert Path("flux_on_2D_mesh_yz.png").exists() is True
 
-    # def test_simulations_with_missing_xml_files(self):
-    #     """Creates NeutronicsModel objects and tries to perform simulation
-    #     without necessary input files to check if error handeling is working"""
-
-    #     def test_missing_xml_file_error_handling():
-    #         """Attempts to simulate without OpenMC xml files which should fail
-    #         with a FileNotFoundError"""
-
-    #         my_model = odw.NeutronicsModel(
-    #             h5m_filename=self.h5m_filename_smaller,
-    #             source=self.source,
-    #             materials={"mat1": "WC"},
-    #         )
-
-    #         my_model.export_xml()
-
-    #         os.system("rm *.xml")
-
-    #         my_model.simulate()
-
-    #     self.assertRaises(
-    #         FileNotFoundError,
-    #         test_missing_xml_file_error_handling)
-
     def test_simulations_with_missing_h5m_files(self):
         """Creates NeutronicsModel objects and tries to perform simulation
         without necessary input files to check if error handeling is working"""
@@ -876,37 +752,6 @@ class TestShape(unittest.TestCase):
         self.assertRaises(
             FileNotFoundError,
             test_missing_h5m_file_error_handling)
-
-    # def test_neutronics_model_attributes(self):
-    #     """Makes a BallReactor neutronics model and simulates the TBR"""
-
-    #     # makes the neutronics material
-    #     my_model = odw.NeutronicsModel(
-    #         source=openmc.Source(),
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         materials={
-    #             "inboard_tf_coils_mat": "copper",
-    #             "mat1": "WC",
-    #             "divertor_mat": "eurofer",
-    #             "firstwall_mat": "eurofer",
-    #             "blanket_mat": self.blanket_material,  # use of homogenised material
-    #             "blanket_rear_wall_mat": "eurofer",
-    #         },
-    #         cell_tallies=["TBR", "flux", "heating"],
-    #     )
-
-    #     assert my_model.h5m_filename == self.h5m_filename_smaller
-
-    #     assert my_model.materials == {
-    #         "inboard_tf_coils_mat": "copper",
-    #         "mat1": "WC",
-    #         "divertor_mat": "eurofer",
-    #         "firstwall_mat": "eurofer",
-    #         "blanket_mat": self.blanket_material,
-    #         "blanket_rear_wall_mat": "eurofer",
-    #     }
-
-    #     assert my_model.cell_tallies == ["TBR", "flux", "heating"]
 
 
 if __name__ == "__main__":
