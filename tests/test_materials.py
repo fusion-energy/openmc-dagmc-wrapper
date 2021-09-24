@@ -39,8 +39,8 @@ class TestMaterial(unittest.TestCase):
     def test_resulting_attributes_with_single_material_and_string(self):
 
         my_material = odw.Materials(
-            correspondence_dict = {'mat1': 'Be'},
-            h5m_filename = self.h5m_filename_smaller
+            correspondence_dict={'mat1': 'Be'},
+            h5m_filename=self.h5m_filename_smaller
         )
 
         assert isinstance(my_material, openmc.Materials)

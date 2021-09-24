@@ -5,7 +5,7 @@
 # extentions of openmc base classes.
 
 import openmc
-import openmc_dagmc_wrapper as odw 
+import openmc_dagmc_wrapper as odw
 
 # creates a geometry object from a DAGMC geometry.
 # In this case the geometry doen't have a graveyard cell.
@@ -21,15 +21,15 @@ geometry = odw.Geometry(
 materials = odw.Materials(
     h5m_filename='dagmc_bigger.h5m',
     correspondence_dict={
-        'blanket_mat':'Li4SiO4',
-        'blanket_rear_wall_mat':'Be',
-        'center_column_shield_mat':'Be',
-        'divertor_mat':'Be',
-        'firstwall_mat':'Be',
-        'inboard_tf_coils_mat':'Be',
-        'pf_coil_case_mat':'Be',
-        'pf_coil_mat':'Be',
-        'tf_coil_mat':'Be'
+        'blanket_mat': 'Li4SiO4',
+        'blanket_rear_wall_mat': 'Be',
+        'center_column_shield_mat': 'Be',
+        'divertor_mat': 'Be',
+        'firstwall_mat': 'Be',
+        'inboard_tf_coils_mat': 'Be',
+        'pf_coil_case_mat': 'Be',
+        'pf_coil_mat': 'Be',
+        'tf_coil_mat': 'Be'
     }
 )
 

@@ -28,7 +28,7 @@ class Geometry(openmc.Geometry):
         h5m_filename: str = None,
         reflective_angles: Tuple[float, float] = None,
         graveyard_box=None
-            ):
+    ):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
         self.graveyard_box = graveyard_box

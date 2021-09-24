@@ -92,6 +92,7 @@ class CellTally(Tally):
         materials: the openmc_dagmc_wrapper.Materials used in the openmc
             simulation. Only required if applying tallies to materials.
     """
+
     def __init__(
         self,
         tally_type: str,
@@ -124,11 +125,11 @@ class CellTally(Tally):
         )
         photon_particle_filter = openmc.ParticleFilter(["photon"])
         neutron_particle_filter = openmc.ParticleFilter(["neutron"])
-        if type(self.target) is str:  # material filter
+        if isinstance(self.target, str):  # material filter
             for mat in self.materials:
                 if mat.name == self.target:
                     tally_filter = [openmc.MaterialFilter(mat)]
-        elif type(self.target) is int:  # volume filter
+        elif isinstance(self.target, int):  # volume filter
             tally_filter = [openmc.CellFilter(self.target)]
         else:
             tally_filter = []
@@ -183,7 +184,13 @@ class CellTallies:
         materials ([type], optional): [description]. Defaults to None.
         h5m_filename
     """
-    def __init__(self, tally_types, targets=[None], materials=None, h5m_filename=None):
+
+    def __init__(
+            self,
+            tally_types,
+            targets=[None],
+            materials=None,
+            h5m_filename=None):
         self.tallies = []
         self.tally_types = tally_types
         self.targets = targets
@@ -212,6 +219,7 @@ class TetMeshTally(Tally):
         tally_type ([type]): [description]
         filename (str): [description]
     """
+
     def __init__(self, tally_type, filename, **kwargs):
         self.filename = filename
         super().__init__(**kwargs)
@@ -247,6 +255,7 @@ class TetMeshTallies:
         tally_types (list): [description]
         filenames (list): [description]
     """
+
     def __init__(self, tally_types, filenames):
         self.tallies = []
         self.tally_types = tally_types
@@ -264,7 +273,7 @@ class MeshTally3D(Tally):
         mesh_corners=None,
         bounding_box=None,
         **kwargs
-            ):
+    ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
         self.mesh_corners = mesh_corners
@@ -291,8 +300,9 @@ class MeshTally3D(Tally):
 
         if self.mesh_corners is None:
 
-            if type(bounding_box) is str:
-                self.bounding_box = self.find_bounding_box(h5m_filename=bounding_box)
+            if isinstance(bounding_box, str):
+                self.bounding_box = self.find_bounding_box(
+                    h5m_filename=bounding_box)
             else:
                 self.bounding_box = bounding_box
 
@@ -412,13 +422,14 @@ class MeshTallies3D:
         meshes_corners (list, optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
     """
+
     def __init__(
         self,
         tally_types,
         meshes_resolution=(100, 100, 100),
         meshes_corners=None,
         bounding_box=None
-            ):
+    ):
         self.tallies = []
         self.tally_types = tally_types
         for tally_type in self.tally_types:
@@ -428,7 +439,7 @@ class MeshTallies3D:
                     mesh_resolution=meshes_resolution,
                     mesh_corners=meshes_corners,
                     bounding_box=bounding_box)
-                    )
+            )
 
 
 class MeshTally2D(Tally):
@@ -441,6 +452,7 @@ class MeshTally2D(Tally):
         mesh_corners ([type], optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
     """
+
     def __init__(
         self,
         tally_type,
@@ -448,7 +460,7 @@ class MeshTally2D(Tally):
         mesh_resolution=(400, 400),
         mesh_corners=None,
         bounding_box=None
-            ):
+    ):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
@@ -537,8 +549,9 @@ class MeshTally2D(Tally):
 
         if self.mesh_corners is None:
 
-            if type(bounding_box) is str:
-                self.bounding_box = self.find_bounding_box(h5m_filename=bounding_box)
+            if isinstance(bounding_box, str):
+                self.bounding_box = self.find_bounding_box(
+                    h5m_filename=bounding_box)
             else:
                 self.bounding_box = bounding_box
 
@@ -612,6 +625,7 @@ class MeshTallies2D:
         meshes_corners (list, optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
     """
+
     def __init__(
         self,
         tally_types,
@@ -619,7 +633,7 @@ class MeshTallies2D:
         meshes_resolution=(400, 400),
         meshes_corners=None,
         bounding_box=None,
-            ):
+    ):
         self.tallies = []
         self.tally_types = tally_types
         for tally_type in self.tally_types:
@@ -630,4 +644,4 @@ class MeshTallies2D:
                         mesh_resolution=meshes_resolution,
                         mesh_corners=meshes_corners,
                         bounding_box=bounding_box)
-                        )
+                )
