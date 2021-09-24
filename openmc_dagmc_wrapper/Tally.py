@@ -308,13 +308,13 @@ class MeshTally2D(Tally):
         self.plane = plane
         self.mesh_resolution = mesh_resolution
 
-        self.create_mesh()
+        self.create_mesh(bounding_box)
 
         super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
         self.filters.append(openmc.MeshFilter(self.mesh))
 
-    def create_mesh(self):
+    def create_mesh(self, bounding_box):
         mesh_name = "2D_mesh_" + self.plane
         mesh = openmc.RegularMesh(name=mesh_name)
 
