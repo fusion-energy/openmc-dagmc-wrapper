@@ -362,6 +362,9 @@ class MeshTally3D(Tally):
         # replace this with a empty materisl with the correct names
         # self.create_openmc_materials()  # @shimwell do we need this?
         # openmc.Materials().export_to_xml()
+        silently_remove_file("materials.xml")
+        materials = self.create_openmc_materials(h5m_filename)
+        materials.export_to_xml()
 
         openmc.Plots().export_to_xml()
 
@@ -390,6 +393,18 @@ class MeshTally3D(Tally):
             (bbox[1][0], bbox[1][1], bbox[1][2]),
         )
 
+    def create_openmc_materials(self, h5m_filename):
+
+        materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
+        openmc_materials = {}
+        for material_tag in materials_in_h5m:
+            if material_tag != "graveyard":
+                openmc_material = create_material(
+                    material_tag, "Be")
+                openmc_materials[material_tag] = openmc_material
+
+        return openmc.Materials(list(openmc_materials.values()))
+
 
 class MeshTallies3D:
     """[summary]
@@ -403,8 +418,8 @@ class MeshTallies3D:
     def __init__(
         self,
         tally_types,
-        meshes_resolutions=[(100, 100, 100)],
-        meshes_corners=[None],
+        meshes_resolution=(100, 100, 100),
+        meshes_corners=None,
         bounding_box=None
             ):
         self.tallies = []
