@@ -548,7 +548,7 @@ class MeshTally2D(Tally):
         # materials = self.create_openmc_materials(h5m_filename)  # @shimwell do we need this?
         # materials.export_xml()
         silently_remove_file("materials.xml")
-        materials = openmc.Materials([create_material('mat1', 'Be')])
+        materials = create_openmc_materials(h5m_filename)
         materials.export_to_xml()
 
         openmc.Plots().export_to_xml()
@@ -581,7 +581,6 @@ class MeshTally2D(Tally):
     def create_openmc_materials(self, h5m_filename):
 
         materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
-        print(materials_in_h5m)
         openmc_materials = {}
         for material_tag in materials_in_h5m:
             if material_tag != "graveyard":
