@@ -7,7 +7,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
-from .utils import create_material, silently_remove_file
+from .utils import create_material, silently_remove_file, find_bounding_box
 
 
 class Tally(openmc.Tally):

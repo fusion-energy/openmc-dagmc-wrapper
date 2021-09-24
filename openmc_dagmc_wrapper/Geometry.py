@@ -5,7 +5,7 @@ import dagmc_h5m_file_inspector as di
 import openmc
 from numpy import cos, sin
 
-from openmc_dagmc_wrapper import find_bounding_box
+from .utils import find_bounding_box
 
 
 class Geometry(openmc.Geometry):
