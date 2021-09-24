@@ -66,7 +66,8 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
             openmc_dagmc_wrapper.create_initial_particles(source, 10)
 
-            openmc_dagmc_wrapper.extract_points_from_initial_source(view_plane="coucou")
+            openmc_dagmc_wrapper.extract_points_from_initial_source(
+                view_plane="coucou")
 
         self.assertRaises(ValueError, incorrect_viewplane)
 
