@@ -446,7 +446,7 @@ class MeshTally2D(Tally):
         self.set_bounding_box(bounding_box)
         self.create_mesh()
 
-        super().__init__(tally_type, **kwargs)
+        super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
         self.filters = [openmc.MeshFilter(self.mesh)]
 
