@@ -75,16 +75,16 @@ class TestMaterial(unittest.TestCase):
                 correspondence_dict={"coucou": 23},
             )
 
-        self.assertRaises(ValueError, incorrect_materials_type)
+        self.assertRaises(ValueError, incorrect_material_tag)
 
     def test_not_enough_materials_in_dict(self):
-        def incorrect_material_tag():
+        def incorrect_corres_dict():
             odw.Materials(
                 h5m_filename=self.h5m_filename_smaller,
                 correspondence_dict={},
             )
 
-        self.assertRaises(ValueError, incorrect_materials_type)
+        self.assertRaises(ValueError, incorrect_corres_dict)
 
 
 if __name__ == "__main__":
