@@ -574,14 +574,12 @@ class TestShape(unittest.TestCase):
 
         my_3D_tally = odw.MeshTally3D(
             tally_type="heating",
-            bounding_box=self.h5m_filename_smaller,
             mesh_corners=[(0, 0, 0), (10, 10, 10)],
             )
 
         my_2D_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
-            bounding_box=self.h5m_filename_smaller,
             mesh_corners=[(5, 5, 5), (15, 15, 15)]
             )
 
