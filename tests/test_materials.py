@@ -68,6 +68,24 @@ class TestMaterial(unittest.TestCase):
 
         self.assertRaises(TypeError, incorrect_materials_type)
 
+    def test_mat_not_in_h5m_file(self):
+        def incorrect_material_tag():
+            odw.Materials(
+                h5m_filename=self.h5m_filename_smaller,
+                correspondence_dict={"coucou": 23},
+            )
+
+        self.assertRaises(ValueError, incorrect_materials_type)
+
+    def test_not_enough_materials_in_dict(self):
+        def incorrect_material_tag():
+            odw.Materials(
+                h5m_filename=self.h5m_filename_smaller,
+                correspondence_dict={},
+            )
+
+        self.assertRaises(ValueError, incorrect_materials_type)
+
 
 if __name__ == "__main__":
     unittest.main()
