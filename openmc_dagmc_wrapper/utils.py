@@ -38,72 +38,73 @@ def create_material(material_tag: str, material_entry):
     return openmc_material
 
 
-def plotly_trace(
-    points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
-    mode: str = "markers+lines",
-    name: str = None,
-    color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None,
-) -> Union[go.Scatter, go.Scatter3d]:
-    """Creates a plotly trace representation of the points of the Shape
-    object. This method is intended for internal use by Shape.export_html.
+# @shimwell are we keeping this?
+# def plotly_trace(
+#     points: Union[List[Tuple[float, float]], List[Tuple[float, float, float]]],
+#     mode: str = "markers+lines",
+#     name: str = None,
+#     color: Union[Tuple[float, float, float], Tuple[float, float, float, float]] = None,
+# ) -> Union[go.Scatter, go.Scatter3d]:
+#     """Creates a plotly trace representation of the points of the Shape
+#     object. This method is intended for internal use by Shape.export_html.
 
-    Args:
-        points: A list of tuples containing the X, Z points of to add to
-            the trace.
-        mode: The mode to use for the Plotly.Scatter graph. Options include
-            "markers", "lines" and "markers+lines". Defaults to
-            "markers+lines"
-        name: The name to use in the graph legend color
+#     Args:
+#         points: A list of tuples containing the X, Z points of to add to
+#             the trace.
+#         mode: The mode to use for the Plotly.Scatter graph. Options include
+#             "markers", "lines" and "markers+lines". Defaults to
+#             "markers+lines"
+#         name: The name to use in the graph legend color
 
-    Returns:
-        plotly trace: trace object
-    """
+#     Returns:
+#         plotly trace: trace object
+#     """
 
-    if color is not None:
-        color_list = [i * 255 for i in color]
+#     if color is not None:
+#         color_list = [i * 255 for i in color]
 
-        if len(color_list) == 3:
-            color = "rgb(" + str(color_list).strip("[]") + ")"
-        elif len(color_list) == 4:
-            color = "rgba(" + str(color_list).strip("[]") + ")"
+#         if len(color_list) == 3:
+#             color = "rgb(" + str(color_list).strip("[]") + ")"
+#         elif len(color_list) == 4:
+#             color = "rgba(" + str(color_list).strip("[]") + ")"
 
-    if name is None:
-        name = "Shape not named"
-    else:
-        name = name
+#     if name is None:
+#         name = "Shape not named"
+#     else:
+#         name = name
 
-    text_values = []
+#     text_values = []
 
-    for i, point in enumerate(points):
-        text = "point number= {i} <br> x={point[0]} <br> y= {point[1]}"
-        if len(point) == 3:
-            text = text + "<br> z= {point[2]} <br>"
+#     for i, point in enumerate(points):
+#         text = "point number= {i} <br> x={point[0]} <br> y= {point[1]}"
+#         if len(point) == 3:
+#             text = text + "<br> z= {point[2]} <br>"
 
-        text_values.append(text)
+#         text_values.append(text)
 
-    if all(len(entry) == 3 for entry in points):
-        trace = go.Scatter3d(
-            x=[row[0] for row in points],
-            y=[row[1] for row in points],
-            z=[row[2] for row in points],
-            mode=mode,
-            marker={"size": 3, "color": color},
-            name=name,
-        )
+#     if all(len(entry) == 3 for entry in points):
+#         trace = go.Scatter3d(
+#             x=[row[0] for row in points],
+#             y=[row[1] for row in points],
+#             z=[row[2] for row in points],
+#             mode=mode,
+#             marker={"size": 3, "color": color},
+#             name=name,
+#         )
 
-        return trace
+#         return trace
 
-    trace = go.Scatter(
-        x=[row[0] for row in points],
-        y=[row[1] for row in points],
-        hoverinfo="text",
-        text=text_values,
-        mode=mode,
-        marker={"size": 5, "color": color},
-        name=name,
-    )
+#     trace = go.Scatter(
+#         x=[row[0] for row in points],
+#         y=[row[1] for row in points],
+#         hoverinfo="text",
+#         text=text_values,
+#         mode=mode,
+#         marker={"size": 5, "color": color},
+#         name=name,
+#     )
 
-    return trace
+#     return trace
 
 
 def silently_remove_file(filename: str):
@@ -544,122 +545,124 @@ def write_3d_mesh_tally_to_vtk(
     return outfile
 
 
-def create_initial_particles(
-        source,
-        number_of_source_particles: int = 2000) -> str:
-    """Accepts an openmc source and creates an initial_source.h5 that can be
-    used to find intial xyz, direction and energy of the partice source.
+# @shimwell are we keeping this?
+# def create_initial_particles(
+#         source,
+#         number_of_source_particles: int = 2000) -> str:
+#     """Accepts an openmc source and creates an initial_source.h5 that can be
+#     used to find intial xyz, direction and energy of the partice source.
 
-    Arguments:
-        source: (openmc.Source()): the OpenMC source to create an initial source
-            file from.
-        number_of_source_particles: The number of particle to sample.
+#     Arguments:
+#         source: (openmc.Source()): the OpenMC source to create an initial source
+#             file from.
+#         number_of_source_particles: The number of particle to sample.
 
-    Returns:
-        str: the filename of the h5 file produced
-    """
+#     Returns:
+#         str: the filename of the h5 file produced
+#     """
 
-    # MATERIALS
+#     # MATERIALS
 
-    # no real materials are needed for finding the source
-    mats = openmc.Materials([])
+#     # no real materials are needed for finding the source
+#     mats = openmc.Materials([])
 
-    # GEOMETRY
+#     # GEOMETRY
 
-    # just a minimal geometry
-    outer_surface = openmc.Sphere(r=100000, boundary_type="vacuum")
-    cell = openmc.Cell(region=-outer_surface)
-    universe = openmc.Universe(cells=[cell])
-    geom = openmc.Geometry(universe)
+#     # just a minimal geometry
+#     outer_surface = openmc.Sphere(r=100000, boundary_type="vacuum")
+#     cell = openmc.Cell(region=-outer_surface)
+#     universe = openmc.Universe(cells=[cell])
+#     geom = openmc.Geometry(universe)
 
-    # SIMULATION SETTINGS
+#     # SIMULATION SETTINGS
 
-    # Instantiate a Settings object
-    sett = openmc.Settings()
-    # this will fail but it will write the initial_source.h5 file first
-    sett.run_mode = "eigenvalue"
-    sett.particles = number_of_source_particles
-    sett.batches = 1
-    sett.inactive = 0
-    sett.write_initial_source = True
+#     # Instantiate a Settings object
+#     sett = openmc.Settings()
+#     # this will fail but it will write the initial_source.h5 file first
+#     sett.run_mode = "eigenvalue"
+#     sett.particles = number_of_source_particles
+#     sett.batches = 1
+#     sett.inactive = 0
+#     sett.write_initial_source = True
 
-    sett.source = source
+#     sett.source = source
 
-    model = openmc.model.Model(geom, mats, sett)
+#     model = openmc.model.Model(geom, mats, sett)
 
-    silently_remove_file("settings.xml")
-    silently_remove_file("materials.xml")
-    silently_remove_file("geometry.xml")
-    silently_remove_file("settings.xml")
-    silently_remove_file("tallies.xml")
-    model.export_to_xml()
+#     silently_remove_file("settings.xml")
+#     silently_remove_file("materials.xml")
+#     silently_remove_file("geometry.xml")
+#     silently_remove_file("settings.xml")
+#     silently_remove_file("tallies.xml")
+#     model.export_to_xml()
 
-    # this just adds write_initial_source == True to the settings.xml
-    tree = ET.parse("settings.xml")
-    root = tree.getroot()
-    elem = SubElement(root, "write_initial_source")
-    elem.text = "true"
-    tree.write("settings.xml")
+#     # this just adds write_initial_source == True to the settings.xml
+#     tree = ET.parse("settings.xml")
+#     root = tree.getroot()
+#     elem = SubElement(root, "write_initial_source")
+#     elem.text = "true"
+#     tree.write("settings.xml")
 
-    # This will crash hence the try except loop, but it writes the
-    # initial_source.h5
-    openmc.run(output=False)
-    try:
-        openmc.run(output=False)
-    except BaseException:
-        pass
+#     # This will crash hence the try except loop, but it writes the
+#     # initial_source.h5
+#     openmc.run(output=False)
+#     try:
+#         openmc.run(output=False)
+#     except BaseException:
+#         pass
 
-    return "initial_source.h5"
+#     return "initial_source.h5"
 
 
-def extract_points_from_initial_source(
-    input_filename: str = "initial_source.h5", view_plane: str = "RZ"
-) -> list:
-    """Reads in an initial source h5 file (generated by OpenMC), extracts point
-    and projects them onto a view plane.
+# @shimwell are we keeping this?
+# def extract_points_from_initial_source(
+#     input_filename: str = "initial_source.h5", view_plane: str = "RZ"
+# ) -> list:
+#     """Reads in an initial source h5 file (generated by OpenMC), extracts point
+#     and projects them onto a view plane.
 
-    Arguments:
-        input_filename: the OpenMC source to create an initial source
-            file from.
-        view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
-            'YX', 'ZY', 'ZX', 'RZ' and 'XYZ'. Defaults to 'RZ'. Defaults to
-            'RZ'.
+#     Arguments:
+#         input_filename: the OpenMC source to create an initial source
+#             file from.
+#         view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
+#             'YX', 'ZY', 'ZX', 'RZ' and 'XYZ'. Defaults to 'RZ'. Defaults to
+#             'RZ'.
 
-    Returns:
-        list: list of points extracted
-    """
-    import h5py
+#     Returns:
+#         list: list of points extracted
+#     """
+#     import h5py
 
-    h5_file = h5py.File(input_filename, "r")
-    dset = h5_file["source_bank"]
+#     h5_file = h5py.File(input_filename, "r")
+#     dset = h5_file["source_bank"]
 
-    points = []
+#     points = []
 
-    for particle in dset:
-        if view_plane == "XZ":
-            points.append((particle[0][0], particle[0][2]))
-        elif view_plane == "XY":
-            points.append((particle[0][0], particle[0][1]))
-        elif view_plane == "YZ":
-            points.append((particle[0][1], particle[0][2]))
-        elif view_plane == "YX":
-            points.append((particle[0][1], particle[0][0]))
-        elif view_plane == "ZY":
-            points.append((particle[0][2], particle[0][1]))
-        elif view_plane == "ZX":
-            points.append((particle[0][2], particle[0][0]))
-        elif view_plane == "RZ":
-            xy_coord = math.pow(particle[0][0], 2) + \
-                math.pow(particle[0][1], 2)
-            points.append((math.sqrt(xy_coord), particle[0][2]))
-        elif view_plane == "XYZ":
-            points.append((particle[0][0], particle[0][1], particle[0][2]))
-        else:
-            raise ValueError(
-                "view_plane value of ",
-                view_plane,
-                " is not supported")
-    return points
+#     for particle in dset:
+#         if view_plane == "XZ":
+#             points.append((particle[0][0], particle[0][2]))
+#         elif view_plane == "XY":
+#             points.append((particle[0][0], particle[0][1]))
+#         elif view_plane == "YZ":
+#             points.append((particle[0][1], particle[0][2]))
+#         elif view_plane == "YX":
+#             points.append((particle[0][1], particle[0][0]))
+#         elif view_plane == "ZY":
+#             points.append((particle[0][2], particle[0][1]))
+#         elif view_plane == "ZX":
+#             points.append((particle[0][2], particle[0][0]))
+#         elif view_plane == "RZ":
+#             xy_coord = math.pow(particle[0][0], 2) + \
+#                 math.pow(particle[0][1], 2)
+#             points.append((math.sqrt(xy_coord), particle[0][2]))
+#         elif view_plane == "XYZ":
+#             points.append((particle[0][0], particle[0][1], particle[0][2]))
+#         else:
+#             raise ValueError(
+#                 "view_plane value of ",
+#                 view_plane,
+#                 " is not supported")
+#     return points
 
 
 def diff_between_angles(angle_a: float, angle_b: float) -> float:
