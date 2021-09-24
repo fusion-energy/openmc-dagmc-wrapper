@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Union
 
 import dagmc_h5m_file_inspector as di
