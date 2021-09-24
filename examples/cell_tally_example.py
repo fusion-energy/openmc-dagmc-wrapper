@@ -47,12 +47,16 @@ materials = odw.Materials(
 # scores) to be applied to a DAGMC material or a volume
 # This cell tally applies a TBR tally to the volume(s) labeled with the
 # blanket_mat tag in the DAGMC geometry
-tally1 = odw.CellTally(tally_type="TBR", target="blanket_mat", materials=materials)
+tally1 = odw.CellTally(
+    tally_type="TBR",
+    target="blanket_mat",
+    materials=materials)
 
 # This cell tally obtains the neutron fast flux on all volumes in the problem
 tally2 = odw.CellTallies(
-    tally_types=["neutron_fast_flux"], targets="all_volumes", h5m_filename=h5m_filename
-)
+    tally_types=["neutron_fast_flux"],
+    targets="all_volumes",
+    h5m_filename=h5m_filename)
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1] + tally2.tallies)
