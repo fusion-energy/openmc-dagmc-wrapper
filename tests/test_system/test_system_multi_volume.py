@@ -1,4 +1,3 @@
-
 import os
 import tarfile
 import unittest
@@ -44,72 +43,38 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
         # makes the openmc neutron source at x,y,z 0, 0, 0 with isotropic
         # directions and 14MeV neutrons
-        self.source = openmc.Source()
-        self.source.space = openmc.stats.Point((0, 0, 0))
-        self.source.angle = openmc.stats.Isotropic()
-        self.source.energy = openmc.stats.Discrete([14e6], [1])
+        source = openmc.Source()
+        source.space = openmc.stats.Point((0, 0, 0))
+        source.angle = openmc.stats.Isotropic()
+        source.energy = openmc.stats.Discrete([14e6], [1])
+        self.settings = openmc.Settings()
+        self.settings.batches = 10
+        self.settings.inactive = 0
+        self.settings.particles = 100
+        self.settings.run_mode = "fixed source"
+
+        self.settings.photon_transport = True
+        self.settings.source = source
 
     def test_cell_tally_simulation(self):
 
-        my_model = odw.NeutronicsModel(
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
+        materials = odw.Materials(
             h5m_filename=self.h5m_filename_bigger,
-            source=self.source,
-            materials=self.material_description_bigger,
-            cell_tallies=["TBR"],
+            correspondence_dict=self.material_description_bigger)
+        my_tally = odw.CellTally("TBR")
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[my_tally],
+            settings=self.settings
         )
 
-        my_model.export_xml(
-            simulation_batches=2,
-            simulation_particles_per_batch=20,
-        )
-
-        h5m_filename = my_model.simulate()
+        h5m_filename = my_model.run()
 
         results = odw.process_results(statepoint_filename=h5m_filename)
 
         assert results["TBR"]["result"] > 0.0
-
-    def test_bounding_box_size(self):
-
-        my_model = odw.NeutronicsModel(
-            h5m_filename=self.h5m_filename_bigger,
-            source=self.source,
-            materials=self.material_description_bigger,
-        )
-
-        bounding_box = my_model.find_bounding_box()
-
-        print(bounding_box)
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
-
-    def test_bounding_box_size_2(self):
-
-        my_model = odw.NeutronicsModel(
-            h5m_filename=self.h5m_filename_smaller,
-            source=self.source,
-            materials=self.material_description_smaller,
-        )
-
-        bounding_box = my_model.find_bounding_box()
-        print(bounding_box)
-
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
 
 
 # # move to neutronics_workflow

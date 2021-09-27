@@ -16,29 +16,36 @@ jobs:
             python setup.py install
 
       - run:
-          name: run test_NeutronicModel
+          name: run test_neutronics_utils
           command: 
-            pytest tests/test_neutronics_model.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+            pytest tests/test_neutronics_utils.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
-          name: run test_shape_neutronics
+          name: run tests Settings()
           command: 
-            pytest tests/test_shape_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+            pytest tests/test_settings.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       - run:
-          name: run test_reactor_neutronics
+          name: run tests Materials()
           command: 
-            pytest tests/test_reactor_neutronics.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+            pytest tests/test_materials.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: run tests Tallies
+          command: 
+            pytest tests/test_tallies/ -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+
+      - run:
+          name: System tests
+          command: 
+            pytest tests/test_system/ -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
       # - run:
-      #     name: run test_neutronics_utils
+      #     name: run test_example_neutronics_simulations
       #     command: 
-      #       pytest tests/test_neutronics_utils.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+      #       pytest tests/test_example_neutronics_simulations.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
 
-      - run:
-          name: run test_example_neutronics_simulations
-          command: 
-            pytest tests/test_example_neutronics_simulations.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+
 
       # TODO add example notebooks
       # - run:
