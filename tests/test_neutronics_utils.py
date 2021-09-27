@@ -6,7 +6,7 @@ from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper
-from openmc_dagmc_wrapper import create_material
+from openmc_dagmc_wrapper import create_material, find_bounding_box
 
 import neutronics_material_maker as nmm
 
@@ -90,7 +90,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
     def test_bounding_box_size(self):
 
-        bounding_box = odw.find_bounding_box(self.h5m_filename_bigger)
+        bounding_box = find_bounding_box(self.h5m_filename_bigger)
 
         print(bounding_box)
         assert len(bounding_box) == 2
@@ -105,7 +105,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
     def test_bounding_box_size_2(self):
 
-        bounding_box = odw.find_bounding_box(self.h5m_filename_smaller)
+        bounding_box = find_bounding_box(self.h5m_filename_smaller)
 
         print(bounding_box)
         assert len(bounding_box) == 2
