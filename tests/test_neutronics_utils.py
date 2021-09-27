@@ -9,6 +9,7 @@ import openmc_dagmc_wrapper
 from openmc_dagmc_wrapper import create_material, find_bounding_box
 
 import neutronics_material_maker as nmm
+import pytest
 
 
 class TestNeutronicsUtilityFunctions(unittest.TestCase):
