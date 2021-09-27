@@ -16,6 +16,7 @@ class Tally(openmc.Tally):
     openmc.Tally.filters to allow convenient application of tallies to
     specified materials or volumes.
     """
+
     def __init__(
         self,
         tally_type,
