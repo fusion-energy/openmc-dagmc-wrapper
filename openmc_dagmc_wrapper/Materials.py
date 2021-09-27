@@ -1,4 +1,3 @@
-
 import dagmc_h5m_file_inspector as di
 import neutronics_material_maker as nmm
 import openmc
@@ -34,16 +33,13 @@ class Materials(openmc.Materials):
     @correspondence_dict.setter
     def correspondence_dict(self, value):
         if not isinstance(value, dict):
-            raise TypeError(
-                ".correspondence_dict should be a dictionary"
-            )
+            raise TypeError(".correspondence_dict should be a dictionary")
         self._correspondence_dict = value
 
     def set_openmc_materials(self):
         openmc_materials = {}
         for material_tag, material_entry in self.correspondence_dict.items():
-            openmc_material = create_material(
-                material_tag, material_entry)
+            openmc_material = create_material(material_tag, material_entry)
             openmc_materials[material_tag] = openmc_material
 
         self.openmc_materials = openmc_materials
@@ -70,7 +66,8 @@ class Materials(openmc.Materials):
                 f"the number of materials provided in the correspondence_dict "
                 f"{len(self.correspondence_dict.keys())} "
                 f"is not equal to the number of materials specified in the "
-                f"DAGMC h5m file {required_nb_of_materials}")
+                f"DAGMC h5m file {required_nb_of_materials}"
+            )
             raise ValueError(msg)
 
         silently_remove_file("materials.xml")

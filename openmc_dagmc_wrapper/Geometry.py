@@ -1,4 +1,3 @@
-
 from typing import Tuple
 
 import dagmc_h5m_file_inspector as di
@@ -30,7 +29,7 @@ class Geometry(openmc.Geometry):
         self,
         h5m_filename: str = None,
         reflective_angles: Tuple[float, float] = None,
-        graveyard_box=None
+        graveyard_box=None,
     ):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
@@ -45,7 +44,7 @@ class Geometry(openmc.Geometry):
         if self.reflective_angles is None:
             # if a graveyard is not found in the dagmc geometry a CSG one is
             # made
-            if 'graveyard' not in di.get_materials_from_h5m(self.h5m_filename):
+            if "graveyard" not in di.get_materials_from_h5m(self.h5m_filename):
                 # vac_surfs = self.create_cube_of_vacuum_surfaces()
                 # # creates a cube of surfaces for the boundary conditions
                 # region = +vac_surfs[0] & \
@@ -58,9 +57,7 @@ class Geometry(openmc.Geometry):
                 region = -vac_surf
 
                 containing_cell = openmc.Cell(
-                    cell_id=9999,
-                    region=region,
-                    fill=dag_univ
+                    cell_id=9999, region=region, fill=dag_univ
                 )
                 root = [containing_cell]
             else:
@@ -72,7 +69,7 @@ class Geometry(openmc.Geometry):
                 c=0.0,
                 d=0.0,
                 surface_id=9991,
-                boundary_type='reflective'
+                boundary_type="reflective",
             )
 
             reflective_2 = openmc.Plane(
@@ -81,22 +78,18 @@ class Geometry(openmc.Geometry):
                 c=0.0,
                 d=0.0,
                 surface_id=9990,
-                boundary_type='reflective'
+                boundary_type="reflective",
             )
 
             # if a graveyard is not found in the dagmc geometry a CSG one is
             # made
-            if 'graveyard' in di.get_materials_from_h5m(self.h5m_filename):
+            if "graveyard" in di.get_materials_from_h5m(self.h5m_filename):
                 region = -reflective_1 & +reflective_2
             else:
                 vac_surf = self.create_sphere_of_vacuum_surface()
                 region = -vac_surf & -reflective_1 & +reflective_2
 
-            containing_cell = openmc.Cell(
-                cell_id=9999,
-                region=region,
-                fill=dag_univ
-            )
+            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
         return root
@@ -112,9 +105,8 @@ class Geometry(openmc.Geometry):
         largest_radius = max(max(bbox[0]), max(bbox[1]))
 
         sphere_surface = openmc.Sphere(
-            r=largest_radius,
-            surface_id=9999,
-            boundary_type='vacuum')
+            r=largest_radius, surface_id=9999, boundary_type="vacuum"
+        )
 
         return sphere_surface
 
@@ -130,31 +122,13 @@ class Geometry(openmc.Geometry):
         bbox[0][0] = 0.0
         bbox[0][1] = 0.0
 
-        lower_x = openmc.XPlane(
-            bbox[0][0],
-            surface_id=9999,
-            boundary_type='vacuum')
-        upper_x = openmc.XPlane(
-            bbox[1][0],
-            surface_id=9998,
-            boundary_type='vacuum')
+        lower_x = openmc.XPlane(bbox[0][0], surface_id=9999, boundary_type="vacuum")
+        upper_x = openmc.XPlane(bbox[1][0], surface_id=9998, boundary_type="vacuum")
 
-        lower_y = openmc.YPlane(
-            bbox[0][1],
-            surface_id=9997,
-            boundary_type='vacuum')
-        upper_y = openmc.YPlane(
-            bbox[1][1],
-            surface_id=9996,
-            boundary_type='vacuum')
+        lower_y = openmc.YPlane(bbox[0][1], surface_id=9997, boundary_type="vacuum")
+        upper_y = openmc.YPlane(bbox[1][1], surface_id=9996, boundary_type="vacuum")
 
-        lower_z = openmc.ZPlane(
-            bbox[0][2],
-            surface_id=9995,
-            boundary_type='vacuum')
-        upper_z = openmc.ZPlane(
-            bbox[1][2],
-            surface_id=9994,
-            boundary_type='vacuum')
+        lower_z = openmc.ZPlane(bbox[0][2], surface_id=9995, boundary_type="vacuum")
+        upper_z = openmc.ZPlane(bbox[1][2], surface_id=9994, boundary_type="vacuum")
 
         return [lower_x, upper_x, lower_y, upper_y, lower_z, upper_z]

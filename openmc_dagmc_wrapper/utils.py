@@ -46,8 +46,7 @@ def create_openmc_materials(h5m_filename):
     openmc_materials = {}
     for material_tag in materials_in_h5m:
         if material_tag != "graveyard":
-            openmc_material = create_material(
-                material_tag, "Be")
+            openmc_material = create_material(material_tag, "Be")
             openmc_materials[material_tag] = openmc_material
 
     return openmc.Materials(list(openmc_materials.values()))
@@ -115,8 +114,7 @@ def find_fusion_energy_per_reaction(reactants: str) -> float:
             0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
         ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
     else:
-        raise ValueError(
-            "Only fuel types of DD and DT are currently supported")
+        raise ValueError("Only fuel types of DD and DT are currently supported")
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
 
@@ -223,20 +221,22 @@ def process_results(
             data_frame = tally.get_pandas_dataframe()
             tally_result = data_frame["mean"].sum()
             results[tally.name]["fast flux per source particle"] = {
-                "result": tally_result,
+                "result": tally_result
             }
             if "std. dev." in data_frame.keys():
                 tally_std_dev = data_frame["std. dev."].sum()
-                results[tally.name]["fast flux per source particle"]["std. dev."] = tally_std_dev,
+                results[tally.name]["fast flux per source particle"][
+                    "std. dev."
+                ] = tally_std_dev
 
             if fusion_power is not None:
                 results[tally.name]["fast flux per second"] = {
-                    "result": tally_result * number_of_neutrons_per_second,
+                    "result": tally_result * number_of_neutrons_per_second
                 }
 
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["fast flux per pulse"] = {
-                    "result": tally_result * number_of_neutrons_per_pulse,
+                    "result": tally_result * number_of_neutrons_per_pulse
                 }
 
         elif tally.name.endswith("flux"):
@@ -251,12 +251,12 @@ def process_results(
 
             if fusion_power is not None:
                 results[tally.name]["flux per second"] = {
-                    "result": tally_result * number_of_neutrons_per_second,
+                    "result": tally_result * number_of_neutrons_per_second
                 }
 
             if fusion_energy_per_pulse is not None:
                 results[tally.name]["flux per pulse"] = {
-                    "result": tally_result * number_of_neutrons_per_pulse,
+                    "result": tally_result * number_of_neutrons_per_pulse
                 }
 
         elif tally.name.endswith("spectra"):
@@ -298,7 +298,9 @@ def process_results(
             # flux is in units of cm per source particle
             # dose coefficients have units of pico Sv cm^2
             results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result, "std. dev.": tally_std_dev, }
+                "result": tally_result,
+                "std. dev.": tally_std_dev,
+            }
 
             if fusion_power is not None:
                 results[tally.name]["pSv cm3 per second"] = {
@@ -316,13 +318,7 @@ def process_results(
             # score = tally.name.split("_")[0]
             _save_2d_mesh_tally_as_png(
                 tally=tally,
-                filename=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-"),
+                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
             )
 
         elif "_on_3D_mesh" in tally.name:
@@ -368,14 +364,8 @@ def process_results(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-") +
-                ".vtk",
+                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
+                + ".vtk",
             )
 
         elif "_on_3D_u_mesh" in tally.name:

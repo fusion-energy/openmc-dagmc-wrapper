@@ -1,4 +1,3 @@
-
 import openmc
 
 
@@ -13,5 +12,5 @@ class FusionSettings(openmc.Settings):
         super().__init__()
 
         # performed after the super init as these are setting attributes
-        self.run_mode = 'fixed source'
+        self.run_mode = "fixed source"
         self.inactive = 0
