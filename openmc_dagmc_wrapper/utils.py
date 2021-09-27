@@ -114,7 +114,8 @@ def find_fusion_energy_per_reaction(reactants: str) -> float:
             0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
         ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
     else:
-        raise ValueError("Only fuel types of DD and DT are currently supported")
+        raise ValueError(
+            "Only fuel types of DD and DT are currently supported")
 
     fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
 
@@ -298,9 +299,7 @@ def process_results(
             # flux is in units of cm per source particle
             # dose coefficients have units of pico Sv cm^2
             results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result,
-                "std. dev.": tally_std_dev,
-            }
+                "result": tally_result, "std. dev.": tally_std_dev, }
 
             if fusion_power is not None:
                 results[tally.name]["pSv cm3 per second"] = {
@@ -317,9 +316,10 @@ def process_results(
         elif "_on_2D_mesh" in tally.name:
             # score = tally.name.split("_")[0]
             _save_2d_mesh_tally_as_png(
-                tally=tally,
-                filename=tally.name.replace("(", "").replace(")", "").replace(",", "-"),
-            )
+                tally=tally, filename=tally.name.replace(
+                    "(", "").replace(
+                    ")", "").replace(
+                    ",", "-"), )
 
         elif "_on_3D_mesh" in tally.name:
             print(f"processing {tally.name}")
@@ -364,8 +364,14 @@ def process_results(
                 tally_label=tally.name,
                 tally_data=data,
                 error_data=error,
-                outfile=tally.name.replace("(", "").replace(")", "").replace(",", "-")
-                + ".vtk",
+                outfile=tally.name.replace(
+                    "(",
+                    "").replace(
+                    ")",
+                    "").replace(
+                    ",",
+                    "-") +
+                ".vtk",
             )
 
         elif "_on_3D_u_mesh" in tally.name:
