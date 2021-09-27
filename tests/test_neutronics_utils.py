@@ -13,6 +13,8 @@ import pytest
 
 
 class TestNeutronicsUtilityFunctions(unittest.TestCase):
+    """Tests the neutronics utilities functionality and use cases"""
+
     def setUp(self):
 
         if not Path("tests/v0.0.2.tar.gz").is_file():
@@ -58,25 +60,6 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
             # run
             produced_mat = create_material(tag_mat, expected_mat)
-
-            # test
-            assert produced_mat.density == expected_mat.density
-            assert produced_mat.average_molar_mass == expected_mat.average_molar_mass
-            assert produced_mat.nuclides == expected_mat.nuclides
-
-    def test_create_material_as_openmc_materials(self):
-        mats = ["Be", "tungsten", "eurofer", "copper"]
-
-        for mat in mats:
-            # build
-            tag_mat = "mat1"
-            nmm_mat = nmm.Material.from_library(
-                name=mat, material_id=None
-            )
-            expected_mat = nmm_mat.openmc_material
-
-            # run
-            produced_mat = create_material(tag_mat, nmm_mat)
 
             # test
             assert produced_mat.density == expected_mat.density

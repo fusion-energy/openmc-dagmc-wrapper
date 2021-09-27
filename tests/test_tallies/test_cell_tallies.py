@@ -6,6 +6,7 @@ import openmc_dagmc_wrapper as odw
 
 
 class TestCellTallies(unittest.TestCase):
+    """Tests the CellTallies class functionality"""
 
     def test_name(self):
         my_tally = odw.CellTally('heating', target=1)

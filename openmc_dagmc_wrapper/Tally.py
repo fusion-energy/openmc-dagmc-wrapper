@@ -10,6 +10,12 @@ from .utils import create_material, silently_remove_file, find_bounding_box
 
 
 class Tally(openmc.Tally):
+    """
+    Extends the openmc.Tally object to allow a range of standard tally_types.
+    Facilitates standardized combinations of tally openmc.Tally.scores and
+    openmc.Tally.filters to allow convenient application of tallies to
+    specified materials or volumes.
+    """
     def __init__(
         self,
         tally_type,
@@ -307,6 +313,9 @@ class MeshTally2D(Tally):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
+
+        self.bbox_from_h5 = None
+        self.bounding_box = None
 
         self.create_mesh(bounding_box)
 

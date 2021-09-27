@@ -186,7 +186,7 @@ def process_results(
             }
             if "std. dev." in data_frame.keys():
                 tally_std_dev = data_frame["std. dev."].sum()
-                results[tally.name]["std. dev."] = tally_std_dev,
+                results[tally.name]["std. dev."] = tally_std_dev
 
         elif tally.name.endswith("heating"):
 

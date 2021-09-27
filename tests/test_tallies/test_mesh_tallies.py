@@ -3,12 +3,13 @@ import unittest
 import urllib.request
 from pathlib import Path
 
-
 import openmc
 import openmc_dagmc_wrapper as odw
 
 
 class TestMeshTallies(unittest.TestCase):
+    """Tests the MeshTallies class functionality"""
+
     def setUp(self):
 
         if not Path("tests/v0.0.2.tar.gz").is_file():
@@ -26,7 +27,7 @@ class TestMeshTallies(unittest.TestCase):
         """Set a mesh_tally_2d that is not accepted which should raise an
         error"""
         def incorrect_mesh_tally_2d():
-            my_tally = odw.MeshTally2D("coucou", plane="xy")
+            odw.MeshTally2D("coucou", plane="xy")
 
         self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
@@ -34,7 +35,7 @@ class TestMeshTallies(unittest.TestCase):
         """Set a mesh_tally_2d that is the wrong type which should raise an
         error"""
         def incorrect_mesh_tally_2d_type():
-            my_tally = odw.MeshTally2D(1, plane="xy")
+            odw.MeshTally2D(1, plane="xy")
 
         self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
 
@@ -43,7 +44,7 @@ class TestMeshTallies(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d():
-            my_tally = odw.MeshTally3D("coucou")
+            odw.MeshTally3D("coucou")
 
         self.assertRaises(ValueError, incorrect_mesh_tally_3d)
 
@@ -52,7 +53,7 @@ class TestMeshTallies(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d_type():
-            my_tally = odw.MeshTally3D(1)
+            odw.MeshTally3D(1)
 
         self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
 
