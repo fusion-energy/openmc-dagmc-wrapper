@@ -12,6 +12,18 @@ import neutronics_material_maker as nmm
 
 
 class TestNeutronicsUtilityFunctions(unittest.TestCase):
+    def setUp(self):
+
+        if not Path("tests/v0.0.2.tar.gz").is_file():
+            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
+            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+
+            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
+            tar.extractall("tests")
+            tar.close()
+
+        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
     def test_create_material_from_string(self):
         mats = ["Be", "tungsten", "eurofer", "copper"]
@@ -75,6 +87,36 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             create_material("mat1", [1, 2, 3])
 
         self.assertRaises(TypeError, incorrect_type)
+
+    def test_bounding_box_size(self):
+
+        bounding_box = odw.find_bounding_box(self.h5m_filename_bigger)
+
+        print(bounding_box)
+        assert len(bounding_box) == 2
+        assert len(bounding_box[0]) == 3
+        assert len(bounding_box[1]) == 3
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
+
+    def test_bounding_box_size_2(self):
+
+        bounding_box = odw.find_bounding_box(self.h5m_filename_smaller)
+
+        print(bounding_box)
+        assert len(bounding_box) == 2
+        assert len(bounding_box[0]) == 3
+        assert len(bounding_box[1]) == 3
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
 
     # def test_create_initial_source_file(self):
     #     """Creates an initial_source.h5 from a point source"""
