@@ -119,12 +119,13 @@ class CellTally(Tally):
             for mat in self.materials:
                 if mat.name == self.target:
                     tally_filter = openmc.MaterialFilter(mat)
+                    self.filters.append(tally_filter)
+                    return
         elif isinstance(self.target, int):  # volume filter
             tally_filter = openmc.CellFilter(self.target)
+            self.filters.append(tally_filter)
         else:
             return
-
-        self.filters.append(tally_filter)
 
 
 class CellTallies:
