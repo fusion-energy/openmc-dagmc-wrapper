@@ -41,7 +41,6 @@ class TestMeshTally2D(unittest.TestCase):
 
         self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
 
-    
     def test_shape_of_resulting_png(self):
         """Runs a simulation with a 2d mesh tally and checks png images are
         produced"""
@@ -81,8 +80,10 @@ class TestMeshTally2D(unittest.TestCase):
         settings.source = FusionRingSource(fuel="DT", radius=1)
 
         my_model = openmc.Model(
-            materials=materials, geometry=geometry, settings=settings, tallies=tallies
-        )
+            materials=materials,
+            geometry=geometry,
+            settings=settings,
+            tallies=tallies)
         statepoint_file = my_model.run()
 
         odw.process_results(statepoint_file, fusion_power=1e9)
