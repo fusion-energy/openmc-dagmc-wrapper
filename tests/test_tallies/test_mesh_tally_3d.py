@@ -1,3 +1,4 @@
+
 import tarfile
 import unittest
 import urllib.request
@@ -7,8 +8,8 @@ import openmc
 import openmc_dagmc_wrapper as odw
 
 
-class TestMeshTallies(unittest.TestCase):
-    """Tests the MeshTallies class functionality"""
+class TestMeshTally3D(unittest.TestCase):
+    """Tests the MeshTally3D class functionality"""
 
     def setUp(self):
 
@@ -22,22 +23,6 @@ class TestMeshTallies(unittest.TestCase):
 
         self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
         self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
-
-    def test_incorrect_mesh_tally_2d(self):
-        """Set a mesh_tally_2d that is not accepted which should raise an
-        error"""
-        def incorrect_mesh_tally_2d():
-            odw.MeshTally2D("coucou", plane="xy")
-
-        self.assertRaises(ValueError, incorrect_mesh_tally_2d)
-
-    def test_incorrect_mesh_tally_2d_type(self):
-        """Set a mesh_tally_2d that is the wrong type which should raise an
-        error"""
-        def incorrect_mesh_tally_2d_type():
-            odw.MeshTally2D(1, plane="xy")
-
-        self.assertRaises(TypeError, incorrect_mesh_tally_2d_type)
 
     def test_incorrect_mesh_tally_3d(self):
         """Set a mesh_tally_3d that is not accepted which should raise an
