@@ -1,0 +1,61 @@
+{% set name = "openmc_dagmc_wrapper" %}
+{% set data = load_setup_py_data() %}
+
+package:
+  name: "{{ name|lower }}"
+  version: {{ data.get('version') }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python {{ python }}
+    - setuptools
+  run:
+    - remove_dagmc_tags
+    - neutronics_material_maker
+    - vtk
+    - openmc_data_downloader
+    - matplotlib
+    - plotly
+    - defusedxml
+    - dagmc_h5m_file_inspector
+    # - openmc conda install does not currently include dagmc
+
+test:
+  imports:
+    - openmc_dagmc_wrapper
+    - tests
+  requires:
+    - pytest-cov
+    - pytest-runner
+  source_files:
+    - tests/
+    - examples/
+  commands:
+    - python tests/cell_tally_example.py
+    - python tests/regular_2d_mesh_tally_example.py
+    - python tests/regular_3d_mesh_tally_example.py
+    - pytest -v tests/test_example_neutronics_simulations.py
+    - pytest -v tests/test_materials.py
+    - pytest -v tests/test_tallies/test_mesh_tallies.py
+    - pytest -v tests/test_system.py
+
+about:
+  home: "https://github.com/fusion-energy/openmc-dagmc-wrapper"
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE.txt
+  summary: "Perform a set of standard neutronics simulations with OpenMC and DAGMC"
+  doc_url: https://github.com/fusion-energy/openmc-dagmc-wrapper
+  dev_url: https://github.com/fusion-energy/openmc-dagmc-wrapper
+
+extra:
+  recipe-maintainers:
+    - shimwell
+    - RemDelaporteMathurin
