@@ -34,7 +34,8 @@ class Tally(openmc.Tally):
             [
                 "TBR",
                 "heating",
-                "flux",
+                "neutron_flux",
+                "photon_flux",
                 "absorption",
                 "neutron_effective_dose",
                 "photon_effective_dose",
@@ -57,6 +58,8 @@ class Tally(openmc.Tally):
 
     def set_score(self):
         flux_scores = [
+            "neutron_flux",
+            "photon_flux",
             "neutron_fast_flux",
             "photon_fast_flux",
             "neutron_spectra",
@@ -141,11 +144,11 @@ class CellTallies:
     Usage:
     my_mats = odw.Materials(....)
     my_tallies = odw.CellTallies(
-        tally_types=['TBR', "flux"],
+        tally_types=['TBR', "neutron_flux"],
         target=["Be", 2],
         materials=my_mats
     )
-    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
+    my_tallies = odw.CellTallies(tally_types=['TBR', "neutron_flux"], target=[2])
 
     Args:
         tally_types ([type]): [description]
