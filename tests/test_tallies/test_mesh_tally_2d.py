@@ -53,19 +53,19 @@ class TestMeshTally2D(unittest.TestCase):
             },
         )
         tally1 = odw.MeshTally2D(
-            tally_type="flux",
+            tally_type="neutron_flux",
             plane="xy",
             bounding_box=self.h5m_filename_smaller,
             mesh_resolution=(10, 200)
         )
         tally2 = odw.MeshTally2D(
-            tally_type="flux",
+            tally_type="neutron_flux",
             plane="xz",
             bounding_box=self.h5m_filename_smaller,
             mesh_resolution=(20, 100)
         )
         tally3 = odw.MeshTally2D(
-            tally_type="flux",
+            tally_type="neutron_flux",
             plane="yz",
             bounding_box=self.h5m_filename_smaller,
             mesh_resolution=(30, 500)
@@ -88,6 +88,6 @@ class TestMeshTally2D(unittest.TestCase):
 
         odw.process_results(statepoint_file, fusion_power=1e9)
 
-        assert Path('flux_on_2D_mesh_xy.png').exists()
-        assert Path('flux_on_2D_mesh_xz.png').exists()
-        assert Path('flux_on_2D_mesh_yz.png').exists()
+        assert Path('neutron_flux_on_2D_mesh_xy.png').exists()
+        assert Path('neutron_flux_on_2D_mesh_xz.png').exists()
+        assert Path('neutron_flux_on_2D_mesh_yz.png').exists()
