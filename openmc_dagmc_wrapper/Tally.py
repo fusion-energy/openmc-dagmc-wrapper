@@ -6,7 +6,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
-from .utils import create_material, silently_remove_file, find_bounding_box
+from .utils import find_bounding_box
 
 
 class Tally(openmc.Tally):
@@ -33,8 +33,12 @@ class Tally(openmc.Tally):
         output_options = (
             [
                 "TBR",
-                "heating",
                 "flux",
+                "heating",
+                "photon_heating",
+                "neutron_heating",
+                "neutron_flux",
+                "photon_flux",
                 "absorption",
                 "neutron_effective_dose",
                 "photon_effective_dose",
@@ -57,6 +61,9 @@ class Tally(openmc.Tally):
 
     def set_score(self):
         flux_scores = [
+            "flux",
+            "neutron_flux",
+            "photon_flux",
             "neutron_fast_flux",
             "photon_fast_flux",
             "neutron_spectra",
@@ -141,11 +148,11 @@ class CellTallies:
     Usage:
     my_mats = odw.Materials(....)
     my_tallies = odw.CellTallies(
-        tally_types=['TBR', "flux"],
+        tally_types=['TBR', "neutron_flux"],
         target=["Be", 2],
         materials=my_mats
     )
-    my_tallies = odw.CellTallies(tally_types=['TBR', "flux"], target=[2])
+    my_tallies = odw.CellTallies(tally_types=['TBR', "neutron_flux"], target=[2])
 
     Args:
         tally_types ([type]): [description]
@@ -451,7 +458,17 @@ def compute_filters(tally_type):
     neutron_particle_filter = openmc.ParticleFilter(["neutron"])
 
     additional_filters = []
-    if tally_type == "neutron_fast_flux":
+    if tally_type == "neutron_flux":
+        additional_filters = [neutron_particle_filter]
+    elif tally_type == "photon_flux":
+        additional_filters = [photon_particle_filter]
+
+    elif tally_type == "neutron_heating":
+        additional_filters = [neutron_particle_filter]
+    elif tally_type == "photon_heating":
+        additional_filters = [photon_particle_filter]
+
+    elif tally_type == "neutron_fast_flux":
         energy_bins = [1e6, 1000e6]
         energy_filter = openmc.EnergyFilter(energy_bins)
         additional_filters = [neutron_particle_filter, energy_filter]
@@ -459,6 +476,7 @@ def compute_filters(tally_type):
         energy_bins = [1e6, 1000e6]
         energy_filter = openmc.EnergyFilter(energy_bins)
         additional_filters = [photon_particle_filter, energy_filter]
+
     elif tally_type == "neutron_spectra":
         energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
         energy_filter = openmc.EnergyFilter(energy_bins)
@@ -467,6 +485,7 @@ def compute_filters(tally_type):
         energy_bins = openmc.mgxs.GROUP_STRUCTURES["CCFE-709"]
         energy_filter = openmc.EnergyFilter(energy_bins)
         additional_filters = [photon_particle_filter, energy_filter]
+
     elif tally_type == "neutron_effective_dose":
         energy_function_filter_n = openmc.EnergyFunctionFilter(
             energy_bins_n, dose_coeffs_n
