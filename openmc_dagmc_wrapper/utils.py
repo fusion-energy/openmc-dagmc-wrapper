@@ -175,7 +175,6 @@ def process_results(
 
     # access the tallies
     for tally in statepoint.tallies.values():
-        print(f"processing {tally.name}")
         if tally.name.endswith("TBR"):
 
             data_frame = tally.get_pandas_dataframe()
@@ -322,7 +321,6 @@ def process_results(
                     ",", "-"), )
 
         elif "_on_3D_mesh" in tally.name:
-            print(f"processing {tally.name}")
             mesh_id = 1
             mesh = statepoint.meshes[mesh_id]
 
