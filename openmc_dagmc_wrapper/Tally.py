@@ -329,7 +329,7 @@ class MeshTally2D(Tally):
         bounding_box: Union[
             str, List[Tuple[float]]
         ],
-        mesh_resolution: Tuple[float, float]=(400, 400),
+        mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
@@ -464,18 +464,18 @@ class MeshTallies2D:
 
 
 def compute_filters(tally_type):
-    energy_bins_n, dose_coeffs_n=openmc.data.dose_coefficients(
+    energy_bins_n, dose_coeffs_n = openmc.data.dose_coefficients(
         particle="neutron",
         geometry="ISO",
     )
-    energy_bins_p, dose_coeffs_p=openmc.data.dose_coefficients(
+    energy_bins_p, dose_coeffs_p = openmc.data.dose_coefficients(
         particle="photon",
         geometry="ISO",
     )
-    photon_particle_filter=openmc.ParticleFilter(["photon"])
-    neutron_particle_filter=openmc.ParticleFilter(["neutron"])
+    photon_particle_filter = openmc.ParticleFilter(["photon"])
+    neutron_particle_filter = openmc.ParticleFilter(["neutron"])
 
-    additional_filters=[]
+    additional_filters = []
     if tally_type == "neutron_flux":
         additional_filters = [neutron_particle_filter]
     elif tally_type == "photon_flux":
