@@ -281,7 +281,7 @@ class MeshTallies3D:
         self,
         tally_types: str,
         bounding_box: Union[
-            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+            str, List[Tuple[float, float, float], Tuple[float, float, float]]
         ],
         meshes_resolution: Tuple(float, float, float) = (100, 100, 100),
     ):
@@ -431,7 +431,7 @@ class MeshTallies2D:
         tally_types: str,
         planes: str,
         bounding_box: Union[
-            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+            str, List[Tuple[float, float, float], Tuple[float, float, float]]
         ],
         meshes_resolution: Tuple[float, float] = (400, 400),
     ):
