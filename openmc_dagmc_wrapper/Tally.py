@@ -293,7 +293,7 @@ class MeshTallies3D:
         bounding_box: Union[
             str, List[Tuple[float], Tuple[float]]
         ],
-        meshes_resolution:[Tuple(float, float, float] = (100, 100, 100),
+        meshes_resolution: Tuple[float] = (100, 100, 100),
     ):
         self.tallies = []
         self.tally_types = tally_types
