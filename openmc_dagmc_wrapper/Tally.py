@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Tuple, Union
 
 import dagmc_h5m_file_inspector as di
 import openmc
@@ -6,6 +6,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
+
 from .utils import find_bounding_box
 
 
@@ -161,12 +162,7 @@ class CellTallies:
         h5m_filename
     """
 
-    def __init__(
-            self,
-            tally_types,
-            targets=[None],
-            materials=None,
-            h5m_filename=None):
+    def __init__(self, tally_types, targets=[None], materials=None, h5m_filename=None):
         self.tallies = []
         self.tally_types = tally_types
         self.targets = targets
@@ -183,10 +179,8 @@ class CellTallies:
         for score in self.tally_types:
             for target in all_targets:
                 self.tallies.append(
-                    CellTally(
-                        tally_type=score,
-                        target=target,
-                        materials=materials))
+                    CellTally(tally_type=score, target=target, materials=materials)
+                )
 
 
 class TetMeshTally(Tally):
@@ -238,22 +232,19 @@ class TetMeshTallies:
         self.tally_types = tally_types
         for score in self.tally_types:
             for filename in filenames:
-                self.tallies.append(
-                    TetMeshTally(
-                        tally_type=score,
-                        filename=filename))
+                self.tallies.append(TetMeshTally(tally_type=score, filename=filename))
 
 
 class MeshTally3D(Tally):
     def __init__(
-            self,
-            tally_type,
-            mesh_resolution=(
-                100,
-                100,
-                100),
-            bounding_box=None,
-            **kwargs):
+        self,
+        tally_type: str,
+        bounding_box: Union[
+            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+        ],
+        mesh_resolution=(100, 100, 100),
+        **kwargs
+    ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
         super().__init__(tally_type, **kwargs)
@@ -287,7 +278,12 @@ class MeshTallies3D:
     """
 
     def __init__(
-        self, tally_types, meshes_resolution=(100, 100, 100), bounding_box=None
+        self,
+        tally_types: str,
+        bounding_box: Union[
+            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+        ],
+        meshes_resolution: Tuple(float, float, float) = (100, 100, 100),
     ):
         self.tallies = []
         self.tally_types = tally_types
@@ -313,7 +309,13 @@ class MeshTally2D(Tally):
     """
 
     def __init__(
-        self, tally_type, plane, mesh_resolution=(400, 400), bounding_box=None
+        self,
+        tally_type: str,
+        plane: str,
+        bounding_box: Union[
+            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+        ],
+        mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
@@ -426,10 +428,12 @@ class MeshTallies2D:
 
     def __init__(
         self,
-        tally_types,
-        planes,
-        meshes_resolution=(400, 400),
-        bounding_box=None,
+        tally_types: str,
+        planes: str,
+        bounding_box: Union[
+            str, List[Tuple(float, float, float), Tuple(float, float, float)]
+        ],
+        meshes_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tallies = []
         self.tally_types = tally_types
@@ -490,9 +494,7 @@ def compute_filters(tally_type):
         energy_function_filter_n = openmc.EnergyFunctionFilter(
             energy_bins_n, dose_coeffs_n
         )
-        additional_filters = [
-            neutron_particle_filter,
-            energy_function_filter_n]
+        additional_filters = [neutron_particle_filter, energy_function_filter_n]
     elif tally_type == "photon_effective_dose":
         energy_function_filter_p = openmc.EnergyFunctionFilter(
             energy_bins_p, dose_coeffs_p
