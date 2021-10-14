@@ -1,4 +1,3 @@
-
 import tarfile
 import unittest
 import urllib.request
@@ -29,7 +28,7 @@ class TestMeshTally3D(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d():
-            odw.MeshTally3D("coucou")
+            odw.MeshTally3D("coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)])
 
         self.assertRaises(ValueError, incorrect_mesh_tally_3d)
 
@@ -38,7 +37,7 @@ class TestMeshTally3D(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d_type():
-            odw.MeshTally3D(1)
+            odw.MeshTally3D(1, bounding_box=[(10, 10, 10), (-10, -10, -10)])
 
         self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
 
@@ -51,15 +50,15 @@ class TestMeshTally3D(unittest.TestCase):
         expected_mesh.dimension = (100, 100, 100)
 
         # run
-        my_tally = odw.MeshTally3D(
-            "heating", bounding_box=self.h5m_filename_smaller)
+        my_tally = odw.MeshTally3D("heating", bounding_box=self.h5m_filename_smaller)
         produced_filter = my_tally.filters[-1]
         produced_mesh = produced_filter.mesh
         # test
         assert produced_mesh.lower_left == expected_mesh.lower_left
         assert produced_mesh.upper_right == expected_mesh.upper_right
         for produced_index, expected_index in zip(
-                produced_mesh.indices, expected_mesh.indices):
+            produced_mesh.indices, expected_mesh.indices
+        ):
             assert produced_index == expected_index
 
     def test_meshfilter_from_custom_mesh(self):
@@ -71,15 +70,15 @@ class TestMeshTally3D(unittest.TestCase):
         expected_mesh.dimension = (100, 100, 100)
 
         # run
-        my_tally = odw.MeshTally3D(
-            "heating", bounding_box=bbox)
+        my_tally = odw.MeshTally3D("heating", bounding_box=bbox)
         produced_filter = my_tally.filters[-1]
         produced_mesh = produced_filter.mesh
         # test
         assert produced_mesh.lower_left == expected_mesh.lower_left
         assert produced_mesh.upper_right == expected_mesh.upper_right
         for produced_index, expected_index in zip(
-                produced_mesh.indices, expected_mesh.indices):
+            produced_mesh.indices, expected_mesh.indices
+        ):
             assert produced_index == expected_index
 
 

@@ -1,4 +1,3 @@
-
 import tarfile
 import unittest
 import urllib.request
@@ -28,14 +27,18 @@ class TestMeshTally2D(unittest.TestCase):
     def test_incorrect_mesh_tally_2d(self):
         """Set a mesh_tally_2d that is not accepted which should raise an
         error"""
+
         def incorrect_mesh_tally_2d():
-            odw.MeshTally2D("coucou", plane="xy")
+            odw.MeshTally2D(
+                "coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)], plane="xy"
+            )
 
         self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
     def test_incorrect_mesh_tally_2d_type(self):
         """Set a mesh_tally_2d that is the wrong type which should raise an
         error"""
+
         def incorrect_mesh_tally_2d_type():
             odw.MeshTally2D(1, plane="xy")
 
@@ -56,19 +59,19 @@ class TestMeshTally2D(unittest.TestCase):
             tally_type="neutron_flux",
             plane="xy",
             bounding_box=self.h5m_filename_smaller,
-            mesh_resolution=(10, 200)
+            mesh_resolution=(10, 200),
         )
         tally2 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
             bounding_box=self.h5m_filename_smaller,
-            mesh_resolution=(20, 100)
+            mesh_resolution=(20, 100),
         )
         tally3 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
             bounding_box=self.h5m_filename_smaller,
-            mesh_resolution=(30, 500)
+            mesh_resolution=(30, 500),
         )
 
         tallies = openmc.Tallies([tally1, tally2, tally3])
@@ -80,14 +83,12 @@ class TestMeshTally2D(unittest.TestCase):
         settings.source = FusionRingSource(fuel="DT", radius=1)
 
         my_model = openmc.Model(
-            materials=materials,
-            geometry=geometry,
-            settings=settings,
-            tallies=tallies)
+            materials=materials, geometry=geometry, settings=settings, tallies=tallies
+        )
         statepoint_file = my_model.run()
 
         odw.process_results(statepoint_file, fusion_power=1e9)
 
-        assert Path('neutron_flux_on_2D_mesh_xy.png').exists()
-        assert Path('neutron_flux_on_2D_mesh_xz.png').exists()
-        assert Path('neutron_flux_on_2D_mesh_yz.png').exists()
+        assert Path("neutron_flux_on_2D_mesh_xy.png").exists()
+        assert Path("neutron_flux_on_2D_mesh_xz.png").exists()
+        assert Path("neutron_flux_on_2D_mesh_yz.png").exists()
