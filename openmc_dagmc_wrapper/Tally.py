@@ -254,7 +254,7 @@ class MeshTally3D(Tally):
         self,
         tally_type: str,
         bounding_box: Union[
-            str, List[Tuple[float], Tuple[float]]
+            str, List[Tuple[float]]
         ],
         mesh_resolution=(100, 100, 100),
         **kwargs
@@ -295,7 +295,7 @@ class MeshTallies3D:
         self,
         tally_types: str,
         bounding_box: Union[
-            str, List[Tuple[float], Tuple[float]]
+            str, List[Tuple[float]]
         ],
         meshes_resolution: Tuple[float] = (100, 100, 100),
     ):
@@ -327,7 +327,7 @@ class MeshTally2D(Tally):
         tally_type: str,
         plane: str,
         bounding_box: Union[
-            str, List[Tuple[float], Tuple[float]]
+            str, List[Tuple[float]]
         ],
         mesh_resolution: Tuple[float, float]=(400, 400),
     ):
@@ -445,9 +445,9 @@ class MeshTallies2D:
         tally_types: str,
         planes: str,
         bounding_box: Union[
-            str, List[Tuple[float], Tuple[float]]
+            str, List[Tuple[float]]
         ],
-        meshes_resolution: Tuple[float, float]=(400, 400),
+        meshes_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tallies = []
         self.tally_types = tally_types
