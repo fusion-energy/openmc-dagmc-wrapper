@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Tuple, Union
 
 import dagmc_h5m_file_inspector as di
 import openmc
@@ -6,6 +6,7 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
+
 from .utils import find_bounding_box
 
 
@@ -152,7 +153,11 @@ class CellTallies:
         target=["Be", 2],
         materials=my_mats
     )
-    my_tallies = odw.CellTallies(tally_types=['TBR', "neutron_flux"], target=[2])
+    my_tallies = odw.CellTallies(
+    tally_types=[
+        'TBR',
+        "neutron_flux"],
+         target=[2])
 
     Args:
         tally_types ([type]): [description]
@@ -246,14 +251,12 @@ class TetMeshTallies:
 
 class MeshTally3D(Tally):
     def __init__(
-            self,
-            tally_type,
-            mesh_resolution=(
-                100,
-                100,
-                100),
-            bounding_box=None,
-            **kwargs):
+        self,
+        tally_type: str,
+        bounding_box: Union[str, List[Tuple[float]]],
+        mesh_resolution=(100, 100, 100),
+        **kwargs
+    ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
         super().__init__(tally_type, **kwargs)
@@ -287,7 +290,10 @@ class MeshTallies3D:
     """
 
     def __init__(
-        self, tally_types, meshes_resolution=(100, 100, 100), bounding_box=None
+        self,
+        tally_types: str,
+        bounding_box: Union[str, List[Tuple[float]]],
+        meshes_resolution: Tuple[float] = (100, 100, 100),
     ):
         self.tallies = []
         self.tally_types = tally_types
@@ -313,7 +319,11 @@ class MeshTally2D(Tally):
     """
 
     def __init__(
-        self, tally_type, plane, mesh_resolution=(400, 400), bounding_box=None
+        self,
+        tally_type: str,
+        plane: str,
+        bounding_box: Union[str, List[Tuple[float]]],
+        mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
@@ -426,10 +436,10 @@ class MeshTallies2D:
 
     def __init__(
         self,
-        tally_types,
-        planes,
-        meshes_resolution=(400, 400),
-        bounding_box=None,
+        tally_types: str,
+        planes: str,
+        bounding_box: Union[str, List[Tuple[float]]],
+        meshes_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tallies = []
         self.tally_types = tally_types
