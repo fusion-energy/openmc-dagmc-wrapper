@@ -103,7 +103,7 @@ class Geometry(openmc.Geometry):
             self.graveyard_box = find_bounding_box(self.h5m_filename)
         bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
 
-        largest_radius = max(max(bbox[0]), max(bbox[1]))
+        largest_radius = 3 * max(max(bbox[0]), max(bbox[1]))
 
         sphere_surface = openmc.Sphere(
             r=largest_radius, surface_id=9999, boundary_type="vacuum"
