@@ -60,6 +60,9 @@ class TestShape(unittest.TestCase):
     def test_simulation_with_previous_h5m_file(self):
         """This performs a simulation using previously created h5m file"""
 
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
+
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
@@ -72,13 +75,15 @@ class TestShape(unittest.TestCase):
             settings=self.settings
         )
 
-        h5m_filename = my_model.run()
-        results = odw.process_results(statepoint_filename=h5m_filename)
+        statepoint_file = my_model.run()
 
-        assert results is not None
+        assert Path(statepoint_file).exists()
 
     def test_neutronics_component_simulation_with_openmc_mat(self):
         """Makes a neutronics model and simulates with a cell tally"""
+
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         test_mat = openmc.Material()
         test_mat.add_element("Fe", 1.0)
@@ -104,14 +109,12 @@ class TestShape(unittest.TestCase):
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9)
-        # extracts the heat from the results dictionary
-        assert results[my_tally.name]["Watts"]["result"] > 0
 
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
+
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         test_mat = nmm.Material.from_library("Be")
 
@@ -134,12 +137,6 @@ class TestShape(unittest.TestCase):
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9)
-        # extracts the heat from the results dictionary
-        assert results[my_tally.name]["Watts"]["result"] > 0
-
     def test_incorrect_cell_tallies(self):
         """Set a cell tally that is not accepted which should raise an
         error"""
@@ -159,7 +156,9 @@ class TestShape(unittest.TestCase):
     def test_neutronics_component_cell_simulation_heating(self):
         """Makes a neutronics model and simulates with a cell tally"""
 
-        os.system("rm *.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
+
         mat = openmc.Material()
         mat.add_element("Li", 1)
         mat.set_density("g/cm3", 2.1)
@@ -190,31 +189,12 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 5
         assert len(results.meshes) == 0
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9
-        )
-
-        # extracts the heat from the results dictionary
-        print(results['mat1_heating'])
-        heat = results["heating"]["Watts"]["result"]
-        flux = results["flux"]["flux per source particle"]["result"]
-        tbr = results["TBR"]["result"]
-        spectra_neutrons = results["neutron_spectra"]["flux per source particle"]["result"]
-        spectra_photons = results["photon_spectra"]["flux per source particle"]["result"]
-        energy = results["photon_spectra"]["flux per source particle"]["energy"]
-
-        assert heat > 0
-        assert flux > 0
-        assert tbr > 0
-        assert len(energy) == 710
-        assert len(spectra_neutrons) == 709
-        assert len(spectra_photons) == 709
-
-    def test_neutronics_spectra_post_processing(self):
+    def test_neutronics_spectra(self):
         """Makes a neutronics model and simulates with a cell tally"""
 
-        os.system("rm *.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
+
         mat = openmc.Material()
         mat.add_element("Li", 1)
         mat.set_density("g/cm3", 2.1)
@@ -234,71 +214,15 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_file = my_model.run()
 
-        results = odw.process_results(statepoint_filename=h5m_filename)
-        assert len(results.keys()) == 2
-        assert len(results['neutron_spectra'].keys()) == 1
-        assert len(results['photon_spectra'].keys()) == 1
-
-        neutron_flux_sum = sum(results['neutron_spectra']
-                               ["flux per source particle"]["result"])
-        photon_flux_sum = sum(results['photon_spectra']
-                              ["flux per source particle"]["result"])
-
-        # TODO change > to the actual ratio
-
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_energy_per_pulse=3)
-        assert len(results.keys()) == 2
-        assert len(results['neutron_spectra'].keys()) == 2
-        assert len(results['photon_spectra'].keys()) == 2
-        assert sum(results['neutron_spectra']
-                   ['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['photon_spectra']
-                   ['flux per pulse']['result']) > photon_flux_sum
-
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=2)
-        assert len(results.keys()) == 2
-        assert len(results['neutron_spectra'].keys()) == 2
-        assert len(results['photon_spectra'].keys()) == 2
-        assert sum(results['neutron_spectra']
-                   ['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['photon_spectra']
-                   ['flux per second']['result']) > photon_flux_sum
-
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_energy_per_pulse=2,
-            fusion_power=3)
-        assert len(results.keys()) == 2
-        assert len(results['neutron_spectra'].keys()) == 3
-        assert len(results['photon_spectra'].keys()) == 3
-        assert sum(results['neutron_spectra']
-                   ['flux per pulse']['result']) > neutron_flux_sum
-        assert sum(results['photon_spectra']
-                   ['flux per pulse']['result']) > photon_flux_sum
-        assert sum(results['neutron_spectra']
-                   ['flux per second']['result']) > neutron_flux_sum
-        assert sum(results['photon_spectra']
-                   ['flux per second']['result']) > photon_flux_sum
-
-        spectra_neutrons = results["neutron_spectra"]["flux per source particle"]["result"]
-        spectra_photons = results["photon_spectra"]["flux per source particle"]["result"]
-        energy = results["photon_spectra"]["flux per source particle"]["energy"]
-
-        assert len(energy) == 710
-        assert len(spectra_neutrons) == 709
-        assert len(spectra_photons) == 709
+        assert Path(statepoint_file).exists()
 
     def test_neutronics_component_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 2D mesh tally"""
 
-        os.system("rm *_on_2D_mesh_*.png")
-        os.system("rm *.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -323,21 +247,13 @@ class TestShape(unittest.TestCase):
         assert len(results.meshes) == 3
         assert len(results.tallies.items()) == 3
 
-        assert Path("heating_on_2D_mesh_xz.png").exists() is False
-        assert Path("heating_on_2D_mesh_xy.png").exists() is False
-        assert Path("heating_on_2D_mesh_yz.png").exists() is False
-
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
-
-        assert Path("heating_on_2D_mesh_xz.png").exists() is True
-        assert Path("heating_on_2D_mesh_xy.png").exists() is True
-        assert Path("heating_on_2D_mesh_yz.png").exists() is True
-
     def test_neutronics_component_3d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D mesh tally and
         checks that the vtk file is produced"""
 
-        os.system("rm *.h5 *.vtk")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
+        os.system("rm *.vtk")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -362,20 +278,13 @@ class TestShape(unittest.TestCase):
         assert len(results.tallies.items()) == 2
         assert Path(h5m_filename).exists() is True
 
-        assert Path("heating_on_3D_mesh.vtk").exists() is False
-        assert Path("n-Xt_on_3D_mesh.vtk").exists() is False
-
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
-
-        assert Path("heating_on_3D_mesh.vtk").exists() is True
-        assert Path("n-Xt_on_3D_mesh.vtk").exists() is True
-
     def test_neutronics_component_3d_and_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
         and checks that the vtk and png files are produced. This checks the
         mesh ID values don't overlap"""
 
-        os.system("rm *.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -403,21 +312,14 @@ class TestShape(unittest.TestCase):
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
-
-        assert Path(h5m_filename).exists() is True
-        assert Path("heating_on_3D_mesh.vtk").exists() is True
-        assert Path("heating_on_2D_mesh_xz.png").exists() is True
-        assert Path("heating_on_2D_mesh_xy.png").exists() is True
-        assert Path("heating_on_2D_mesh_yz.png").exists() is True
-
     def test_neutronics_component_3d_and_2d_mesh_simulation_with_corner_points(
             self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
         and checks that the vtk and png files are produced. This checks the
         mesh ID values don't overlap"""
 
-        os.system("rm *.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -453,19 +355,12 @@ class TestShape(unittest.TestCase):
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-        odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
-
-        assert Path(h5m_filename).exists() is True
-        assert Path("heating_on_3D_mesh.vtk").exists() is True
-        assert Path("heating_on_2D_mesh_xz.png").exists() is True
-        assert Path("heating_on_2D_mesh_xy.png").exists() is True
-        assert Path("heating_on_2D_mesh_yz.png").exists() is True
-
     def test_reactor_from_shapes_cell_tallies(self):
         """Makes a reactor from two shapes, then makes a neutronics model
         and tests the TBR simulation value"""
 
-        os.system("rm results.json")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -483,21 +378,16 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_file = my_model.run()
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9
-        )
-
-        assert isinstance(results["TBR"]["result"], float)
-        assert Path("results.json").exists() is True
+        assert Path(statepoint_file).exists()
 
     def test_cell_tallies_simulation_fast_flux(self):
         """Performs simulation with h5m file and tallies neutron and photon
         fast flux. Checks that entries exist in the results."""
 
-        os.system("rm results.json")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -515,31 +405,16 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_file = my_model.run()
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9,
-            fusion_energy_per_pulse=1.2e6
-        )
-
-        assert isinstance(
-            results["neutron_fast_flux"]["fast flux per source particle"]["result"],
-            float,
-        )
-        assert isinstance(
-            results["flux"]["flux per source particle"]["result"],
-            float,
-        )
-
-        assert results["flux"]["flux per source particle"]["result"] > results[
-            "neutron_fast_flux"]["fast flux per source particle"]["result"]
-
+        assert Path(statepoint_file).exists()
+    
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon
         dose. Checks that entries exist in the results."""
 
-        os.system("rm results.json statepoint*.h5")
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
@@ -557,98 +432,14 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_file = my_model.run()
 
-        results = odw.process_results(
-            statepoint_filename=h5m_filename,
-            fusion_power=1e9,
-            fusion_energy_per_pulse=1.2e6
-        )
-
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "effective dose per source particle pSv cm3"
-            ]["result"],
-            float,
-        )
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "pSv cm3 per pulse"
-            ]["result"],
-            float,
-        )
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "pSv cm3 per second"
-            ]["result"],
-            float,
-        )
-
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "effective dose per source particle pSv cm3"
-            ]["std. dev."],
-            float,
-        )
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "pSv cm3 per pulse"
-            ]["std. dev."],
-            float,
-        )
-        assert isinstance(
-            results["neutron_effective_dose"][
-                "pSv cm3 per second"
-            ]["std. dev."],
-            float,
-        )
-
-        assert isinstance(
-            results["photon_effective_dose"][
-                "effective dose per source particle pSv cm3"
-            ]["result"],
-            float,
-        )
-        assert isinstance(
-            results["photon_effective_dose"]["pSv cm3 per pulse"][
-                "result"
-            ],
-            float,
-        )
-        assert isinstance(
-            results["photon_effective_dose"][
-                "pSv cm3 per second"
-            ]["result"],
-            float,
-        )
-
-        assert isinstance(
-            results["photon_effective_dose"][
-                "effective dose per source particle pSv cm3"
-            ]["std. dev."],
-            float,
-        )
-        assert isinstance(
-            results["photon_effective_dose"]["pSv cm3 per pulse"][
-                "std. dev."
-            ],
-            float,
-        )
-        assert isinstance(
-            results["photon_effective_dose"][
-                "pSv cm3 per second"
-            ]["std. dev."],
-            float,
-        )
-
-        assert Path("results.json").exists() is True
+        assert Path(statepoint_file).exists()
 
     # @shimwell can you take a look at that please?
     # def test_reactor_from_shapes_2d_mesh_tallies(self):
     #     """Makes a reactor from two shapes, then makes a neutronics model
     #     and tests the TBR simulation value"""
-
-    #     os.system("rm *_on_2D_mesh_*.png")
 
     #     geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
     #     materials = odw.Materials(
@@ -666,19 +457,9 @@ class TestShape(unittest.TestCase):
     #     )
 
     #     # performs an openmc simulation on the model
-    #     h5m_filename = my_model.run()
+        # statepoint_file = my_model.run()
 
-    #     odw.process_results(statepoint_filename=h5m_filename, fusion_power=1e9)
-
-    #     assert Path("n-Xt_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("n-Xt_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("n-Xt_on_2D_mesh_yz.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("heating_on_2D_mesh_yz.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_xz.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_xy.png").exists() is True
-    #     assert Path("flux_on_2D_mesh_yz.png").exists() is True
+        # assert Path(statepoint_file).exists()
 
     def test_simulations_with_missing_h5m_files(self):
         """Creates NeutronicsModel objects and tries to perform simulation
