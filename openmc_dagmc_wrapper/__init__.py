@@ -1,4 +1,4 @@
-from .utils import process_results, create_material, find_bounding_box
+from .utils import create_material, find_bounding_box
 
 from .Geometry import Geometry
 from .Materials import Materials

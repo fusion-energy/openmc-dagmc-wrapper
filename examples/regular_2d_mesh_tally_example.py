@@ -77,10 +77,3 @@ my_model = openmc.Model(
     materials=materials, geometry=geometry, settings=settings, tallies=tallies
 )
 statepoint_file = my_model.run()
-
-# processes the output h5 file. The process_results function contains logic on
-# how to process each tally with respect to the tally multipliers and units
-# involved. The fusion power input allows tallies to be scaled from the units
-# of per source neutron to units such as Watts (for heating), Sv per second
-# (for dose) and other convenient units.
-odw.process_results(statepoint_file, fusion_power=1e9)
