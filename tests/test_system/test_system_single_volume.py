@@ -109,7 +109,6 @@ class TestShape(unittest.TestCase):
         results = openmc.StatePoint(h5m_filename)
         assert len(results.tallies.items()) == 1
 
-
     def test_neutronics_component_simulation_with_nmm(self):
         """Makes a neutronics model and simulates with a cell tally"""
 
@@ -408,7 +407,7 @@ class TestShape(unittest.TestCase):
         statepoint_file = my_model.run()
 
         assert Path(statepoint_file).exists()
-    
+
     def test_cell_tallies_simulation_effective_dose(self):
         """Performs simulation with h5m file and tallies neutron and photon
         dose. Checks that entries exist in the results."""
