@@ -19,8 +19,7 @@ import dagmc_h5m_file_inspector as di
 
 def create_material(material_tag: str, material_entry):
     if isinstance(material_entry, str):
-        openmc_material = nmm.Material.from_library(
-            name=material_entry, material_id=None
+        openmc_material = nmm.Material.from_library(name=material_entry, material_id=None
         ).openmc_material
     elif isinstance(material_entry, openmc.Material):
         # sets the material name in the event that it had not been set
@@ -40,16 +39,38 @@ def create_material(material_tag: str, material_entry):
     return openmc_material
 
 
-def create_openmc_materials(h5m_filename):
+def get_an_isotope_present_in_cross_sections_xml():
+    """Opens the xml file found with the OPENMC_CROSS_SECTIONS environmental
+    variable"""
+
+    cross_sections_xml = os.getenv('OPENMC_CROSS_SECTIONS')
+    import xml.etree.ElementTree as ET
+    tree = ET.parse(cross_sections_xml)
+    root = tree.getroot()
+    for child in root[:1]:
+        available_isotope = child.attrib['materials']
+    return available_isotope
+
+
+def create_placeholder_openmc_materials(h5m_filename):
+    """This function creates a list of openmc materials with a single isotope.
+    The isotope used is found by opening the cross_sections.xml file and is
+    therefore likely to be available to openmc. When finding the bounding box
+    the DAGMC geometry is initialized and this requires a materials.xml file
+    with materials names that match the contents of the and the materials need
+    at least one isotope."""
 
     materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
-    openmc_materials = {}
+    openmc_materials = []
+    placeholder_isotope = get_an_isotope_present_in_cross_sections_xml()
     for material_tag in materials_in_h5m:
         if material_tag != "graveyard":
-            openmc_material = create_material(material_tag, "Be")
-            openmc_materials[material_tag] = openmc_material
+            void_mat = openmc.Material()
+            void_mat.add_nuclide(placeholder_isotope, 1)
+            void_mat.name = material_tag
+            openmc_materials.append(void_mat)
 
-    return openmc.Materials(list(openmc_materials.values()))
+    return openmc.Materials(openmc_materials)
 
 
 def silently_remove_file(filename: str):
@@ -60,548 +81,6 @@ def silently_remove_file(filename: str):
         os.remove(filename)
     except OSError:
         pass  # in some cases the file will not exist
-
-
-def _save_2d_mesh_tally_as_png(filename: str, tally) -> str:
-    """Extracts 2D mesh tally results from a tally and saves the result as
-    a png image.
-
-    Arguments:
-        score (str): The tally score to filter the tally with, e.g. 'flux',
-            'heating', etc.
-        filename (str): The filename to use when saving the png output file
-        tally (opencmc.tally()): The OpenMC to extract the mesh tally
-            results from.
-    """
-
-    my_slice = tally.get_slice(scores=tally.scores)
-    tally_filter = tally.find_filter(filter_type=openmc.MeshFilter)
-    shape = tally_filter.mesh.dimension.tolist()
-    shape.remove(1)
-    my_slice.mean.shape = shape
-
-    fig = plt.subplot()
-    fig.imshow(my_slice.mean).get_figure().savefig(filename, dpi=300)
-    fig.clear()
-
-    return filename
-
-
-def find_fusion_energy_per_reaction(reactants: str) -> float:
-    """Finds the average fusion energy produced per fusion reaction in joules
-    from the fule type.
-
-    Args:
-        reactants: the isotopes that are combined in the fusion even. Options
-            are "DD" or "DT"
-
-    Returns:
-        The average energy of a fusion reaction in Joules
-    """
-
-    if reactants == "DT":
-        fusion_energy_of_neutron_ev = 14.06 * 1e6
-        fusion_energy_of_alpha_ev = 3.52 * 1e6
-        fusion_energy_per_reaction_ev = (
-            fusion_energy_of_neutron_ev + fusion_energy_of_alpha_ev
-        )
-    elif reactants == "DD":
-        fusion_energy_of_trition_ev = 1.01 * 1e6
-        fusion_energy_of_proton_ev = 3.02 * 1e6
-        fusion_energy_of_he3_ev = 0.82 * 1e6
-        fusion_energy_of_neutron_ev = 2.45 * 1e6
-        fusion_energy_per_reaction_ev = (
-            0.5 * (fusion_energy_of_trition_ev + fusion_energy_of_proton_ev)
-        ) + (0.5 * (fusion_energy_of_he3_ev + fusion_energy_of_neutron_ev))
-    else:
-        raise ValueError(
-            "Only fuel types of DD and DT are currently supported")
-
-    fusion_energy_per_reaction_j = fusion_energy_per_reaction_ev * 1.602176487e-19
-
-    return fusion_energy_per_reaction_j
-
-
-def process_results(
-    statepoint_filename: str,
-    fusion_power: Optional[float] = None,
-    fusion_energy_per_pulse: Optional[float] = None,
-    fusion_fuel: Optional[str] = "DT",
-    outputfile: Optional[str] = "results.json",
-) -> dict:
-    """Extracts simulation results from the statepoint file. Applies post
-    processing to the results taking into account user specified fusion
-    power or fusion energy per pulse. If 3d mesh tallies are specified then
-    vtk files will be produced. If 2d mesh tallies are specified then png
-    images will be produced. The cell tallies results will be output to
-    a json file.
-
-    Args:
-        statepoint_filename: the name of the statepoint file to extract
-            results from and process.
-        fusion_power: the power in watts emitted by the fusion reaction
-            recalling that each DT fusion reaction emits 17.6 MeV or
-            2.819831e-12 Joules. Intended use for steady state reactors.
-            Providing an input can result in additional entries in the post
-            processed tally results. e.g heating tallies are extended to include
-            rate of heating deposited in Watts.
-        fusion_energy_per_pulse: the amount of energy released by the pulse
-            in Joules. Intended use for pulsed machines. Providing an input
-            can result in additional entries in the post processed tally
-            results. e.g heating tallies are extended to include Joules
-            deposited for the pulse.
-        outputfile: the filename to use when saving the cell tallies to file.
-        fusion_fuel: the isotopes that make up the fuel. Accepted options are
-            'DT' or 'DD' used to obtain the fusion energy emitted per fusion
-            event.
-
-    Returns:
-        A dictionary of results
-    """
-
-    fusion_energy_per_reaction_j = find_fusion_energy_per_reaction(fusion_fuel)
-
-    if fusion_power is not None:
-        number_of_neutrons_per_second = fusion_power / fusion_energy_per_reaction_j
-    if fusion_energy_per_pulse is not None:
-        number_of_neutrons_per_pulse = (
-            fusion_energy_per_pulse / fusion_energy_per_reaction_j
-        )
-
-    # open the results file
-    statepoint = openmc.StatePoint(statepoint_filename)
-
-    results = defaultdict(dict)
-
-    # access the tallies
-    for tally in statepoint.tallies.values():
-        if tally.name.endswith("TBR"):
-
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            results[tally.name] = {
-                "result": tally_result,
-            }
-            if "std. dev." in data_frame.keys():
-                tally_std_dev = data_frame["std. dev."].sum()
-                results[tally.name]["std. dev."] = tally_std_dev
-
-        elif tally.name.endswith("heating"):
-
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
-            results[tally.name]["MeV per source particle"] = {
-                "result": tally_result / 1e6,
-                "std. dev.": tally_std_dev / 1e6,
-            }
-
-            if fusion_power is not None:
-                results[tally.name]["Watts"] = {
-                    "result": tally_result
-                    * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_per_second,
-                    "std. dev.": tally_std_dev
-                    * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_per_second,
-                }
-
-            if fusion_energy_per_pulse is not None:
-                results[tally.name]["Joules"] = {
-                    "result": tally_result
-                    * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_per_pulse,
-                    "std. dev.": tally_std_dev
-                    * 1.602176487e-19  # converts tally from eV to Joules
-                    * number_of_neutrons_per_pulse,
-                }
-
-        elif tally.name.endswith("fast_flux"):
-
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            results[tally.name]["fast flux per source particle"] = {
-                "result": tally_result
-            }
-            if "std. dev." in data_frame.keys():
-                tally_std_dev = data_frame["std. dev."].sum()
-                results[tally.name]["fast flux per source particle"][
-                    "std. dev."
-                ] = tally_std_dev
-
-            if fusion_power is not None:
-                results[tally.name]["fast flux per second"] = {
-                    "result": tally_result * number_of_neutrons_per_second
-                }
-
-            if fusion_energy_per_pulse is not None:
-                results[tally.name]["fast flux per pulse"] = {
-                    "result": tally_result * number_of_neutrons_per_pulse
-                }
-
-        elif tally.name.endswith("flux"):
-
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
-            results[tally.name]["flux per source particle"] = {
-                "result": tally_result,
-                "std. dev.": tally_std_dev,
-            }
-
-            if fusion_power is not None:
-                results[tally.name]["flux per second"] = {
-                    "result": tally_result * number_of_neutrons_per_second
-                }
-
-            if fusion_energy_per_pulse is not None:
-                results[tally.name]["flux per pulse"] = {
-                    "result": tally_result * number_of_neutrons_per_pulse
-                }
-
-        elif tally.name.endswith("spectra"):
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"]
-            tally_std_dev = data_frame["std. dev."]
-            results[tally.name]["flux per source particle"] = {
-                "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                "result": tally_result.tolist(),
-                "std. dev.": tally_std_dev.tolist(),
-            }
-
-            if fusion_power is not None:
-                scale_tally_result = tally_result * number_of_neutrons_per_second
-                scale_tally_std_dev = tally_std_dev * number_of_neutrons_per_second
-                results[tally.name]["flux per second"] = {
-                    "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": scale_tally_result.tolist(),
-                    "std. dev.": scale_tally_std_dev.tolist(),
-                }
-
-            if fusion_energy_per_pulse is not None:
-                results[tally.name]["flux per pulse"] = {
-                    "energy": openmc.mgxs.GROUP_STRUCTURES["CCFE-709"].tolist(),
-                    "result": [
-                        result * number_of_neutrons_per_pulse
-                        for result in tally_result.tolist()
-                    ],
-                    "std. dev.": [
-                        result * number_of_neutrons_per_pulse
-                        for result in tally_std_dev.tolist()
-                    ],
-                }
-
-        elif tally.name.endswith("effective_dose"):
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
-            # flux is in units of cm per source particle
-            # dose coefficients have units of pico Sv cm^2
-            results[tally.name]["effective dose per source particle pSv cm3"] = {
-                "result": tally_result, "std. dev.": tally_std_dev, }
-
-            if fusion_power is not None:
-                results[tally.name]["pSv cm3 per second"] = {
-                    "result": tally_result * number_of_neutrons_per_second,
-                    "std. dev.": tally_std_dev * number_of_neutrons_per_second,
-                }
-
-            if fusion_energy_per_pulse is not None:
-                results[tally.name]["pSv cm3 per pulse"] = {
-                    "result": tally_result * number_of_neutrons_per_pulse,
-                    "std. dev.": tally_std_dev * number_of_neutrons_per_pulse,
-                }
-
-        elif "_on_2D_mesh" in tally.name:
-            # score = tally.name.split("_")[0]
-            _save_2d_mesh_tally_as_png(
-                tally=tally, filename=tally.name.replace(
-                    "(", "").replace(
-                    ")", "").replace(
-                    ",", "-"), )
-
-        elif "_on_3D_mesh" in tally.name:
-            mesh_id = 1
-            mesh = statepoint.meshes[mesh_id]
-
-            # TODO method to calculate
-            # import math
-            # print('width', mesh.width)
-            # print('dimension', mesh.dimension)
-            # element_lengths = [w/d for w,d in zip(mesh.width, mesh.dimension)]
-            # print('element_lengths', element_lengths)
-            # element_volume = math.prod(element_lengths)
-            # print('element_volume', element_volume)
-
-            xs = np.linspace(
-                mesh.lower_left[0], mesh.upper_right[0], mesh.dimension[0] + 1
-            )
-            ys = np.linspace(
-                mesh.lower_left[1], mesh.upper_right[1], mesh.dimension[1] + 1
-            )
-            zs = np.linspace(
-                mesh.lower_left[2], mesh.upper_right[2], mesh.dimension[2] + 1
-            )
-            tally = statepoint.get_tally(name=tally.name)
-
-            data = tally.mean[:, 0, 0]
-            error = tally.std_dev[:, 0, 0]
-
-            data = data.tolist()
-            error = error.tolist()
-
-            for content in [data, error]:
-                for counter, i in enumerate(content):
-                    if math.isnan(i):
-                        content[counter] = 0.0
-
-            write_3d_mesh_tally_to_vtk(
-                xs=xs,
-                ys=ys,
-                zs=zs,
-                tally_label=tally.name,
-                tally_data=data,
-                error_data=error,
-                outfile=tally.name.replace(
-                    "(",
-                    "").replace(
-                    ")",
-                    "").replace(
-                    ",",
-                    "-") +
-                ".vtk",
-            )
-
-        elif "_on_3D_u_mesh" in tally.name:
-            pass
-            # openmc makes vtk files for unstructured mesh files automatically
-        else:
-            # this must be a standard score cell tally
-            data_frame = tally.get_pandas_dataframe()
-            tally_result = data_frame["mean"].sum()
-            tally_std_dev = data_frame["std. dev."].sum()
-            results[tally.name]["events per source particle"] = {
-                "result": tally_result,
-                "std. dev.": tally_std_dev,
-            }
-
-    if outputfile is not None:
-        with open(outputfile, "w") as outfile:
-            json.dump(results, outfile, indent=4, sort_keys=True)
-
-    return results
-
-
-# to do find particles from tally
-# def find_particle_from_tally(tally):
-#     for filter in talliy.filters:
-#         if isinstance(filter, openmc.ParticleFilter):
-#             return filter.bins[0]
-#     return None
-
-
-def write_3d_mesh_tally_to_vtk(
-    xs: np.linspace,
-    ys: np.linspace,
-    zs: np.linspace,
-    tally_data: List[float],
-    error_data: Optional[List[float]] = None,
-    outfile: Optional[str] = "3d_mesh_tally_data.vtk",
-    tally_label: Optional[str] = "3d_mesh_tally_data",
-) -> str:
-    """Converts regular 3d data into a vtk file for visualising the data.
-    Programs that can visualise vtk files include Paraview
-    https://www.paraview.org/ and VisIt
-    https://wci.llnl.gov/simulation/computer-codes/visit
-
-    Arguments:
-        xs: A numpy array containing evenly spaced numbers from the lowest x
-            coordinate value to the highest x coordinate value.
-        ys: A numpy array containing evenly spaced numbers from the lowest y
-            coordinate value to the highest y coordinate value.
-        zs: A numpy array containing evenly spaced numbers from the lowest z
-            coordinate value to the highest z coordinate value.
-        tally_data: A list of data values to assign to the vtk dataset.
-        error_data: A list of error data values to assign to the vtk dataset.
-        outfile: The filename of the output vtk file.
-        tally_label: The name to assign to the dataset in the vtk file.
-
-    Returns:
-        str: the filename of the file produced
-    """
-    try:
-        import vtk
-    except (ImportError, ModuleNotFoundError):
-        msg = (
-            "Conversion to VTK requested,"
-            "but the Python VTK module is not installed. Try pip install pyvtk"
-        )
-        raise ImportError(msg)
-
-    vtk_box = vtk.vtkRectilinearGrid()
-
-    vtk_box.SetDimensions(len(xs), len(ys), len(zs))
-
-    vtk_x_array = vtk.vtkDoubleArray()
-    vtk_x_array.SetName("x-coords")
-    vtk_x_array.SetArray(xs, len(xs), True)
-    vtk_box.SetXCoordinates(vtk_x_array)
-
-    vtk_y_array = vtk.vtkDoubleArray()
-    vtk_y_array.SetName("y-coords")
-    vtk_y_array.SetArray(ys, len(ys), True)
-    vtk_box.SetYCoordinates(vtk_y_array)
-
-    vtk_z_array = vtk.vtkDoubleArray()
-    vtk_z_array.SetName("z-coords")
-    vtk_z_array.SetArray(zs, len(zs), True)
-    vtk_box.SetZCoordinates(vtk_z_array)
-
-    tally = np.array(tally_data)
-    tally_data = vtk.vtkDoubleArray()
-    tally_data.SetName(tally_label)
-    tally_data.SetArray(tally, tally.size, True)
-
-    if error_data is not None:
-        error = np.array(error_data)
-        error_data = vtk.vtkDoubleArray()
-        error_data.SetName("error_tag")
-        error_data.SetArray(error, error.size, True)
-
-    vtk_box.GetCellData().AddArray(tally_data)
-    vtk_box.GetCellData().AddArray(error_data)
-
-    writer = vtk.vtkRectilinearGridWriter()
-
-    writer.SetFileName(outfile)
-
-    writer.SetInputData(vtk_box)
-
-    print("Writing %s" % outfile)
-
-    writer.Write()
-
-    return outfile
-
-
-# @shimwell are we keeping this?
-# def create_initial_particles(
-#         source,
-#         number_of_source_particles: int = 2000) -> str:
-#     """Accepts an openmc source and creates an initial_source.h5 that can be
-#     used to find intial xyz, direction and energy of the partice source.
-
-#     Arguments:
-#         source: (openmc.Source()): the OpenMC source to create an initial source
-#             file from.
-#         number_of_source_particles: The number of particle to sample.
-
-#     Returns:
-#         str: the filename of the h5 file produced
-#     """
-
-#     # MATERIALS
-
-#     # no real materials are needed for finding the source
-#     mats = openmc.Materials([])
-
-#     # GEOMETRY
-
-#     # just a minimal geometry
-#     outer_surface = openmc.Sphere(r=100000, boundary_type="vacuum")
-#     cell = openmc.Cell(region=-outer_surface)
-#     universe = openmc.Universe(cells=[cell])
-#     geom = openmc.Geometry(universe)
-
-#     # SIMULATION SETTINGS
-
-#     # Instantiate a Settings object
-#     sett = openmc.Settings()
-#     # this will fail but it will write the initial_source.h5 file first
-#     sett.run_mode = "eigenvalue"
-#     sett.particles = number_of_source_particles
-#     sett.batches = 1
-#     sett.inactive = 0
-#     sett.write_initial_source = True
-
-#     sett.source = source
-
-#     model = openmc.model.Model(geom, mats, sett)
-
-#     silently_remove_file("settings.xml")
-#     silently_remove_file("materials.xml")
-#     silently_remove_file("geometry.xml")
-#     silently_remove_file("settings.xml")
-#     silently_remove_file("tallies.xml")
-#     model.export_to_xml()
-
-#     # this just adds write_initial_source == True to the settings.xml
-#     tree = ET.parse("settings.xml")
-#     root = tree.getroot()
-#     elem = SubElement(root, "write_initial_source")
-#     elem.text = "true"
-#     tree.write("settings.xml")
-
-#     # This will crash hence the try except loop, but it writes the
-#     # initial_source.h5
-#     openmc.run(output=False)
-#     try:
-#         openmc.run(output=False)
-#     except BaseException:
-#         pass
-
-#     return "initial_source.h5"
-
-
-# @shimwell are we keeping this?
-# def extract_points_from_initial_source(
-#     input_filename: str = "initial_source.h5", view_plane: str = "RZ"
-# ) -> list:
-#     """Reads in an initial source h5 file (generated by OpenMC), extracts point
-#     and projects them onto a view plane.
-
-#     Arguments:
-#         input_filename: the OpenMC source to create an initial source
-#             file from.
-#         view_plane: The plane to project. Options are 'XZ', 'XY', 'YZ',
-#             'YX', 'ZY', 'ZX', 'RZ' and 'XYZ'. Defaults to 'RZ'. Defaults to
-#             'RZ'.
-
-#     Returns:
-#         list: list of points extracted
-#     """
-#     import h5py
-
-#     h5_file = h5py.File(input_filename, "r")
-#     dset = h5_file["source_bank"]
-
-#     points = []
-
-#     for particle in dset:
-#         if view_plane == "XZ":
-#             points.append((particle[0][0], particle[0][2]))
-#         elif view_plane == "XY":
-#             points.append((particle[0][0], particle[0][1]))
-#         elif view_plane == "YZ":
-#             points.append((particle[0][1], particle[0][2]))
-#         elif view_plane == "YX":
-#             points.append((particle[0][1], particle[0][0]))
-#         elif view_plane == "ZY":
-#             points.append((particle[0][2], particle[0][1]))
-#         elif view_plane == "ZX":
-#             points.append((particle[0][2], particle[0][0]))
-#         elif view_plane == "RZ":
-#             xy_coord = math.pow(particle[0][0], 2) + \
-#                 math.pow(particle[0][1], 2)
-#             points.append((math.sqrt(xy_coord), particle[0][2]))
-#         elif view_plane == "XYZ":
-#             points.append((particle[0][0], particle[0][1], particle[0][2]))
-#         else:
-#             raise ValueError(
-#                 "view_plane value of ",
-#                 view_plane,
-#                 " is not supported")
-#     return points
 
 
 def diff_between_angles(angle_a: float, angle_b: float) -> float:
@@ -639,12 +118,8 @@ def find_bounding_box(h5m_filename: str) -> List[Tuple[float, float, float]]:
     geometry.root_universe = dag_univ
     geometry.export_to_xml()
 
-    # exports materials.xml
-    # replace this with a empty materisl with the correct names
-    # self.create_openmc_materials()  # @shimwell do we need this?
-    # openmc.Materials().export_to_xml()
     silently_remove_file("materials.xml")
-    materials = create_openmc_materials(h5m_filename)
+    materials = create_placeholder_openmc_materials(h5m_filename)
     materials.export_to_xml()
 
     openmc.Plots().export_to_xml()

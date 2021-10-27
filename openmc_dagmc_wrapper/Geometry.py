@@ -44,6 +44,7 @@ class Geometry(openmc.Geometry):
         if self.reflective_angles is None:
             # if a graveyard is not found in the dagmc geometry a CSG one is
             # made
+
             if "graveyard" not in di.get_materials_from_h5m(self.h5m_filename):
                 # vac_surfs = self.create_cube_of_vacuum_surfaces()
                 # # creates a cube of surfaces for the boundary conditions
@@ -93,6 +94,7 @@ class Geometry(openmc.Geometry):
                 cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
+
         return root
 
     def create_sphere_of_vacuum_surface(self):
@@ -103,7 +105,7 @@ class Geometry(openmc.Geometry):
             self.graveyard_box = find_bounding_box(self.h5m_filename)
         bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
 
-        largest_radius = max(max(bbox[0]), max(bbox[1]))
+        largest_radius = 3 * max(max(bbox[0]), max(bbox[1]))
 
         sphere_surface = openmc.Sphere(
             r=largest_radius, surface_id=9999, boundary_type="vacuum"
