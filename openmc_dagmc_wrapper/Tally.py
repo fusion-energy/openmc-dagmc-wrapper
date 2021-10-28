@@ -74,7 +74,7 @@ class Tally(openmc.Tally):
         ]
 
         if self.tally_type == "TBR":
-            self.scores = ["(n,Xt)"]  # where X is a wild card
+            self.scores = ["(n,Xt)"]  # todo see if H3-production can replace this
         elif self.tally_type in flux_scores:
             self.scores = ["flux"]
         else:

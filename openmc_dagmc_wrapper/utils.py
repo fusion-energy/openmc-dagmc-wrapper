@@ -44,6 +44,12 @@ def get_an_isotope_present_in_cross_sections_xml():
     variable"""
 
     cross_sections_xml = os.getenv('OPENMC_CROSS_SECTIONS')
+    if cross_sections_xml is None:
+        msg = ('set your OPENMC_CROSS_SECTIONS environmental variable before '
+               'running this script. This can be done automatically using the '
+               'openmc-data-downloader package or manually with an "export '
+               'OPENMC_CROSS_SECTIONS path to cross_sections.xml"')
+        raise ValueError(msg)
     import xml.etree.ElementTree as ET
     tree = ET.parse(cross_sections_xml)
     root = tree.getroot()
