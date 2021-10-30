@@ -19,8 +19,8 @@ import dagmc_h5m_file_inspector as di
 
 def create_material(material_tag: str, material_entry):
     if isinstance(material_entry, str):
-        openmc_material = nmm.Material.from_library(name=material_entry, material_id=None
-        ).openmc_material
+        openmc_material = nmm.Material.from_library(
+            name=material_entry, material_id=None).openmc_material
     elif isinstance(material_entry, openmc.Material):
         # sets the material name in the event that it had not been set
         openmc_material = material_entry
