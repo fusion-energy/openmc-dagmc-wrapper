@@ -271,7 +271,7 @@ class MeshTally3D(Tally):
         else:
             self.bounding_box = bounding_box
 
-        mesh = openmc.RegularMesh(mesh_id=1, name="3d_mesh")
+        mesh = openmc.RegularMesh(name="3d_mesh")
         mesh.dimension = self.mesh_resolution
         mesh.lower_left = self.bounding_box[0]
         mesh.upper_right = self.bounding_box[1]
