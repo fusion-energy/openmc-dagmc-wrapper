@@ -80,12 +80,12 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=1)
 
     def test_bounding_box_size_2(self):
 
@@ -95,12 +95,12 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         assert len(bounding_box) == 2
         assert len(bounding_box[0]) == 3
         assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
+        assert bounding_box[0][0] == pytest.approx(-10005, abs=1)
+        assert bounding_box[0][1] == pytest.approx(-10005, abs=1)
+        assert bounding_box[0][2] == pytest.approx(-10005, abs=1)
+        assert bounding_box[1][0] == pytest.approx(10005, abs=1)
+        assert bounding_box[1][1] == pytest.approx(10005, abs=1)
+        assert bounding_box[1][2] == pytest.approx(10005, abs=1)
 
     # def test_create_initial_source_file(self):
     #     """Creates an initial_source.h5 from a point source"""
