@@ -2,10 +2,8 @@ from typing import Tuple
 
 import dagmc_h5m_file_inspector as di
 import openmc
+from dagmc_bounding_box import DagmcBoundingBox
 from numpy import cos, sin
-
-from .utils import find_bounding_box
-import trimesh
 
 
 class Geometry(openmc.Geometry):
@@ -35,6 +33,8 @@ class Geometry(openmc.Geometry):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
         self.graveyard_box = graveyard_box
+        self.bounding_box = DagmcBoundingBox(self.h5m_filename).corners
+
         super().__init__(root=self.make_root())
 
     def make_root(self):
@@ -112,32 +112,3 @@ class Geometry(openmc.Geometry):
         )
 
         return sphere_surface
-
-    def corners(self, expand=None):
-        """Finds the bounding box of the geometry h5m file
-        Args:
-            expand: increase (+ve) number or decrease the offset from the
-                bounding box
-
-        Returns:
-            vertices of lower left corner and upper right corner
-        """
-        mesh_object = trimesh.load_mesh(self.h5m_filename, process=False)
-        verts = mesh_object.bounding_box.vertices
-        for vert in verts:
-            if (
-                vert[0] < mesh_object.centroid[0]
-                and vert[1] < mesh_object.centroid[1]
-                and vert[2] < mesh_object.centroid[2]
-            ):
-                llc = (vert[0], vert[1], vert[2])
-            if (
-                vert[0] > mesh_object.centroid[0]
-                and vert[1] > mesh_object.centroid[1]
-                and vert[2] > mesh_object.centroid[2]
-            ):
-                urc = (vert[0], vert[1], vert[2])
-        if expand:
-            llc = (llc[0] - expand[0], llc[1] - expand[1], llc[2] - expand[2])
-            urc = (urc[0] + expand[0], urc[1] + expand[1], urc[2] + expand[2])
-        return llc, urc

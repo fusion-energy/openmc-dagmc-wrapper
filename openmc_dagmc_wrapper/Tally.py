@@ -251,7 +251,7 @@ class MeshTally3D(Tally):
     def __init__(
         self,
         tally_type: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
         mesh_resolution=(100, 100, 100),
         **kwargs
     ):
@@ -287,7 +287,7 @@ class MeshTallies3D:
     def __init__(
         self,
         tally_types: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
         meshes_resolution: Tuple[float] = (100, 100, 100),
     ):
         self.tallies = []
@@ -323,8 +323,6 @@ class MeshTally2D(Tally):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
-
-        self.bounding_box = bounding_box
 
         self.create_mesh(bounding_box)
 
