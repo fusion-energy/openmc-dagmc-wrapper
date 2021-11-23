@@ -318,7 +318,7 @@ class MeshTally2D(Tally):
         tally_type: str,
         plane: str,
         bounding_box: List[Tuple[float]],
-        plane_slice_location: Tuple[float, float] = (1,-1),
+        plane_slice_location: Tuple[float, float] = (1, -1),
         mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
