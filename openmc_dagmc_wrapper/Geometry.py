@@ -5,6 +5,7 @@ import openmc
 from numpy import cos, sin
 
 from .utils import find_bounding_box
+import trimesh
 
 
 class Geometry(openmc.Geometry):
@@ -90,8 +91,7 @@ class Geometry(openmc.Geometry):
                 vac_surf = self.create_sphere_of_vacuum_surface()
                 region = -vac_surf & -reflective_1 & +reflective_2
 
-            containing_cell = openmc.Cell(
-                cell_id=9999, region=region, fill=dag_univ)
+            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
 
@@ -102,7 +102,7 @@ class Geometry(openmc.Geometry):
         be used as an alternative to the traditionally DAGMC graveyard cell"""
 
         if self.graveyard_box is None:
-            self.graveyard_box = find_bounding_box(self.h5m_filename)
+            self.graveyard_box = self.corners()
         bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
 
         largest_radius = 3 * max(max(bbox[0]), max(bbox[1]))
@@ -113,43 +113,31 @@ class Geometry(openmc.Geometry):
 
         return sphere_surface
 
-    def create_cube_of_vacuum_surfaces(self):
-        """Creates six vacuum surfaces that surround the geometry and can be
-        used as an alternative to the traditionally DAGMC graveyard cell"""
+    def corners(self, expand=None):
+        """Finds the bounding box of the geometry h5m file
+        Args:
+            expand: increase (+ve) number or decrease the offset from the
+                bounding box
 
-        if self.graveyard_box is None:
-            self.graveyard_box = find_bounding_box(self.h5m_filename)
-        bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
-        # add reflective surfaces
-        # fix the x and y minimums to zero to get the universe boundary co
-        bbox[0][0] = 0.0
-        bbox[0][1] = 0.0
-
-        lower_x = openmc.XPlane(
-            bbox[0][0],
-            surface_id=9999,
-            boundary_type="vacuum")
-        upper_x = openmc.XPlane(
-            bbox[1][0],
-            surface_id=9998,
-            boundary_type="vacuum")
-
-        lower_y = openmc.YPlane(
-            bbox[0][1],
-            surface_id=9997,
-            boundary_type="vacuum")
-        upper_y = openmc.YPlane(
-            bbox[1][1],
-            surface_id=9996,
-            boundary_type="vacuum")
-
-        lower_z = openmc.ZPlane(
-            bbox[0][2],
-            surface_id=9995,
-            boundary_type="vacuum")
-        upper_z = openmc.ZPlane(
-            bbox[1][2],
-            surface_id=9994,
-            boundary_type="vacuum")
-
-        return [lower_x, upper_x, lower_y, upper_y, lower_z, upper_z]
+        Returns:
+            vertices of lower left corner and upper right corner
+        """
+        mesh_object = trimesh.load_mesh(self.h5m_filename, process=False)
+        verts = mesh_object.bounding_box.vertices
+        for vert in verts:
+            if (
+                vert[0] < mesh_object.centroid[0]
+                and vert[1] < mesh_object.centroid[1]
+                and vert[2] < mesh_object.centroid[2]
+            ):
+                llc = (vert[0], vert[1], vert[2])
+            if (
+                vert[0] > mesh_object.centroid[0]
+                and vert[1] > mesh_object.centroid[1]
+                and vert[2] > mesh_object.centroid[2]
+            ):
+                urc = (vert[0], vert[1], vert[2])
+        if expand:
+            llc = (llc[0] - expand[0], llc[1] - expand[1], llc[2] - expand[2])
+            urc = (urc[0] + expand[0], urc[1] + expand[1], urc[2] + expand[2])
+        return llc, urc
