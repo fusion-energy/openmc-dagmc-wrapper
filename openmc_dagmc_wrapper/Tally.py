@@ -7,8 +7,6 @@ from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
 
-from .utils import find_bounding_box
-
 
 class Tally(openmc.Tally):
     """
@@ -266,10 +264,7 @@ class MeshTally3D(Tally):
 
     def add_mesh_filter(self, bounding_box):
 
-        if isinstance(bounding_box, str):
-            self.bounding_box = find_bounding_box(h5m_filename=bounding_box)
-        else:
-            self.bounding_box = bounding_box
+        self.bounding_box = bounding_box
 
         mesh = openmc.RegularMesh(name="3d_mesh")
         mesh.dimension = self.mesh_resolution
@@ -322,15 +317,14 @@ class MeshTally2D(Tally):
         self,
         tally_type: str,
         plane: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
         mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
 
-        self.bbox_from_h5 = None
-        self.bounding_box = None
+        self.bounding_box = bounding_box
 
         self.create_mesh(bounding_box)
 
@@ -409,15 +403,6 @@ class MeshTally2D(Tally):
             mesh.upper_right = self.bounding_box[1]
 
         self.mesh = mesh
-
-    def set_bounding_box(self, bounding_box):
-
-        if isinstance(bounding_box, str):
-            self.bbox_from_h5 = True
-            self.bounding_box = find_bounding_box(h5m_filename=bounding_box)
-        else:
-            self.bbox_from_h5 = False
-            self.bounding_box = bounding_box
 
 
 class MeshTallies2D:

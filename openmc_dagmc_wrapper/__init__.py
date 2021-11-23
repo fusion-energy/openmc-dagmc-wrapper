@@ -1,4 +1,4 @@
-from .utils import create_material, find_bounding_box
+from .utils import create_material
 
 from .Geometry import Geometry
 from .Materials import Materials
