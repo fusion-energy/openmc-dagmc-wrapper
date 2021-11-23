@@ -27,7 +27,6 @@ setuptools.setup(
         "plotly",
         "defusedxml",
         "dagmc_h5m_file_inspector",
-        "dagmc_bounding_box",
     ],
     # openmc, dagmc, moab are also needed and embree and double down are also
     # optionally needed but not avaible on PyPi

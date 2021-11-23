@@ -2,7 +2,6 @@ from typing import Tuple
 
 import dagmc_h5m_file_inspector as di
 import openmc
-from dagmc_bounding_box import DagmcBoundingBox
 from numpy import cos, sin
 
 
@@ -33,7 +32,6 @@ class Geometry(openmc.Geometry):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
         self.graveyard_box = graveyard_box
-        self.bounding_box = DagmcBoundingBox(self.h5m_filename).corners
 
         super().__init__(root=self.make_root())
 

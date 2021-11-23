@@ -257,14 +257,13 @@ class MeshTally3D(Tally):
     ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
+        self.bounding_box = bounding_box
         super().__init__(tally_type, **kwargs)
 
         self.add_mesh_filter(bounding_box)
         self.name = self.tally_type + "_on_3D_mesh"
 
     def add_mesh_filter(self, bounding_box):
-
-        self.bounding_box = bounding_box
 
         mesh = openmc.RegularMesh(name="3d_mesh")
         mesh.dimension = self.mesh_resolution
@@ -318,11 +317,14 @@ class MeshTally2D(Tally):
         tally_type: str,
         plane: str,
         bounding_box: List[Tuple[float]],
+        plane_slice_location: Tuple[float, float] = (1,-1),
         mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
+        self.bounding_box = bounding_box
+        self.plane_slice_location = plane_slice_location
 
         self.create_mesh(bounding_box)
 
@@ -341,64 +343,50 @@ class MeshTally2D(Tally):
                 self.mesh_resolution[0],
                 1,
             ]
+            mesh.lower_left = [
+                self.bounding_box[0][0],
+                self.bounding_box[0][1],
+                self.plane_slice_location[1],
+            ]
+            mesh.upper_right = [
+                self.bounding_box[1][0],
+                self.bounding_box[1][1],
+                self.plane_slice_location[0],
+            ]
+
         elif self.plane == "xz":
             mesh.dimension = [
                 self.mesh_resolution[1],
                 1,
                 self.mesh_resolution[0],
             ]
+            mesh.lower_left = [
+                self.bounding_box[0][0],
+                self.plane_slice_location[1],
+                self.bounding_box[0][2],
+            ]
+            mesh.upper_right = [
+                self.bounding_box[1][0],
+                self.plane_slice_location[0],
+                self.bounding_box[1][2],
+            ]
+
         elif self.plane == "yz":
             mesh.dimension = [
                 1,
                 self.mesh_resolution[1],
                 self.mesh_resolution[0],
             ]
-
-        # mesh corners
-        self.set_bounding_box(bounding_box)
-
-        if self.bbox_from_h5:
-            if self.plane == "xy":
-                mesh.lower_left = [
-                    self.bounding_box[0][0],
-                    self.bounding_box[0][1],
-                    -1,
-                ]
-
-                mesh.upper_right = [
-                    self.bounding_box[1][0],
-                    self.bounding_box[1][1],
-                    1,
-                ]
-            elif self.plane == "xz":
-                mesh.lower_left = [
-                    self.bounding_box[0][0],
-                    -1,
-                    self.bounding_box[0][2],
-                ]
-
-                mesh.upper_right = [
-                    self.bounding_box[1][0],
-                    1,
-                    self.bounding_box[1][2],
-                ]
-            elif self.plane == "yz":
-                mesh.lower_left = [
-                    -1,
-                    self.bounding_box[0][1],
-                    self.bounding_box[0][2],
-                ]
-
-                mesh.upper_right = [
-                    1,
-                    self.bounding_box[1][1],
-                    self.bounding_box[1][2],
-                ]
-
-        else:
-            print(self.bounding_box)
-            mesh.lower_left = self.bounding_box[0]
-            mesh.upper_right = self.bounding_box[1]
+            mesh.lower_left = [
+                self.plane_slice_location[1],
+                self.bounding_box[0][1],
+                self.bounding_box[0][2],
+            ]
+            mesh.upper_right = [
+                self.plane_slice_location[0],
+                self.bounding_box[1][1],
+                self.bounding_box[1][2],
+            ]
 
         self.mesh = mesh
 
