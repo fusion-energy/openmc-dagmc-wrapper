@@ -349,21 +349,18 @@ class MeshTally2D(Tally):
                 self.mesh_resolution[0],
                 1,
             ]
-            mesh.id = 2
         elif self.plane == "xz":
             mesh.dimension = [
                 self.mesh_resolution[1],
                 1,
                 self.mesh_resolution[0],
             ]
-            mesh.id = 3
         elif self.plane == "yz":
             mesh.dimension = [
                 1,
                 self.mesh_resolution[1],
                 self.mesh_resolution[0],
             ]
-            mesh.id = 4
 
         # mesh corners
         self.set_bounding_box(bounding_box)
