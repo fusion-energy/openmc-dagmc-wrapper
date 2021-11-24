@@ -43,8 +43,10 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             del os.environ["OPENMC_CROSS_SECTIONS"]
             odw.utils.get_an_isotope_present_in_cross_sections_xml()
 
+        cross_sections_xml = os.getenv("OPENMC_CROSS_SECTIONS")
         self.assertRaises(ValueError, no_env_var)
-        # os.environ["OPENMC_CROSS_SECTIONS"] = "1"
+        # sets the variable again so that other tests don't fail
+        os.environ["OPENMC_CROSS_SECTIONS"] = cross_sections_xml
 
     def test_diff_between_angles_returns_correct_answer(self):
         """Checks the angle difference works with a few known examples"""
