@@ -7,3 +7,4 @@ nbconvert
 requests
 openmc-plasma-source
 dagmc_bounding_box
+remove_dagmc_tags

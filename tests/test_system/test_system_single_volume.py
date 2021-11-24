@@ -8,6 +8,7 @@ import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
 from dagmc_bounding_box import DagmcBoundingBox
+from remove_dagmc_tags import remove_tags
 
 
 class TestShape(unittest.TestCase):
@@ -67,6 +68,35 @@ class TestShape(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
+            correspondence_dict={"mat1": "WC"})
+
+        my_model = openmc.model.Model(
+            geometry=geometry,
+            materials=materials,
+            tallies=[],
+            settings=self.settings
+        )
+
+        statepoint_file = my_model.run()
+
+        assert Path(statepoint_file).exists()
+
+    def test_simulation_with_previous_h5m_file_with_graveyard_removed(self):
+        """This performs a simulation using previously created h5m file. The
+        graveyard is removed from the geometry"""
+
+        os.system("rm statepoint.*.h5")
+        os.system("rm summary.h5")
+
+        remove_tags(
+            input=self.h5m_filename_smaller,
+            output='no_graveyard_dagmc_file.h5m',
+            tags=['mat:graveyard', 'graveyard']
+        )
+
+        geometry = odw.Geometry(h5m_filename='no_graveyard_dagmc_file.h5m')
+        materials = odw.Materials(
+            h5m_filename='no_graveyard_dagmc_file.h5m',
             correspondence_dict={"mat1": "WC"})
 
         my_model = openmc.model.Model(
