@@ -90,7 +90,8 @@ class Geometry(openmc.Geometry):
                 vac_surf = self.create_sphere_of_vacuum_surface()
                 region = -vac_surf & -reflective_1 & +reflective_2
 
-            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
+            containing_cell = openmc.Cell(
+                cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
 

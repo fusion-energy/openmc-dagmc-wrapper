@@ -29,7 +29,9 @@ class TestMeshTally3D(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d():
-            odw.MeshTally3D("coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)])
+            odw.MeshTally3D(
+                "coucou", bounding_box=[
+                    (10, 10, 10), (-10, -10, -10)])
 
         self.assertRaises(ValueError, incorrect_mesh_tally_3d)
 

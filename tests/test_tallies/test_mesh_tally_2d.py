@@ -31,8 +31,8 @@ class TestMeshTally2D(unittest.TestCase):
 
         def incorrect_mesh_tally_2d():
             odw.MeshTally2D(
-                "coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)], plane="xy"
-            )
+                "coucou", bounding_box=[
+                    (10, 10, 10), (-10, -10, -10)], plane="xy")
 
         self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
@@ -84,8 +84,10 @@ class TestMeshTally2D(unittest.TestCase):
         settings.source = FusionRingSource(fuel="DT", radius=1)
 
         my_model = openmc.Model(
-            materials=materials, geometry=geometry, settings=settings, tallies=tallies
-        )
+            materials=materials,
+            geometry=geometry,
+            settings=settings,
+            tallies=tallies)
         statepoint_file = my_model.run()
 
         assert Path(statepoint_file).exists()
