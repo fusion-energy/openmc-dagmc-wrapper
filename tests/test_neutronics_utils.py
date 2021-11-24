@@ -33,7 +33,8 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
         isotope = odw.utils.get_an_isotope_present_in_cross_sections_xml()
         assert isinstance(isotope, str)
-        assert len(isotope) in [1, 2]
+        # could be an isotope such as Ag107 or H3 or and element such as H
+        assert len(isotope) in [1, 2, 3, 4, 5]
 
     def test_get_an_isotope_present_in_cross_sections_xml_error_handeling(self):
         """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
