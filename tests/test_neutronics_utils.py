@@ -6,7 +6,7 @@ from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper
-from openmc_dagmc_wrapper import create_material, find_bounding_box
+from openmc_dagmc_wrapper import create_material
 
 import neutronics_material_maker as nmm
 import pytest
@@ -71,36 +71,6 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             create_material("mat1", [1, 2, 3])
 
         self.assertRaises(TypeError, incorrect_type)
-
-    def test_bounding_box_size(self):
-
-        bounding_box = find_bounding_box(self.h5m_filename_bigger)
-
-        print(bounding_box)
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
-
-    def test_bounding_box_size_2(self):
-
-        bounding_box = find_bounding_box(self.h5m_filename_smaller)
-
-        print(bounding_box)
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
 
     # def test_create_initial_source_file(self):
     #     """Creates an initial_source.h5 from a point source"""
