@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 import dagmc_h5m_file_inspector as di
 import openmc
@@ -72,7 +72,7 @@ class Tally(openmc.Tally):
         ]
 
         if self.tally_type == "TBR":
-            # todo see if H3-production can replace this
+            # H3-production could replace this
             self.scores = ["(n,Xt)"]
         elif self.tally_type in flux_scores:
             self.scores = ["flux"]
@@ -167,10 +167,11 @@ class CellTallies:
 
     def __init__(
             self,
-            tally_types,
-            targets=[None],
+            tally_types: Iterable,
+            targets: Iterable=[None],
             materials=None,
             h5m_filename=None):
+
         self.tallies = []
         self.tally_types = tally_types
         self.targets = targets

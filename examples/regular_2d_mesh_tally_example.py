@@ -18,7 +18,6 @@ from dagmc_bounding_box import DagmcBoundingBox
 # tar.extractall(".")
 # tar.close()
 h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
-h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc_no_grave_yard.h5m"
 
 
 # creates a geometry object from a DAGMC geometry.
