@@ -44,6 +44,12 @@ def get_an_isotope_present_in_cross_sections_xml():
     variable"""
 
     cross_sections_xml = os.getenv('OPENMC_CROSS_SECTIONS')
+    if cross_sections_xml is None:
+        msg = ('set your OPENMC_CROSS_SECTIONS environmental variable before '
+               'running this script. This can be done automatically using the '
+               'openmc-data-downloader package or manually with an "export '
+               'OPENMC_CROSS_SECTIONS path to cross_sections.xml"')
+        raise ValueError(msg)
     import xml.etree.ElementTree as ET
     tree = ET.parse(cross_sections_xml)
     root = tree.getroot()
@@ -98,53 +104,3 @@ def diff_between_angles(angle_a: float, angle_b: float) -> float:
     if delta_mod > 180:
         delta_mod -= 360
     return delta_mod
-
-
-def find_bounding_box(h5m_filename: str) -> List[Tuple[float, float, float]]:
-    """Computes the bounding box of the DAGMC geometry
-
-    Args:
-        h5m_filename: the filename of the DAGMC h5m file
-
-    Returns:
-        x,y,z coordinates for the upper left and lower right corner
-    """
-    if not Path(h5m_filename).is_file:
-        msg = f"h5m file with filename {h5m_filename} not found"
-        raise FileNotFoundError(msg)
-    dag_univ = openmc.DAGMCUniverse(h5m_filename, auto_geom_ids=False)
-
-    geometry = openmc.Geometry(root=dag_univ)
-    geometry.root_universe = dag_univ
-    geometry.export_to_xml()
-
-    silently_remove_file("materials.xml")
-    materials = create_placeholder_openmc_materials(h5m_filename)
-    materials.export_to_xml()
-
-    openmc.Plots().export_to_xml()
-
-    # a minimal settings .xml to allow openmc to init
-    settings = openmc.Settings()
-    settings.verbosity = 1
-    settings.batches = 1
-    settings.particles = 1
-    settings.export_to_xml()
-
-    # The -p runs in plotting mode which avoids the check that OpenMC does
-    # when looking for boundary surfaces and therefore avoids this error
-    # ERROR: No boundary conditions were applied to any surfaces!
-    openmc.lib.init(["-p"])
-
-    bbox = openmc.lib.global_bounding_box()
-    openmc.lib.finalize()
-
-    silently_remove_file("settings.xml")
-    silently_remove_file("plots.xml")
-    silently_remove_file("geometry.xml")
-    silently_remove_file("materials.xml")
-
-    return (
-        (bbox[0][0], bbox[0][1], bbox[0][2]),
-        (bbox[1][0], bbox[1][1], bbox[1][2]),
-    )

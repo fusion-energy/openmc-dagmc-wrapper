@@ -109,7 +109,7 @@ RUN pip install --upgrade numpy cython && \
 
 
 # Clone and install Double-Down
-RUN git clone --shallow-submodules --single-branch --branch main --depth 1 https://github.com/pshriwise/double-down.git && \
+RUN git clone --shallow-submodules --single-branch --branch v1.0.0 --depth 1 https://github.com/pshriwise/double-down.git && \
     cd double-down && \
     mkdir build && \
     cd build && \
@@ -125,7 +125,11 @@ RUN mkdir DAGMC && \
     cd DAGMC && \
     # change to version 3.2.1 when released
     # git clone --single-branch --branch 3.2.1 --depth 1 https://github.com/svalinn/DAGMC.git && \
-    git clone --shallow-submodules --single-branch --branch develop --depth 1 https://github.com/svalinn/DAGMC.git && \
+    git clone --single-branch --branch develop https://github.com/svalinn/DAGMC.git && \
+    cd DAGMC && \
+    # this commit is from this PR https://github.com/svalinn/DAGMC/pull/786
+    git checkout fbd0cdbad100a0fd8d80de42321e69d09fdd67f4 && \
+    cd .. && \
     mkdir build && \
     cd build && \
     cmake ../DAGMC -DBUILD_TALLY=ON \
@@ -140,7 +144,11 @@ RUN mkdir DAGMC && \
 
 # Clone and install OpenMC with DAGMC
 # TODO clone a specific release when the next release containing (PR 1825) is avaialble.
-RUN git clone --shallow-submodules --recurse-submodules --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git  /opt/openmc && \
+RUN cd /opt && \
+    git clone --single-branch --branch develop https://github.com/openmc-dev/openmc.git && \
+    cd openmc && \
+    # this commit is from this PR https://github.com/openmc-dev/openmc/pull/1900
+    git checkout 0157dc219ff8dca814859b3140c6cef1e78cdee1 && \
     cd /opt/openmc && \
     mkdir build && \
     cd build && \

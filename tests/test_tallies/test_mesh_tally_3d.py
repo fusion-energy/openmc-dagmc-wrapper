@@ -5,6 +5,7 @@ from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper as odw
+from dagmc_bounding_box import DagmcBoundingBox
 
 
 class TestMeshTally3D(unittest.TestCase):
@@ -45,15 +46,17 @@ class TestMeshTally3D(unittest.TestCase):
 
     def test_meshfilter_from_h5m_file(self):
         # build
-        bbox = odw.find_bounding_box(self.h5m_filename_smaller)
         expected_mesh = openmc.RegularMesh(mesh_id=99, name="3d_mesh_expected")
+        bbox = DagmcBoundingBox(self.h5m_filename_smaller).corners()
         expected_mesh.lower_left = bbox[0]
         expected_mesh.upper_right = bbox[1]
         expected_mesh.dimension = (100, 100, 100)
 
         # run
         my_tally = odw.MeshTally3D(
-            "heating", bounding_box=self.h5m_filename_smaller)
+            "heating",
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners()
+        )
         produced_filter = my_tally.filters[-1]
         produced_mesh = produced_filter.mesh
         # test
