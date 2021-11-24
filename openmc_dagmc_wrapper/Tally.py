@@ -168,7 +168,7 @@ class CellTallies:
     def __init__(
             self,
             tally_types: Iterable,
-            targets: Iterable=[None],
+            targets: Iterable = [None],
             materials=None,
             h5m_filename=None):
 
