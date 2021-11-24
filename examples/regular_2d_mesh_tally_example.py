@@ -9,7 +9,7 @@ import urllib.request
 import openmc
 import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
-
+from dagmc_bounding_box import DagmcBoundingBox
 
 # downloads a dagmc file for use in the example
 # url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
@@ -45,16 +45,21 @@ materials = odw.Materials(
     },
 )
 
+# makes use of the dagmc-bound-box package to get the corners of the bounding
+# box. This will be used to set the bounding box for the tally
+my_bounding_box = DagmcBoundingBox(h5m_filename).corners()
+
+
 # A MeshTally2D tally allows a set of standard tally types (made from filters
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
 
 tally1 = odw.MeshTally2D(
-    tally_type="photon_effective_dose", plane="xy", bounding_box=h5m_filename
+    tally_type="photon_effective_dose", plane="xy", bounding_box=my_bounding_box
 )
 tally2 = odw.MeshTally2D(
-    tally_type="neutron_effective_dose", plane="xy", bounding_box=h5m_filename
+    tally_type="neutron_effective_dose", plane="xy", bounding_box=my_bounding_box
 )
 
 # no modifications are made to the default openmc.Tallies
