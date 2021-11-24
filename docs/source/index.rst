@@ -7,7 +7,12 @@ fixed-source simulations.
 
 The openmc-dagmc-wrapper is built around the assumption that a DAGMC geometry
 in the form of a h5m is used as the simulation geometry. This allows several
-aspects of openmc simulations to be simplified.
+aspects of openmc simulations to be simplified and automated.
+
+Additional convenience is available when making tallies as standard tally types
+are added which automated the application of openmc.Filters and openmc.scores
+for standard tallies such as neutron spectra, effective dose, heating, TBR and
+others. 
 
 Further simplifications are access by using additional packages from the
 `fusion-neutronics-workflow <https://github.com/fusion-energy/fusion_neutronics_workflow>`_
