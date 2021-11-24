@@ -56,11 +56,13 @@ my_bounding_box = DagmcBoundingBox(h5m_filename).corners()
 # automatically found.
 
 tally1 = odw.MeshTally2D(
-    tally_type="photon_effective_dose", plane="xy", bounding_box=my_bounding_box
-)
+    tally_type="photon_effective_dose",
+    plane="xy",
+    bounding_box=my_bounding_box)
 tally2 = odw.MeshTally2D(
-    tally_type="neutron_effective_dose", plane="xy", bounding_box=my_bounding_box
-)
+    tally_type="neutron_effective_dose",
+    plane="xy",
+    bounding_box=my_bounding_box)
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1, tally2])
