@@ -275,7 +275,9 @@ class TestShape(unittest.TestCase):
         h5m_filename = my_model.run()
 
         results = openmc.StatePoint(h5m_filename)
-        assert len(results.meshes) == 2  # ideally these tallies would share the same mesh and there would be 1 mesh
+        # ideally these tallies would share the same mesh and there would be 1
+        # mesh
+        assert len(results.meshes) == 2
         assert len(results.tallies.items()) == 2
         assert Path(h5m_filename).exists() is True
 

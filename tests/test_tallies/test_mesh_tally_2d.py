@@ -8,6 +8,7 @@ import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
 from dagmc_bounding_box import DagmcBoundingBox
 
+
 class TestMeshTally2D(unittest.TestCase):
     """Tests the MeshTally2D class functionality"""
 
