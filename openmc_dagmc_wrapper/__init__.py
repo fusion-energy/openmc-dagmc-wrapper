@@ -10,6 +10,6 @@ from .Tally import (
     MeshTally3D,
     MeshTallies3D,
     TetMeshTally,
-    TetMeshTallies
+    TetMeshTallies,
 )
 from .Settings import FusionSettings

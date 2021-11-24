@@ -40,19 +40,19 @@ class TestCellTallies(unittest.TestCase):
         my_tally = odw.CellTally("neutron_flux", target=2)
 
         assert len(my_tally.filters[0].bins) == 1
-        assert my_tally.filters[0].bins[0] == 'neutron'
+        assert my_tally.filters[0].bins[0] == "neutron"
 
         my_tally = odw.CellTally("photon_flux", target=2)
 
         assert len(my_tally.filters[0].bins) == 1
-        assert my_tally.filters[0].bins[0] == 'photon'
+        assert my_tally.filters[0].bins[0] == "photon"
 
         my_tally = odw.CellTally("neutron_heating", target=2)
 
         assert len(my_tally.filters[0].bins) == 1
-        assert my_tally.filters[0].bins[0] == 'neutron'
+        assert my_tally.filters[0].bins[0] == "neutron"
 
         my_tally = odw.CellTally("photon_heating", target=2)
 
         assert len(my_tally.filters[0].bins) == 1
-        assert my_tally.filters[0].bins[0] == 'photon'
+        assert my_tally.filters[0].bins[0] == "photon"

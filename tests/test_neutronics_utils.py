@@ -27,12 +27,34 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
         self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
+    def test_get_an_isotope_present_in_cross_sections_xml(self):
+        """Checks that an isotope string is returned from the
+        cross_sections.xml file"""
+
+        isotope = odw.utils.get_an_isotope_present_in_cross_sections_xml()
+        assert isinstance(isotope, str)
+        assert len(isotope) in [1, 2]
+
+    def test_get_an_isotope_present_in_cross_sections_xml_error_handeling(self):
+        """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
+        variable does not exist"""
+
+        def no_env_var():
+            del os.environ["OPENMC_CROSS_SECTIONS"]
+            odw.utils.get_an_isotope_present_in_cross_sections_xml()
+
+        self.assertRaises(ValueError, no_env_var)
+        # os.environ["OPENMC_CROSS_SECTIONS"] = "1"
+
     def test_diff_between_angles_returns_correct_answer(self):
+        """Checks the angle difference works with a few known examples"""
 
         assert odw.diff_between_angles(0, 90) == 90
         assert odw.diff_between_angles(0, 180) == 180
         assert odw.diff_between_angles(90, 90) == 0
         assert odw.diff_between_angles(180, 90) == -90
+        assert odw.diff_between_angles(360, 0) == 0
+        assert odw.diff_between_angles(0, 360) == 0
 
     def test_create_material_from_string(self):
         mats = ["Be", "tungsten", "eurofer", "copper"]

@@ -90,8 +90,7 @@ class Geometry(openmc.Geometry):
                 vac_surf = self.create_sphere_of_vacuum_surface()
                 region = -vac_surf & -reflective_1 & +reflective_2
 
-            containing_cell = openmc.Cell(
-                cell_id=9999, region=region, fill=dag_univ)
+            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
 
@@ -103,6 +102,7 @@ class Geometry(openmc.Geometry):
 
         if self.graveyard_box is None:
             from dagmc_bounding_box import DagmcBoundingBox
+
             self.graveyard_box = DagmcBoundingBox(self.h5m_filename).corners()
         bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
 

@@ -53,8 +53,7 @@ my_bounding_box = DagmcBoundingBox(h5m_filename).corners()
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
 tally1 = odw.MeshTally3D(
-    tally_type="neutron_effective_dose",
-    bounding_box=my_bounding_box
+    tally_type="neutron_effective_dose", bounding_box=my_bounding_box
 )
 
 # no modifications are made to the default openmc.Tallies

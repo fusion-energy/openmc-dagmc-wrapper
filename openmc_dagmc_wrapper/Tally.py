@@ -166,11 +166,12 @@ class CellTallies:
     """
 
     def __init__(
-            self,
-            tally_types: Iterable,
-            targets: Iterable = [None],
-            materials=None,
-            h5m_filename=None):
+        self,
+        tally_types: Iterable,
+        targets: Iterable = [None],
+        materials=None,
+        h5m_filename=None,
+    ):
 
         self.tallies = []
         self.tally_types = tally_types
@@ -188,10 +189,8 @@ class CellTallies:
         for score in self.tally_types:
             for target in all_targets:
                 self.tallies.append(
-                    CellTally(
-                        tally_type=score,
-                        target=target,
-                        materials=materials))
+                    CellTally(tally_type=score, target=target, materials=materials)
+                )
 
 
 class TetMeshTally(Tally):
@@ -243,10 +242,7 @@ class TetMeshTallies:
         self.tally_types = tally_types
         for score in self.tally_types:
             for filename in filenames:
-                self.tallies.append(
-                    TetMeshTally(
-                        tally_type=score,
-                        filename=filename))
+                self.tallies.append(TetMeshTally(tally_type=score, filename=filename))
 
 
 class MeshTally3D(Tally):
@@ -470,9 +466,7 @@ def compute_filters(tally_type):
         energy_function_filter_n = openmc.EnergyFunctionFilter(
             energy_bins_n, dose_coeffs_n
         )
-        additional_filters = [
-            neutron_particle_filter,
-            energy_function_filter_n]
+        additional_filters = [neutron_particle_filter, energy_function_filter_n]
     elif tally_type == "photon_effective_dose":
         energy_function_filter_p = openmc.EnergyFunctionFilter(
             energy_bins_p, dose_coeffs_p
