@@ -21,7 +21,10 @@ def notebook_run(path):
         ep = ExecutePreprocessor(kernel_name=kernel_name, timeout=800)
 
         try:
-            ep.preprocess(note_book, {"metadata": {"path": this_file_directory}})
+            ep.preprocess(
+                note_book, {
+                    "metadata": {
+                        "path": this_file_directory}})
 
         except CellExecutionError as e:
             if "SKIP" in e.traceback:
