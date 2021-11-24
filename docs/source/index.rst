@@ -8,8 +8,14 @@ standard neutronics simulations and post using OpenMC and DAGMC.
    :maxdepth: 1
 
    install
-   example_neutronics_simulations
-   neutronics_model
+   cell_tally
+   cell_tallies
+   mesh_tally_2d
+   mesh_tallies_2d
+   mesh_tally_3d
+   mesh_tallies_3d
+   tet_mesh_tally
+   tet_mesh_tallies
    tests
 
 History

@@ -277,13 +277,13 @@ class MeshTally3D(Tally):
 
 
 class MeshTallies3D:
-    """[summary]
+    """Creates several MeshTally3D, one for each tally_type provided. The
+    tallies share the same mesh.
 
     Args:
         tally_types (list): [description]
-        meshes_resolutions (list): [description]
-        meshes_corners (list, optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
+        meshes_resolutions (list): [description]
     """
 
     def __init__(
