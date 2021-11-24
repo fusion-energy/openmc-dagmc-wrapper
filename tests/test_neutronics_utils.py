@@ -29,10 +29,10 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
     def test_diff_between_angles_returns_correct_answer(self):
 
-        assert odw.diff_between_angles(0,90) == 90
-        assert odw.diff_between_angles(0,180) == 180
-        assert odw.diff_between_angles(90,90) == 0
-        assert odw.diff_between_angles(180,90) == -90
+        assert odw.diff_between_angles(0, 90) == 90
+        assert odw.diff_between_angles(0, 180) == 180
+        assert odw.diff_between_angles(90, 90) == 0
+        assert odw.diff_between_angles(180, 90) == -90
 
     def test_create_material_from_string(self):
         mats = ["Be", "tungsten", "eurofer", "copper"]
