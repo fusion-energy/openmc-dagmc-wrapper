@@ -6,3 +6,4 @@ nbformat
 nbconvert
 requests
 openmc-plasma-source
+dagmc_bounding_box

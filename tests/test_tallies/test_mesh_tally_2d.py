@@ -6,7 +6,7 @@ from pathlib import Path
 import openmc
 import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
-
+from dagmc_bounding_box import DagmcBoundingBox
 
 class TestMeshTally2D(unittest.TestCase):
     """Tests the MeshTally2D class functionality"""
@@ -58,19 +58,19 @@ class TestMeshTally2D(unittest.TestCase):
         tally1 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xy",
-            bounding_box=self.h5m_filename_smaller,
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
             mesh_resolution=(10, 200),
         )
         tally2 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
-            bounding_box=self.h5m_filename_smaller,
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
             mesh_resolution=(20, 100),
         )
         tally3 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
-            bounding_box=self.h5m_filename_smaller,
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
             mesh_resolution=(30, 500),
         )
 

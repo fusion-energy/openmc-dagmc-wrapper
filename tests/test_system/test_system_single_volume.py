@@ -7,6 +7,7 @@ from pathlib import Path
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
+from dagmc_bounding_box import DagmcBoundingBox
 
 
 class TestShape(unittest.TestCase):
@@ -227,10 +228,11 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": "Be"})
+
         my_tallies = odw.MeshTallies2D(
             tally_types=["heating"],
             planes=["xy", "xz", "yz"],
-            bounding_box=self.h5m_filename_smaller)
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners())
 
         my_model = openmc.model.Model(
             geometry=geometry,
@@ -261,7 +263,7 @@ class TestShape(unittest.TestCase):
 
         my_tallies = odw.MeshTallies3D(
             tally_types=["heating", "(n,Xt)"],
-            bounding_box=self.h5m_filename_smaller)
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners())
 
         my_model = openmc.model.Model(
             geometry=geometry,
@@ -273,7 +275,7 @@ class TestShape(unittest.TestCase):
         h5m_filename = my_model.run()
 
         results = openmc.StatePoint(h5m_filename)
-        assert len(results.meshes) == 1
+        assert len(results.meshes) == 2  # ideally these tallies would share the same mesh and there would be 1 mesh
         assert len(results.tallies.items()) == 2
         assert Path(h5m_filename).exists() is True
 
@@ -291,12 +293,15 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat1": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
-            tally_type="heating", bounding_box=self.h5m_filename_smaller)
+            tally_type="heating",
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners()
+        )
 
         my_2d_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
             tally_types=["heating"],
-            bounding_box=self.h5m_filename_smaller)
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners()
+        )
 
         my_model = openmc.model.Model(
             geometry=geometry,
