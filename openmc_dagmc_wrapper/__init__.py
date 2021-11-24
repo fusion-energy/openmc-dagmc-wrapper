@@ -1,4 +1,4 @@
-from .utils import create_material
+from .utils import create_material, diff_between_angles
 
 from .Geometry import Geometry
 from .Materials import Materials
