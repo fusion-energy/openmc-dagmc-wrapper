@@ -57,18 +57,19 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def test_cell_tally_simulation(self):
 
-        os.system('rm statepoint*.h5')
+        os.system("rm statepoint*.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
         materials = odw.Materials(
             h5m_filename=self.h5m_filename_bigger,
-            correspondence_dict=self.material_description_bigger)
+            correspondence_dict=self.material_description_bigger,
+        )
         my_tally = odw.CellTally("TBR")
         my_model = openmc.model.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
-            settings=self.settings
+            settings=self.settings,
         )
 
         statepoint_file = my_model.run()

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 import dagmc_h5m_file_inspector as di
 import openmc
@@ -6,8 +6,6 @@ import openmc.lib  # needed to find bounding box of h5m file
 from openmc.data import REACTION_MT, REACTION_NAME
 
 from openmc_dagmc_wrapper import Materials
-
-from .utils import find_bounding_box
 
 
 class Tally(openmc.Tally):
@@ -74,7 +72,8 @@ class Tally(openmc.Tally):
         ]
 
         if self.tally_type == "TBR":
-            self.scores = ["(n,Xt)"]  # where X is a wild card
+            # H3-production could replace this
+            self.scores = ["(n,Xt)"]
         elif self.tally_type in flux_scores:
             self.scores = ["flux"]
         else:
@@ -167,11 +166,13 @@ class CellTallies:
     """
 
     def __init__(
-            self,
-            tally_types,
-            targets=[None],
-            materials=None,
-            h5m_filename=None):
+        self,
+        tally_types: Iterable,
+        targets: Iterable = [None],
+        materials=None,
+        h5m_filename=None,
+    ):
+
         self.tallies = []
         self.tally_types = tally_types
         self.targets = targets
@@ -253,23 +254,19 @@ class MeshTally3D(Tally):
     def __init__(
         self,
         tally_type: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
         mesh_resolution=(100, 100, 100),
         **kwargs
     ):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
+        self.bounding_box = bounding_box
         super().__init__(tally_type, **kwargs)
 
         self.add_mesh_filter(bounding_box)
         self.name = self.tally_type + "_on_3D_mesh"
 
     def add_mesh_filter(self, bounding_box):
-
-        if isinstance(bounding_box, str):
-            self.bounding_box = find_bounding_box(h5m_filename=bounding_box)
-        else:
-            self.bounding_box = bounding_box
 
         mesh = openmc.RegularMesh(name="3d_mesh")
         mesh.dimension = self.mesh_resolution
@@ -280,19 +277,19 @@ class MeshTally3D(Tally):
 
 
 class MeshTallies3D:
-    """[summary]
+    """Creates several MeshTally3D, one for each tally_type provided. The
+    tallies share the same mesh.
 
     Args:
         tally_types (list): [description]
-        meshes_resolutions (list): [description]
-        meshes_corners (list, optional): [description]. Defaults to None.
         bounding_box ([type], optional): [description]. Defaults to None.
+        meshes_resolutions (list): [description]
     """
 
     def __init__(
         self,
         tally_types: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
         meshes_resolution: Tuple[float] = (100, 100, 100),
     ):
         self.tallies = []
@@ -322,15 +319,15 @@ class MeshTally2D(Tally):
         self,
         tally_type: str,
         plane: str,
-        bounding_box: Union[str, List[Tuple[float]]],
+        bounding_box: List[Tuple[float]],
+        plane_slice_location: Tuple[float, float] = (1, -1),
         mesh_resolution: Tuple[float, float] = (400, 400),
     ):
         self.tally_type = tally_type
         self.plane = plane
         self.mesh_resolution = mesh_resolution
-
-        self.bbox_from_h5 = None
-        self.bounding_box = None
+        self.bounding_box = bounding_box
+        self.plane_slice_location = plane_slice_location
 
         self.create_mesh(bounding_box)
 
@@ -349,78 +346,52 @@ class MeshTally2D(Tally):
                 self.mesh_resolution[0],
                 1,
             ]
-            mesh.id = 2
+            mesh.lower_left = [
+                self.bounding_box[0][0],
+                self.bounding_box[0][1],
+                self.plane_slice_location[1],
+            ]
+            mesh.upper_right = [
+                self.bounding_box[1][0],
+                self.bounding_box[1][1],
+                self.plane_slice_location[0],
+            ]
+
         elif self.plane == "xz":
             mesh.dimension = [
                 self.mesh_resolution[1],
                 1,
                 self.mesh_resolution[0],
             ]
-            mesh.id = 3
+            mesh.lower_left = [
+                self.bounding_box[0][0],
+                self.plane_slice_location[1],
+                self.bounding_box[0][2],
+            ]
+            mesh.upper_right = [
+                self.bounding_box[1][0],
+                self.plane_slice_location[0],
+                self.bounding_box[1][2],
+            ]
+
         elif self.plane == "yz":
             mesh.dimension = [
                 1,
                 self.mesh_resolution[1],
                 self.mesh_resolution[0],
             ]
-            mesh.id = 4
-
-        # mesh corners
-        self.set_bounding_box(bounding_box)
-
-        if self.bbox_from_h5:
-            if self.plane == "xy":
-                mesh.lower_left = [
-                    self.bounding_box[0][0],
-                    self.bounding_box[0][1],
-                    -1,
-                ]
-
-                mesh.upper_right = [
-                    self.bounding_box[1][0],
-                    self.bounding_box[1][1],
-                    1,
-                ]
-            elif self.plane == "xz":
-                mesh.lower_left = [
-                    self.bounding_box[0][0],
-                    -1,
-                    self.bounding_box[0][2],
-                ]
-
-                mesh.upper_right = [
-                    self.bounding_box[1][0],
-                    1,
-                    self.bounding_box[1][2],
-                ]
-            elif self.plane == "yz":
-                mesh.lower_left = [
-                    -1,
-                    self.bounding_box[0][1],
-                    self.bounding_box[0][2],
-                ]
-
-                mesh.upper_right = [
-                    1,
-                    self.bounding_box[1][1],
-                    self.bounding_box[1][2],
-                ]
-
-        else:
-            print(self.bounding_box)
-            mesh.lower_left = self.bounding_box[0]
-            mesh.upper_right = self.bounding_box[1]
+            mesh.lower_left = [
+                self.plane_slice_location[1],
+                self.bounding_box[0][1],
+                self.bounding_box[0][2],
+            ]
+            mesh.upper_right = [
+                self.plane_slice_location[0],
+                self.bounding_box[1][1],
+                self.bounding_box[1][2],
+            ]
 
         self.mesh = mesh
-
-    def set_bounding_box(self, bounding_box):
-
-        if isinstance(bounding_box, str):
-            self.bbox_from_h5 = True
-            self.bounding_box = find_bounding_box(h5m_filename=bounding_box)
-        else:
-            self.bbox_from_h5 = False
-            self.bounding_box = bounding_box
 
 
 class MeshTallies2D:

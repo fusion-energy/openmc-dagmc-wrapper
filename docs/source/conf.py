@@ -35,7 +35,7 @@ release = "1.0"
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-needs_sphinx = '3.5.4'
+needs_sphinx = "3.5.4"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -136,11 +136,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc,
-     "OpenMC-DAGMC-Wrapper.tex",
-     "OpenMC-DAGMC-Wrapper Documentation",
-     "OpenMC-DAGMC-Wrapper contributors",
-     "manual"),
+    (
+        master_doc,
+        "OpenMC-DAGMC-Wrapper.tex",
+        "OpenMC-DAGMC-Wrapper Documentation",
+        "OpenMC-DAGMC-Wrapper contributors",
+        "manual",
+    ),
 ]
 
 
@@ -149,11 +151,14 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc,
-     "OpenMC-DAGMC-Wrapper",
-     "OpenMC-DAGMC-Wrapper Documentation",
-     [author],
-     1)]
+    (
+        master_doc,
+        "OpenMC-DAGMC-Wrapper",
+        "OpenMC-DAGMC-Wrapper Documentation",
+        [author],
+        1,
+    )
+]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -194,4 +199,4 @@ epub_exclude_files = ["search.html"]
 
 # -- Extension configuration -------------------------------------------------
 
-html_favicon = 'favicon.ico'
+html_favicon = "favicon.ico"

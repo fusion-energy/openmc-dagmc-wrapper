@@ -5,8 +5,7 @@ import urllib.request
 from pathlib import Path
 
 import openmc
-import openmc_dagmc_wrapper
-from openmc_dagmc_wrapper import create_material, find_bounding_box
+import openmc_dagmc_wrapper as odw
 
 import neutronics_material_maker as nmm
 import pytest
@@ -28,6 +27,39 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
         self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
 
+    def test_get_an_isotope_present_in_cross_sections_xml(self):
+        """Checks that an isotope string is returned from the
+        cross_sections.xml file"""
+
+        isotope = odw.utils.get_an_isotope_present_in_cross_sections_xml()
+        assert isinstance(isotope, str)
+        # could be an isotope such as Ag107 or H3 or and element such as H
+        assert len(isotope) in [1, 2, 3, 4, 5]
+
+    def test_get_an_isotope_present_in_cross_sections_xml_error_handeling(
+            self):
+        """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
+        variable does not exist"""
+
+        def no_env_var():
+            del os.environ["OPENMC_CROSS_SECTIONS"]
+            odw.utils.get_an_isotope_present_in_cross_sections_xml()
+
+        cross_sections_xml = os.getenv("OPENMC_CROSS_SECTIONS")
+        self.assertRaises(ValueError, no_env_var)
+        # sets the variable again so that other tests don't fail
+        os.environ["OPENMC_CROSS_SECTIONS"] = cross_sections_xml
+
+    def test_diff_between_angles_returns_correct_answer(self):
+        """Checks the angle difference works with a few known examples"""
+
+        assert odw.diff_between_angles(0, 90) == 90
+        assert odw.diff_between_angles(0, 180) == 180
+        assert odw.diff_between_angles(90, 90) == 0
+        assert odw.diff_between_angles(180, 90) == -90
+        assert odw.diff_between_angles(360, 0) == 0
+        assert odw.diff_between_angles(0, 360) == 0
+
     def test_create_material_from_string(self):
         mats = ["Be", "tungsten", "eurofer", "copper"]
 
@@ -40,7 +72,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             expected_mat.name = tag_mat
 
             # run
-            produced_mat = create_material(tag_mat, mat)
+            produced_mat = odw.create_material(tag_mat, mat)
 
             # test
             assert produced_mat.density == expected_mat.density
@@ -59,7 +91,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             expected_mat.name = tag_mat
 
             # run
-            produced_mat = create_material(tag_mat, expected_mat)
+            produced_mat = odw.create_material(tag_mat, expected_mat)
 
             # test
             assert produced_mat.density == expected_mat.density
@@ -68,39 +100,9 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
     def test_create_material_wrong_type(self):
         def incorrect_type():
-            create_material("mat1", [1, 2, 3])
+            odw.create_material("mat1", [1, 2, 3])
 
         self.assertRaises(TypeError, incorrect_type)
-
-    def test_bounding_box_size(self):
-
-        bounding_box = find_bounding_box(self.h5m_filename_bigger)
-
-        print(bounding_box)
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
-
-    def test_bounding_box_size_2(self):
-
-        bounding_box = find_bounding_box(self.h5m_filename_smaller)
-
-        print(bounding_box)
-        assert len(bounding_box) == 2
-        assert len(bounding_box[0]) == 3
-        assert len(bounding_box[1]) == 3
-        assert bounding_box[0][0] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][1] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[0][2] == pytest.approx(-10005, abs=0.1)
-        assert bounding_box[1][0] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][1] == pytest.approx(10005, abs=0.1)
-        assert bounding_box[1][2] == pytest.approx(10005, abs=0.1)
 
     # def test_create_initial_source_file(self):
     #     """Creates an initial_source.h5 from a point source"""

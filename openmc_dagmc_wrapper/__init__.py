@@ -1,4 +1,4 @@
-from .utils import create_material, find_bounding_box
+from .utils import create_material, diff_between_angles
 
 from .Geometry import Geometry
 from .Materials import Materials
@@ -10,6 +10,6 @@ from .Tally import (
     MeshTally3D,
     MeshTallies3D,
     TetMeshTally,
-    TetMeshTallies
+    TetMeshTallies,
 )
 from .Settings import FusionSettings
