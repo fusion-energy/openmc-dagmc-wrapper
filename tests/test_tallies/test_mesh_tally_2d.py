@@ -91,3 +91,29 @@ class TestMeshTally2D(unittest.TestCase):
         statepoint_file = my_model.run()
 
         assert Path(statepoint_file).exists()
+
+    def test_correct_resolution(self):
+        """Tests that the mesh resolution is in accordance with the plane
+        """
+        tally_xy = odw.MeshTally2D(
+            tally_type="neutron_flux",
+            plane="xy",
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            mesh_resolution=(10, 20),
+        )
+        tally_yz = odw.MeshTally2D(
+            tally_type="neutron_flux",
+            plane="yz",
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            mesh_resolution=(10, 20),
+        )
+        tally_xz = odw.MeshTally2D(
+            tally_type="neutron_flux",
+            plane="xz",
+            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            mesh_resolution=(10, 20),
+        )
+
+        assert tally_xy.mesh.dimension == [10, 20, 1]
+        assert tally_yz.mesh.dimension == [1, 10, 20]
+        assert tally_xz.mesh.dimension == [10, 1, 20]
