@@ -116,4 +116,4 @@ class TestMeshTally2D(unittest.TestCase):
 
         assert tally_xy.mesh.dimension == [10, 20, 1]
         assert tally_yz.mesh.dimension == [1, 10, 20]
-        assert tally_xy.mesh.dimension == [10, 1, 20]
+        assert tally_xz.mesh.dimension == [10, 1, 20]
