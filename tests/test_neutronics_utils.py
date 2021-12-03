@@ -4,11 +4,9 @@ import unittest
 import urllib.request
 from pathlib import Path
 
-import openmc
 import openmc_dagmc_wrapper as odw
 
 import neutronics_material_maker as nmm
-import pytest
 
 
 class TestNeutronicsUtilityFunctions(unittest.TestCase):
