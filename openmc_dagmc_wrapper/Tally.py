@@ -342,8 +342,8 @@ class MeshTally2D(Tally):
         # mesh dimension
         if self.plane == "xy":
             mesh.dimension = [
-                self.mesh_resolution[1],
                 self.mesh_resolution[0],
+                self.mesh_resolution[1],
                 1,
             ]
             mesh.lower_left = [
@@ -359,9 +359,9 @@ class MeshTally2D(Tally):
 
         elif self.plane == "xz":
             mesh.dimension = [
-                self.mesh_resolution[1],
-                1,
                 self.mesh_resolution[0],
+                1,
+                self.mesh_resolution[1],
             ]
             mesh.lower_left = [
                 self.bounding_box[0][0],
@@ -377,8 +377,8 @@ class MeshTally2D(Tally):
         elif self.plane == "yz":
             mesh.dimension = [
                 1,
-                self.mesh_resolution[1],
                 self.mesh_resolution[0],
+                self.mesh_resolution[1],
             ]
             mesh.lower_left = [
                 self.plane_slice_location[1],
