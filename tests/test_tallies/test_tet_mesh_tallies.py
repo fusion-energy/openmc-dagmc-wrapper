@@ -1,7 +1,6 @@
 import unittest
 
 
-import openmc
 import openmc_dagmc_wrapper as odw
 
 
