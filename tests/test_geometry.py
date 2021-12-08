@@ -37,10 +37,10 @@ class TestSettings(unittest.TestCase):
 
     def test_attributes(self):
         my_geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        assert my_geometry.reflective_angles == None
-        assert my_geometry.graveyard_box == None
+        assert my_geometry.reflective_angles is None
+        assert my_geometry.graveyard_box is None
         # TODO dagmc_bounding_box
-    
+
     def test_corners_types(self):
         """checks the corner method returns the correct types"""
         my_geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
@@ -65,12 +65,12 @@ class TestSettings(unittest.TestCase):
         """checks the expand increases the value returned"""
         my_geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         small_corners = my_geometry.corners()
-        big_corners = my_geometry.corners(expand=(1,2,3))
+        big_corners = my_geometry.corners(expand=(1, 2, 3))
 
-        assert small_corners[0][0] -1 == big_corners[0][0]
-        assert small_corners[0][1] -2 == big_corners[0][1]
-        assert small_corners[0][2] -3 == big_corners[0][2]
+        assert small_corners[0][0] - 1 == big_corners[0][0]
+        assert small_corners[0][1] - 2 == big_corners[0][1]
+        assert small_corners[0][2] - 3 == big_corners[0][2]
 
-        assert small_corners[1][0] +1 == big_corners[1][0]
-        assert small_corners[1][1] +2 == big_corners[1][1]
-        assert small_corners[1][2] +3 == big_corners[1][2]
+        assert small_corners[1][0] + 1 == big_corners[1][0]
+        assert small_corners[1][1] + 2 == big_corners[1][1]
+        assert small_corners[1][2] + 3 == big_corners[1][2]
