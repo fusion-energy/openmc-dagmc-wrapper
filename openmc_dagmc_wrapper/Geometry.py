@@ -5,6 +5,7 @@ import openmc
 from numpy import cos, sin
 from dagmc_bounding_box import DagmcBoundingBox
 
+
 class Geometry(openmc.Geometry):
     """A openmc.Geometry object with a DAGMC Universe. If the model
     requires a graveyard bounding box this will be automatically added. When
@@ -48,7 +49,6 @@ class Geometry(openmc.Geometry):
         """
 
         return self.dagmc_bounding_box.corners(expand)
-
 
     def make_root(self):
 
