@@ -3,15 +3,15 @@
 # Particular emphasis is placed on explaining the openmc-dagmc-wrapper
 # extentions of openmc base classes.
 
-import tarfile
-import urllib.request
 
 import openmc
 import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
-from dagmc_bounding_box import DagmcBoundingBox
+
 
 # downloads a dagmc file for use in the example
+# import tarfile
+# import urllib.request
 # url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
 # urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
 # tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
