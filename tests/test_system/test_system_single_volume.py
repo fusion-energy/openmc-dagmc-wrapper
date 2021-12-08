@@ -7,7 +7,6 @@ from pathlib import Path
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
-from dagmc_bounding_box import DagmcBoundingBox
 from remove_dagmc_tags import remove_tags
 
 
@@ -271,7 +270,7 @@ class TestShape(unittest.TestCase):
         my_tallies = odw.MeshTallies2D(
             tally_types=["heating"],
             planes=["xy", "xz", "yz"],
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
         )
 
         my_model = openmc.model.Model(
