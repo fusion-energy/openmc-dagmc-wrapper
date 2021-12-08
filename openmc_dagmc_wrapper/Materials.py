@@ -1,5 +1,4 @@
 import dagmc_h5m_file_inspector as di
-import neutronics_material_maker as nmm
 import openmc
 
 from .utils import silently_remove_file, create_material

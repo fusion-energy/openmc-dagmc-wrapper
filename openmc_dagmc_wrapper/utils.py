@@ -1,17 +1,5 @@
-from pathlib import Path
-import json
-import math
 import os
-import subprocess
-from collections import defaultdict
-from typing import List, Optional, Tuple, Union
-from xml.etree.ElementTree import SubElement
-
-import defusedxml.ElementTree as ET
-import matplotlib.pyplot as plt
-import numpy as np
 import openmc
-import plotly.graph_objects as go
 
 import neutronics_material_maker as nmm
 import dagmc_h5m_file_inspector as di
