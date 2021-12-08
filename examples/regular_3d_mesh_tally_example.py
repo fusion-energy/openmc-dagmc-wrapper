@@ -3,15 +3,15 @@
 # Particular emphasis is placed on explaining the openmc-dagmc-wrapper
 # extentions of openmc base classes.
 
-import tarfile
-import urllib.request
 
 import openmc
 import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
-from dagmc_bounding_box import DagmcBoundingBox
+
 
 # downloads a dagmc file for use in the example
+# import tarfile
+# import urllib.request
 # url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
 # urllib.request.urlretrieve(url, "v0.0.2.tar.gz")
 # tar = tarfile.open("v0.0.2.tar.gz", "r:gz")
@@ -45,8 +45,9 @@ materials = odw.Materials(
 )
 
 # makes use of the dagmc-bound-box package to get the corners of the bounding
-# box. This will be used to set the bounding box for the tally
-my_bounding_box = DagmcBoundingBox(h5m_filename).corners()
+# box. This will be used to set the bounding box for the tally. This can be
+# expanded with the expand keyword if needed
+my_bounding_box = geometry.corners()
 
 # A MeshTally3D tally allows a set of standard tally types (made from filters
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be

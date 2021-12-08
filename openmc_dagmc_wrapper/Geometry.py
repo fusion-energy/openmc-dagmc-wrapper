@@ -3,6 +3,7 @@ from typing import Tuple
 import dagmc_h5m_file_inspector as di
 import openmc
 from numpy import cos, sin
+from dagmc_bounding_box import DagmcBoundingBox
 
 
 class Geometry(openmc.Geometry):
@@ -25,15 +26,29 @@ class Geometry(openmc.Geometry):
 
     def __init__(
         self,
-        h5m_filename: str = None,
+        h5m_filename: str,
         reflective_angles: Tuple[float, float] = None,
         graveyard_box=None,
     ):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
         self.graveyard_box = graveyard_box
+        self.dagmc_bounding_box = DagmcBoundingBox(h5m_filename)
 
         super().__init__(root=self.make_root())
+
+    def corners(
+        self, expand: Tuple[float, float, float] = None
+    ) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
+        """Gets the lower left corner and upper right corner of the DAGMC
+        geometry
+        Args:
+            expand:
+        Returns:
+            A tuple of two coordinates
+        """
+
+        return self.dagmc_bounding_box.corners(expand)
 
     def make_root(self):
 

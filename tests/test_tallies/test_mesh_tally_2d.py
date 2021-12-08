@@ -6,7 +6,6 @@ from pathlib import Path
 import openmc
 import openmc_dagmc_wrapper as odw
 from openmc_plasma_source import FusionRingSource
-from dagmc_bounding_box import DagmcBoundingBox
 
 
 class TestMeshTally2D(unittest.TestCase):
@@ -59,19 +58,19 @@ class TestMeshTally2D(unittest.TestCase):
         tally1 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xy",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 200),
         )
         tally2 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(20, 100),
         )
         tally3 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(30, 500),
         )
 
@@ -95,22 +94,23 @@ class TestMeshTally2D(unittest.TestCase):
     def test_correct_resolution(self):
         """Tests that the mesh resolution is in accordance with the plane
         """
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         tally_xy = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xy",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
         tally_yz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
         tally_xz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
 
