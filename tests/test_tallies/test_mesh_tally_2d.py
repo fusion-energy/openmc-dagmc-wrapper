@@ -94,22 +94,23 @@ class TestMeshTally2D(unittest.TestCase):
     def test_correct_resolution(self):
         """Tests that the mesh resolution is in accordance with the plane
         """
+        geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         tally_xy = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xy",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
         tally_yz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
         tally_xz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
-            bounding_box=DagmcBoundingBox(self.h5m_filename_smaller).corners(),
+            bounding_box=geometry.corners(),
             mesh_resolution=(10, 20),
         )
 
