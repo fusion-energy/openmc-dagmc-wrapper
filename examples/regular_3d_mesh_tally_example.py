@@ -45,8 +45,9 @@ materials = odw.Materials(
 )
 
 # makes use of the dagmc-bound-box package to get the corners of the bounding
-# box. This will be used to set the bounding box for the tally
-my_bounding_box = DagmcBoundingBox(h5m_filename).corners()
+# box. This will be used to set the bounding box for the tally. This can be
+# expanded with the expand keyword if needed
+my_bounding_box = geometry.corners()
 
 # A MeshTally3D tally allows a set of standard tally types (made from filters
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
