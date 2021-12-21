@@ -17,7 +17,7 @@ class Geometry(openmc.Geometry):
             geometry.
         reflective_angles: if a sector model is being simulated this argument
             can be used to specify the angles to use when creating reflecting
-            surfaces for a sector model.
+            surfaces for a sector model. Units are Radians.
         graveyard_box: If a certain size of graveyard is required then the
             upper left and lower right corners can be specified. If this is not
             specified then the code checks to see if a graveyard exists and if
