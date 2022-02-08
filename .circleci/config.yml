@@ -13,12 +13,12 @@ jobs:
       - run:
           name: install
           command: |
-            python setup.py install
+            pip install .
 
       - run:
           name: install packages required for testing
           command: |
-            pip install -r requirements-test.txt
+            pip install .[tests]
 
       - run:
           name: run test_neutronics_utils
