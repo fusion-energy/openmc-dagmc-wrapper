@@ -21,11 +21,11 @@ jobs:
       
       - name: install package
         run: |
-          python setup.py install
+          pip install .
 
       - name: install packages required for testing
         run: |
-          pip install -r requirements-test.txt
+          pip install .[tests]
 
       - name: run tests
         run: |
