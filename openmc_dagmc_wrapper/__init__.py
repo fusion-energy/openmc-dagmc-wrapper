@@ -8,8 +8,6 @@ from .Tally import (
     MeshTallies2D,
     MeshTally3D,
     MeshTallies3D,
-    TetMeshTally,
-    TetMeshTallies,
 )
 from .tallies import *
 from .Settings import FusionSettings
