@@ -16,19 +16,19 @@ class MeshTally3D(Tally):
         self.tally_type = tally_type
         self.mesh_resolution = mesh_resolution
         self.bounding_box = bounding_box
+
         super().__init__(tally_type, **kwargs)
-
-        self.add_mesh_filter(bounding_box)
+        self.create_mesh()
         self.name = self.tally_type + "_on_3D_mesh"
+        self.filters.append(openmc.MeshFilter(self.mesh))
 
-    def add_mesh_filter(self, bounding_box):
-
+    def create_mesh(self):
         mesh = openmc.RegularMesh(name="3d_mesh")
         mesh.dimension = self.mesh_resolution
         mesh.lower_left = self.bounding_box[0]
         mesh.upper_right = self.bounding_box[1]
 
-        self.filters.append(openmc.MeshFilter(mesh))
+        self.mesh = mesh
 
 
 class MeshTallies3D:

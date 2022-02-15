@@ -30,13 +30,12 @@ class MeshTally2D(Tally):
         self.bounding_box = bounding_box
         self.plane_slice_location = plane_slice_location
 
-        self.create_mesh(bounding_box)
-
         super().__init__(tally_type)
+        self.create_mesh()
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
         self.filters.append(openmc.MeshFilter(self.mesh))
 
-    def create_mesh(self, bounding_box):
+    def create_mesh(self):
         mesh_name = "2D_mesh_" + self.plane
         mesh = openmc.RegularMesh(name=mesh_name)
 
