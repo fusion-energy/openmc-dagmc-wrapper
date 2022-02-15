@@ -50,11 +50,11 @@ materials = odw.Materials(
 tally1 = odw.MeshTally2D(
     tally_type="photon_effective_dose",
     plane="xy"
-    )
+)
 tally2 = odw.MeshTally2D(
     tally_type="neutron_effective_dose",
     plane="xy"
-    )
+)
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1, tally2])
