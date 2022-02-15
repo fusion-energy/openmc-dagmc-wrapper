@@ -40,4 +40,4 @@ class Model(openmc.Model):
                         if tally_filter.mesh.lower_left is None:
                             tally_filter.mesh.set_bounds(
                                 self.geometry.corners()
-                                )
+                            )
