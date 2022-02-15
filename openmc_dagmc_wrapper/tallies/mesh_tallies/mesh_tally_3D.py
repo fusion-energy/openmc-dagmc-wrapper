@@ -2,26 +2,11 @@ from typing import List, Tuple
 
 import openmc
 
-# TODO:
-# i don't understand why . here works but not openmc_dagmc_wrapper
-from . import MeshTally
+from openmc_dagmc_wrapper import Tally
 
 
-# my_tally = odw.Tally("(n,Xt)")
-# my_mesh = openmc.RegularMesh(name="3d_mesh")
-# my_mesh.dimension = (100, 100, 100)
-# my_mesh.lower_left = (0, 0, 0)
-# my_mesh.upper_right = (10, 10, 10)
-# my_tally.filters.append(openmc.MeshFilter(my_mesh))
-
-
-# my_tally = odw.MeshTally3D(
-#     tally_type="(n,Xt)",
-#     bounding_box=[(0, 0, 0), (10, 10, 10)],
-#     mesh_resolution=(100, 100, 100)
-# )
-
-class MeshTally3D(MeshTally):
+# TODO get rid of MeshTally3D as we don't add anything
+class MeshTally3D(Tally):
     def __init__(
         self,
         tally_type: str,
@@ -29,8 +14,9 @@ class MeshTally3D(MeshTally):
         mesh_resolution=(100, 100, 100),
         **kwargs
     ):
+        super().__init__(tally_type, **kwargs)
         mesh = self.create_mesh(mesh_resolution, bounding_box)
-        super().__init__(tally_type, mesh, **kwargs)
+        self.filters.append(openmc.MeshFilter(mesh))
         self.name = self.tally_type + "_on_3D_mesh"
 
     def create_mesh(self, mesh_resolution, bounding_box):
