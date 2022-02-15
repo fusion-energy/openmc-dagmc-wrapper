@@ -25,12 +25,10 @@ h5m_filename = "neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/sta
 # So a set of 6 CSG surfaces are automatically made and added to the geometry
 geometry = odw.Geometry(h5m_filename=h5m_filename)
 
-# Creates the materials to use in the problem using by linking the material
-# tags in the DAGMC h5m file with material definitions in the
+# Creates the materials to use in the problem with material definitions in the
 # neutronics-material-maker. One could also use openmc.Material or nmm.Material
 # objects instead of the strings used here
 materials = odw.Materials(
-    h5m_filename=h5m_filename,
     correspondence_dict={
         "blanket_mat": "Li4SiO4",
         "blanket_rear_wall_mat": "Be",
@@ -44,17 +42,13 @@ materials = odw.Materials(
     },
 )
 
-# makes use of the dagmc-bound-box package to get the corners of the bounding
-# box. This will be used to set the bounding box for the tally. This can be
-# expanded with the expand keyword if needed
-my_bounding_box = geometry.corners()
 
 # A MeshTally3D tally allows a set of standard tally types (made from filters
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
 tally1 = odw.MeshTally3D(
-    tally_type="neutron_effective_dose", bounding_box=my_bounding_box
+    tally_type="neutron_effective_dose"
 )
 
 # no modifications are made to the default openmc.Tallies
@@ -72,7 +66,7 @@ settings.particles = 100
 settings.source = FusionRingSource(fuel="DT", radius=350)
 
 # no modifications are made to the default openmc.Model object
-my_model = openmc.Model(
+my_model = odw.Model(
     materials=materials, geometry=geometry, settings=settings, tallies=tallies
 )
 statepoint_file = my_model.run()
