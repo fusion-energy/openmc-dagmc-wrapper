@@ -117,6 +117,7 @@ class Geometry(openmc.Geometry):
         be used as an alternative to the traditionally DAGMC graveyard cell"""
 
         if self.graveyard_box is None:
+            # TODO this is not needed since imported at top level
             from dagmc_bounding_box import DagmcBoundingBox
 
             self.graveyard_box = DagmcBoundingBox(self.h5m_filename).corners()
