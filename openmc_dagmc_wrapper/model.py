@@ -34,8 +34,10 @@ class Model(openmc.Model):
         If the RegularMesh2D doesn't have corners, add them from the geometry.
         """
         for tally in self.tallies:
-            for filter in tally.filters:
-                if isinstance(filter, openmc.MeshFilter):
-                    if isinstance(filter.mesh, odw.RegularMesh2D):
-                        if filter.mesh.lower_left is None:
-                            filter.mesh.set_bounds(self.geometry.corners())
+            for tally_filter in tally.filters:
+                if isinstance(tally_filter, openmc.MeshFilter):
+                    if isinstance(tally_filter.mesh, odw.RegularMesh2D):
+                        if tally_filter.mesh.lower_left is None:
+                            tally_filter.mesh.set_bounds(
+                                self.geometry.corners()
+                                )
