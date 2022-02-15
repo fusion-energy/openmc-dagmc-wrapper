@@ -1,9 +1,10 @@
 import openmc
 
-from . import MeshTally
+from openmc_dagmc_wrapper import Tally, UnstructuredMesh
 
 
-class TetMeshTally(MeshTally):
+# TODO remove TetMeshTally as we don't bring anything
+class TetMeshTally(Tally):
     """Usage:
     my_tally = odw.TetMeshTally(tally_type='TBR', filename="file.h5m")
     my_tally2 = odw.TetMeshTally(tally_type='TBR', filename="file.exo")
@@ -14,23 +15,10 @@ class TetMeshTally(MeshTally):
     """
 
     def __init__(self, tally_type, filename, **kwargs):
-
-        mesh = self.create_mesh(filename)
-        super().__init__(tally_type, mesh, **kwargs)
+        super().__init__(tally_type, **kwargs)
+        mesh = UnstructuredMesh(filename=filename)
         self.name = tally_type + "_on_3D_u_mesh"
-
-    def create_mesh(self, filename):
-        if filename.endswith(".exo"):
-            # requires a exo file export from cubit
-            library = "libmesh"
-        elif filename.endswith(".h5m"):
-            # requires a .cub file export from cubit and mbconvert to h5m
-            # format
-            library = "moab"
-        else:
-            msg = "only h5m or exo files are accepted as valid " "filename values"
-            raise ValueError(msg)
-        return openmc.UnstructuredMesh(filename, library=library)
+        self.filters.append(openmc.MeshFilter(mesh))
 
 
 class TetMeshTallies:

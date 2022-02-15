@@ -2,12 +2,11 @@ from typing import Iterable, List, Tuple, Union
 
 import openmc
 
-# TODO:
-# i don't understand why . here works but not openmc_dagmc_wrapper
-from . import MeshTally3D
+from openmc_dagmc_wrapper import Tally, RegularMesh2D
 
 
-class MeshTally2D(MeshTally3D):
+# TODO get rid of MeshTally2D as we don't bring anything
+class MeshTally2D(Tally):
     """[summary]
 
     Args:
@@ -15,7 +14,7 @@ class MeshTally2D(MeshTally3D):
         plane (str): "xy", "xz", "yz"
         mesh_resolution (list): [description]
         bounding_box ([type], optional): either a .h5m filename or
-            [point1, point2]. Defaults to None.
+            [point1, point2].
     """
 
     def __init__(
@@ -26,69 +25,16 @@ class MeshTally2D(MeshTally3D):
         plane_slice_location: Tuple[float, float] = (1, -1),
         mesh_resolution: Tuple[float, float] = (400, 400),
     ):
-        self.plane = plane
-        self.plane_slice_location = plane_slice_location
+        mesh = RegularMesh2D(
+            plane=plane,
+            resolution=mesh_resolution,
+            plane_slice_location=plane_slice_location,
+            bounding_box=bounding_box
+        )
 
-        super().__init__(tally_type, bounding_box, mesh_resolution)
+        super().__init__(tally_type, mesh)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
-
-    def create_mesh(self, mesh_resolution, bounding_box):
-        mesh_name = "2D_mesh_" + self.plane
-        mesh = openmc.RegularMesh(name=mesh_name)
-
-        # mesh dimension
-        if self.plane == "xy":
-            mesh.dimension = [
-                mesh_resolution[0],
-                mesh_resolution[1],
-                1,
-            ]
-            mesh.lower_left = [
-                bounding_box[0][0],
-                bounding_box[0][1],
-                self.plane_slice_location[1],
-            ]
-            mesh.upper_right = [
-                bounding_box[1][0],
-                bounding_box[1][1],
-                self.plane_slice_location[0],
-            ]
-
-        elif self.plane == "xz":
-            mesh.dimension = [
-                mesh_resolution[0],
-                1,
-                mesh_resolution[1],
-            ]
-            mesh.lower_left = [
-                bounding_box[0][0],
-                self.plane_slice_location[1],
-                bounding_box[0][2],
-            ]
-            mesh.upper_right = [
-                bounding_box[1][0],
-                self.plane_slice_location[0],
-                bounding_box[1][2],
-            ]
-
-        elif self.plane == "yz":
-            mesh.dimension = [
-                1,
-                mesh_resolution[0],
-                mesh_resolution[1],
-            ]
-            mesh.lower_left = [
-                self.plane_slice_location[1],
-                bounding_box[0][1],
-                bounding_box[0][2],
-            ]
-            mesh.upper_right = [
-                self.plane_slice_location[0],
-                bounding_box[1][1],
-                bounding_box[1][2],
-            ]
-
-        return mesh
+        self.filters.append(openmc.MeshFilter(mesh))
 
 
 class MeshTallies2D:
