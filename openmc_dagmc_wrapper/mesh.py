@@ -9,14 +9,15 @@ class RegularMesh2D(openmc.RegularMesh):
         plane="xy",
         resolution=(400, 400),
         plane_slice_location=(-1, 1),
-        bounding_box=None  # TODO replace this by [(xmin, xmax), (ymin, ymax)]
+        bounding_box=None  # TODO replace this by bounds=[(xmin, xmax), (ymin, ymax)]
     ):
         self.plane = plane
         self.resolution = resolution
         self.plane_slice_location = plane_slice_location
         super().__init__(mesh_id, name)
         self.set_dimension()
-        self.set_bounds(bounding_box)
+        if bounding_box is not None:
+            self.set_bounds(bounding_box)
 
     def set_dimension(self):
         if self.plane == "xy":
