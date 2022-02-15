@@ -14,7 +14,7 @@ class MeshTally3D(Tally):
         mesh_resolution=(100, 100, 100),
         **kwargs
     ):
-        super().__init__(tally_type, mesh, **kwargs)
+        super().__init__(tally_type, **kwargs)
         mesh = self.create_mesh(mesh_resolution, bounding_box)
         self.filters.append(openmc.MeshFilter(mesh))
         self.name = self.tally_type + "_on_3D_mesh"

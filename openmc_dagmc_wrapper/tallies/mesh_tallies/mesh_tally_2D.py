@@ -32,7 +32,7 @@ class MeshTally2D(Tally):
             bounding_box=bounding_box
         )
 
-        super().__init__(tally_type, mesh)
+        super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
         self.filters.append(openmc.MeshFilter(mesh))
 
