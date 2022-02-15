@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import openmc
 
-from openmc_dagmc_wrapper import MeshTally
+from . import MeshTally
 
 
 # my_tally = odw.Tally("(n,Xt)")

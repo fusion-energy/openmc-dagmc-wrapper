@@ -2,7 +2,7 @@ from typing import Iterable, List, Tuple, Union
 
 import openmc
 
-from openmc_dagmc_wrapper import MeshTally3D
+from . import MeshTally3D
 
 
 class MeshTally2D(MeshTally3D):
