@@ -88,6 +88,6 @@ class UnstructuredMesh(openmc.UnstructuredMesh):
             # format
             library = "moab"
         else:
-            msg = "only h5m or exo files are accepted as valid " "filename values"
+            msg = "only h5m or exo files are accepted as valid filename values"
             raise ValueError(msg)
         super().__init__(filename, library, mesh_id, name, length_multiplier)
