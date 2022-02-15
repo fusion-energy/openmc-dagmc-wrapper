@@ -9,7 +9,8 @@ class RegularMesh2D(openmc.RegularMesh):
         plane="xy",
         resolution=(400, 400),
         plane_slice_location=(-1, 1),
-        bounding_box=None  # TODO replace this by bounds=[(xmin, xmax), (ymin, ymax)]
+        # TODO replace this by bounds=[(xmin, xmax), (ymin, ymax)]
+        bounding_box=None
     ):
         self.plane = plane
         self.resolution = resolution
