@@ -1,5 +1,6 @@
 import os
 import tarfile
+import zipfile
 import unittest
 import urllib.request
 from pathlib import Path
@@ -14,16 +15,15 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
 
     def setUp(self):
 
-        if not Path("tests/v0.0.2.tar.gz").is_file():
-            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+        if not Path("tests/output_files_produced.zip").is_file():
+            url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
+            urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
-            tar.extractall("tests")
-            tar.close()
+        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+            zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
     def test_get_an_isotope_present_in_cross_sections_xml(self):
         """Checks that an isotope string is returned from the
@@ -39,9 +39,9 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
         variable does not exist"""
 
-        def no_env_var():
-            del os.environ["OPENMC_CROSS_SECTIONS"]
-            odw.utils.get_an_isotope_present_in_cross_sections_xml()
+        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
+        odw.utils.get_an_isotope_present_in_cross_sections_xml()
 
         cross_sections_xml = os.getenv("OPENMC_CROSS_SECTIONS")
         self.assertRaises(ValueError, no_env_var)
@@ -150,7 +150,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
     #     """Tries to make extract points on to viewplane that is not accepted"""
 
     #     def incorrect_viewplane():
-    #         """Inccorect view_plane should raise a ValueError"""
+    #         """Incorrect view_plane should raise a ValueError"""
 
     #         source = openmc.Source()
     #         source.space = openmc.stats.Point((0, 0, 0))
