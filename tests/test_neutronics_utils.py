@@ -39,9 +39,9 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
         variable does not exist"""
 
-        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
-        odw.utils.get_an_isotope_present_in_cross_sections_xml()
+        def no_env_var():
+            del os.environ["OPENMC_CROSS_SECTIONS"]
+            odw.utils.get_an_isotope_present_in_cross_sections_xml()
 
         cross_sections_xml = os.getenv("OPENMC_CROSS_SECTIONS")
         self.assertRaises(ValueError, no_env_var)

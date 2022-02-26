@@ -3,7 +3,7 @@ import tarfile
 import unittest
 import urllib.request
 from pathlib import Path
-
+import zipfile
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
@@ -16,16 +16,15 @@ class TestShape(unittest.TestCase):
 
     def setUp(self):
 
-        if not Path("tests/v0.0.2.tar.gz").is_file():
-            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+        if not Path("tests/output_files_produced.zip").is_file():
+            url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
+            urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
-            tar.extractall("tests")
-            tar.close()
+        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+            zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
@@ -66,7 +65,6 @@ class TestShape(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={
                 "mat1": "WC"})
 
@@ -95,7 +93,6 @@ class TestShape(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename="no_graveyard_dagmc_file.h5m")
         materials = odw.Materials(
-            h5m_filename="no_graveyard_dagmc_file.h5m",
             correspondence_dict={"mat1": "WC"},
         )
 
@@ -121,7 +118,6 @@ class TestShape(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={"mat1": test_mat},
         )
 
