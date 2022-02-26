@@ -7,6 +7,7 @@ import openmc
 import openmc_dagmc_wrapper as odw
 import zipfile
 
+
 class TestSettings(unittest.TestCase):
     """Tests the geometry.py file functionality"""
 

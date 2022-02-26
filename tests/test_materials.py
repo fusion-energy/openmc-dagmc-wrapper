@@ -7,6 +7,7 @@ import openmc
 import openmc_dagmc_wrapper as odw
 import zipfile
 
+
 class TestMaterial(unittest.TestCase):
     """Tests creation, functionality and extended features of the Material class"""
 
