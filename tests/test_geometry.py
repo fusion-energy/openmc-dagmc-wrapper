@@ -84,4 +84,6 @@ class TestSettings(unittest.TestCase):
 
             odw.Geometry(h5m_filename="not_file_here.h5m")
 
-        self.assertRaises(FileNotFoundError, test_missing_h5m_file_error_handling)
+        self.assertRaises(
+            FileNotFoundError,
+            test_missing_h5m_file_error_handling)
