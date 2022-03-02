@@ -72,3 +72,16 @@ class TestSettings(unittest.TestCase):
         assert small_corners[1][0] + 1 == big_corners[1][0]
         assert small_corners[1][1] + 2 == big_corners[1][1]
         assert small_corners[1][2] + 3 == big_corners[1][2]
+
+    def test_geometry_with_missing_h5m_file(self):
+        """Creates Geometry objects and to check if error handeling is working"""
+
+        def test_missing_h5m_file_error_handling():
+            """Attempts to simulate without a dagmc_smaller.h5m file which
+            should fail with a FileNotFoundError"""
+
+            odw.Geometry(h5m_filename='not_file_here.h5m')
+
+        self.assertRaises(
+            FileNotFoundError,
+            test_missing_h5m_file_error_handling)

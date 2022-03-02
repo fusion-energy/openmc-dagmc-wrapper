@@ -2,8 +2,10 @@ from typing import Tuple
 
 import dagmc_h5m_file_inspector as di
 import openmc
-from numpy import cos, sin
 from dagmc_bounding_box import DagmcBoundingBox
+from numpy import cos, sin
+
+from .utils import check_files_exists
 
 
 class Geometry(openmc.Geometry):
@@ -24,9 +26,9 @@ class Geometry(openmc.Geometry):
         reflective_angles: Tuple[float, float] = None,
     ):
         self.h5m_filename = h5m_filename
+        check_files_exists(h5m_filename)
         self.reflective_angles = reflective_angles
         self.dagmc_bounding_box = DagmcBoundingBox(h5m_filename)
-
         super().__init__(root=self.make_root())
 
     def corners(

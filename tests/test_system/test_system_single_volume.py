@@ -67,7 +67,7 @@ class TestShape(unittest.TestCase):
             correspondence_dict={
                 "mat_my_material": "WC"})
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[],
@@ -95,7 +95,7 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat_my_material": "WC"},
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[],
@@ -125,7 +125,7 @@ class TestShape(unittest.TestCase):
             target="mat_my_material",
             materials=materials)
         self.settings.batches = 2
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
@@ -153,7 +153,7 @@ class TestShape(unittest.TestCase):
 
         my_tally = odw.CellTally("heating", target=1)
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
@@ -203,7 +203,7 @@ class TestShape(unittest.TestCase):
                 "neutron_spectra",
                 "photon_spectra"])
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -234,7 +234,7 @@ class TestShape(unittest.TestCase):
                 "neutron_spectra",
                 "photon_spectra"])
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -263,7 +263,7 @@ class TestShape(unittest.TestCase):
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -295,7 +295,7 @@ class TestShape(unittest.TestCase):
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -335,7 +335,7 @@ class TestShape(unittest.TestCase):
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_3d_tally] + my_2d_tallies.tallies,
@@ -373,11 +373,12 @@ class TestShape(unittest.TestCase):
             bounding_box=[(5, 5, 5), (15, 15, 15)],
         )
 
-        assert my_3d_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
-        for tally in my_2d_tallies.tallies:
-            assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
+        # Removed as tallies are not meshes
+        # assert my_3d_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
+        # for tally in my_2d_tallies.tallies:
+        #     assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_3d_tally] + my_2d_tallies.tallies,
@@ -405,7 +406,7 @@ class TestShape(unittest.TestCase):
 
         my_tallies = odw.CellTallies(tally_types=["TBR", "heating", "flux"])
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -433,7 +434,7 @@ class TestShape(unittest.TestCase):
             tally_types=["photon_fast_flux", "neutron_fast_flux", "flux"]
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -461,7 +462,7 @@ class TestShape(unittest.TestCase):
             tally_types=["photon_effective_dose", "neutron_effective_dose"]
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -485,7 +486,7 @@ class TestShape(unittest.TestCase):
     #     my_tallies = odw.CellTallies(
     #         tally_types=["(n,Xt)", "heating", "flux"])
 
-    #     my_model = openmc.model.Model(
+    #     my_model = openmc.Model(
     #         geometry=geometry,
     #         materials=materials,
     #         tallies=my_tallies.tallies,
@@ -505,10 +506,6 @@ class TestShape(unittest.TestCase):
             """Attempts to simulate without a dagmc_smaller.h5m file which
             should fail with a FileNotFoundError"""
 
-            import shutil
-
-            shutil.copy(self.h5m_filename_smaller, ".")
-
             # creates xml files so that the code passes the xml file check
             os.system("touch geometry.xml")
             os.system("touch materials.xml")
@@ -516,12 +513,11 @@ class TestShape(unittest.TestCase):
             os.system("touch tallies.xml")
             os.system("rm dagmc.h5m")
 
-            materials = odw.Materials(
-                correspondence_dict={
-                    "mat_my_material": "Be"})
+            materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
             geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-            openmc.model.Model(
+            geometry.h5m_filename = 'changed_to_file_that_does_not_exist'
+            odw.Model(
                 geometry=geometry,
                 materials=materials,
                 tallies=[],

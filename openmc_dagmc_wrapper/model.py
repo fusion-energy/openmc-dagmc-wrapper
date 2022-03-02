@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import openmc
 
 import openmc_dagmc_wrapper as odw
+from .utils import check_files_exists
 
 
 class Model(openmc.Model):
@@ -26,6 +29,7 @@ class Model(openmc.Model):
             plots (openmc.Plots, optional): Plot information. Defaults to None.
         """
         super().__init__(geometry, materials, settings, tallies, plots)
+        check_files_exists(self.geometry.h5m_filename)
         self.materials.checks(self.geometry.h5m_filename)
         self.check_tallies_meshes_corners()
 

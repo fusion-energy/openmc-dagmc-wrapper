@@ -1,9 +1,15 @@
 import os
+from pathlib import Path
+
+import dagmc_h5m_file_inspector as di
+import neutronics_material_maker as nmm
 import openmc
 
-import neutronics_material_maker as nmm
-import dagmc_h5m_file_inspector as di
 
+def check_files_exists(filename):
+
+    if not Path(filename).is_file():
+        raise FileNotFoundError('file not found')
 
 def create_material(material_tag: str, material_entry):
     if isinstance(material_entry, str):
