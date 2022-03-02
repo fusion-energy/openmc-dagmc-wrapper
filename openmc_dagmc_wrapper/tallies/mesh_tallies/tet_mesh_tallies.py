@@ -37,7 +37,4 @@ class TetMeshTallies:
         self.tally_types = tally_types
         for score in self.tally_types:
             for filename in filenames:
-                self.tallies.append(
-                    TetMeshTally(
-                        tally_type=score,
-                        filename=filename))
+                self.tallies.append(TetMeshTally(tally_type=score, filename=filename))

@@ -17,10 +17,12 @@ class TestMeshTally2D(unittest.TestCase):
             url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
             urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
             zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
     def test_incorrect_mesh_tally_2d(self):
@@ -29,8 +31,8 @@ class TestMeshTally2D(unittest.TestCase):
 
         def incorrect_mesh_tally_2d():
             odw.MeshTally2D(
-                "coucou", bounding_box=[
-                    (10, 10, 10), (-10, -10, -10)], plane="xy")
+                "coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)], plane="xy"
+            )
 
         self.assertRaises(ValueError, incorrect_mesh_tally_2d)
 
@@ -81,17 +83,14 @@ class TestMeshTally2D(unittest.TestCase):
         settings.source = FusionRingSource(fuel="DT", radius=1)
 
         my_model = openmc.Model(
-            materials=materials,
-            geometry=geometry,
-            settings=settings,
-            tallies=tallies)
+            materials=materials, geometry=geometry, settings=settings, tallies=tallies
+        )
         statepoint_file = my_model.run()
 
         assert Path(statepoint_file).exists()
 
     def test_correct_resolution(self):
-        """Tests that the mesh resolution is in accordance with the plane
-        """
+        """Tests that the mesh resolution is in accordance with the plane"""
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         tally_xy = odw.MeshTally2D(
             tally_type="neutron_flux",

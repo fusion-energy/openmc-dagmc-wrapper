@@ -19,10 +19,12 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
             url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
             urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
             zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
     def test_get_an_isotope_present_in_cross_sections_xml(self):
@@ -34,8 +36,7 @@ class TestNeutronicsUtilityFunctions(unittest.TestCase):
         # could be an isotope such as Ag107 or H3 or and element such as H
         assert len(isotope) in [1, 2, 3, 4, 5]
 
-    def test_get_an_isotope_present_in_cross_sections_xml_error_handeling(
-            self):
+    def test_get_an_isotope_present_in_cross_sections_xml_error_handeling(self):
         """Checks that an error message is raised if the OPENMC_CROSS_SECTIONS
         variable does not exist"""
 

@@ -29,7 +29,7 @@ class MeshTally2D(Tally):
             plane=plane,
             resolution=resolution,
             plane_slice_location=plane_slice_location,
-            bounding_box=bounding_box
+            bounding_box=bounding_box,
         )
 
         self.plane = plane

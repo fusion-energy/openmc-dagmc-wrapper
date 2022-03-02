@@ -58,7 +58,7 @@ class Geometry(openmc.Geometry):
                 vac_surf = openmc.Sphere(
                     r=1000000,  # set to 10km to be big enough for models
                     surface_id=99999999,  # set to large surface id to avoid overlaps
-                    boundary_type="vacuum"
+                    boundary_type="vacuum",
                 )
                 region = -vac_surf
 
@@ -95,8 +95,7 @@ class Geometry(openmc.Geometry):
                 vac_surf = self.create_sphere_of_vacuum_surface()
                 region = -vac_surf & -reflective_1 & +reflective_2
 
-            containing_cell = openmc.Cell(
-                cell_id=9999, region=region, fill=dag_univ)
+            containing_cell = openmc.Cell(cell_id=9999, region=region, fill=dag_univ)
 
             root = [containing_cell]
 

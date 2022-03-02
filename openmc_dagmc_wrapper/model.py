@@ -8,12 +8,7 @@ from .utils import check_files_exists
 
 class Model(openmc.Model):
     def __init__(
-        self,
-        geometry=None,
-        materials=None,
-        settings=None,
-        tallies=None,
-        plots=None
+        self, geometry=None, materials=None, settings=None, tallies=None, plots=None
     ):
         """Inits Model
 
@@ -43,9 +38,7 @@ class Model(openmc.Model):
                     if isinstance(tally_filter.mesh, odw.RegularMesh2D):
                         corners = [
                             tally_filter.mesh.lower_left,
-                            tally_filter.mesh.upper_right
+                            tally_filter.mesh.upper_right,
                         ]
                         if None in corners:
-                            tally_filter.mesh.set_bounds(
-                                self.geometry.corners()
-                            )
+                            tally_filter.mesh.set_bounds(self.geometry.corners())

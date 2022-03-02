@@ -47,9 +47,7 @@ materials = odw.Materials(
 # and scores) to be applied to the DAGMC geometry. By default the mesh will be
 # applied across the entire geomtry with and the size of the geometry is
 # automatically found.
-tally1 = odw.MeshTally3D(
-    tally_type="neutron_effective_dose"
-)
+tally1 = odw.MeshTally3D(tally_type="neutron_effective_dose")
 
 # no modifications are made to the default openmc.Tallies
 tallies = openmc.Tallies([tally1])

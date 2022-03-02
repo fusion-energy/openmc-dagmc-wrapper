@@ -120,9 +120,7 @@ def compute_filters(tally_type):
         energy_function_filter_n = openmc.EnergyFunctionFilter(
             energy_bins_n, dose_coeffs_n
         )
-        additional_filters = [
-            neutron_particle_filter,
-            energy_function_filter_n]
+        additional_filters = [neutron_particle_filter, energy_function_filter_n]
     elif tally_type == "photon_effective_dose":
         energy_function_filter_p = openmc.EnergyFunctionFilter(
             energy_bins_p, dose_coeffs_p

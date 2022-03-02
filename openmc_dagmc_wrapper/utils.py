@@ -9,7 +9,8 @@ import openmc
 def check_files_exists(filename):
 
     if not Path(filename).is_file():
-        raise FileNotFoundError('file not found')
+        raise FileNotFoundError("file not found")
+
 
 def create_material(material_tag: str, material_entry):
     if isinstance(material_entry, str):

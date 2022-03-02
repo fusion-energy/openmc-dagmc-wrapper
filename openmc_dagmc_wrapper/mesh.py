@@ -5,12 +5,12 @@ class RegularMesh2D(openmc.RegularMesh):
     def __init__(
         self,
         mesh_id=None,
-        name='',
+        name="",
         plane="xy",
         resolution=(400, 400),
         plane_slice_location=(-1, 1),
         # TODO replace this by bounds=[(xmin, xmax), (ymin, ymax)]
-        bounding_box=None
+        bounding_box=None,
     ):
         self.plane = plane
         self.resolution = resolution
@@ -83,7 +83,7 @@ class RegularMesh2D(openmc.RegularMesh):
 
 
 class UnstructuredMesh(openmc.UnstructuredMesh):
-    def __init__(self, filename, mesh_id=None, name='', length_multiplier=1):
+    def __init__(self, filename, mesh_id=None, name="", length_multiplier=1):
         if filename.endswith(".exo"):
             # requires a exo file export from cubit
             library = "libmesh"

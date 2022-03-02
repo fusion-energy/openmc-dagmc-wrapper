@@ -115,7 +115,5 @@ class CellTallies:
         for score in self.tally_types:
             for target in all_targets:
                 self.tallies.append(
-                    CellTally(
-                        tally_type=score,
-                        target=target,
-                        materials=materials))
+                    CellTally(tally_type=score, target=target, materials=materials)
+                )

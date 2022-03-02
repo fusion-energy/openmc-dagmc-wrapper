@@ -16,10 +16,12 @@ class TestMeshTally3D(unittest.TestCase):
             url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
             urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
             zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
     def test_incorrect_mesh_tally_3d(self):
@@ -27,9 +29,7 @@ class TestMeshTally3D(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d():
-            odw.MeshTally3D(
-                "coucou", bounding_box=[
-                    (10, 10, 10), (-10, -10, -10)])
+            odw.MeshTally3D("coucou", bounding_box=[(10, 10, 10), (-10, -10, -10)])
 
         self.assertRaises(ValueError, incorrect_mesh_tally_3d)
 

@@ -17,21 +17,23 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
             url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
             urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-        with zipfile.ZipFile("tests/output_files_produced.zip", 'r') as zip_ref:
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
             zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description_bigger = {
-            'mat_blanket': "Be",
-            'mat_blanket_rear_wall': "Be",
-            'mat_center_column_shield': "Be",
-            'mat_divertor_lower': "Be",
-            'mat_divertor_upper': "Be",
-            'mat_firstwall': "Be",
-            'mat_inboard_tf_coils': "Be",
-            'mat_plasma': "Be"
+            "mat_blanket": "Be",
+            "mat_blanket_rear_wall": "Be",
+            "mat_center_column_shield": "Be",
+            "mat_divertor_lower": "Be",
+            "mat_divertor_upper": "Be",
+            "mat_firstwall": "Be",
+            "mat_inboard_tf_coils": "Be",
+            "mat_plasma": "Be",
         }
 
         self.material_description_smaller = {
@@ -58,8 +60,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         os.system("rm statepoint*.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
-        materials = odw.Materials(
-            correspondence_dict=self.material_description_bigger)
+        materials = odw.Materials(correspondence_dict=self.material_description_bigger)
         my_tally = odw.CellTally("TBR")
         my_model = openmc.model.Model(
             geometry=geometry,
