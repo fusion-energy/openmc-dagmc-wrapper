@@ -14,14 +14,16 @@ jobs:
   testing:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fusion-energy/openmc-dagmc-wrapper:dependencies
+      image: ghcr.io/openmc-data-storage/miniconda3_4.9.2_endfb-7.1_nndc_tendl_2019
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
       
       - name: install package
         run: |
+          conda install -c conda-forge openmc
           pip install .
+          python -c "import openmc_dagmc_wrapper"
 
       - name: install packages required for testing
         run: |
