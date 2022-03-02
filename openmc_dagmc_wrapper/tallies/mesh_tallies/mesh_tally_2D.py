@@ -25,7 +25,7 @@ class MeshTally2D(Tally):
         plane_slice_location: Tuple[float, float] = (1, -1),
         resolution: Tuple[float, float] = (400, 400),
     ):
-        mesh = RegularMesh2D(
+        self.mesh = RegularMesh2D(
             plane=plane,
             resolution=resolution,
             plane_slice_location=plane_slice_location,
@@ -37,7 +37,7 @@ class MeshTally2D(Tally):
 
         super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
-        self.filters.append(openmc.MeshFilter(mesh))
+        self.filters.append(openmc.MeshFilter(self.mesh))
 
 
 class MeshTallies2D:

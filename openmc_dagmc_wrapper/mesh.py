@@ -15,6 +15,7 @@ class RegularMesh2D(openmc.RegularMesh):
         self.plane = plane
         self.resolution = resolution
         self.plane_slice_location = plane_slice_location
+        self.bounding_box = bounding_box
         super().__init__(mesh_id, name)
         self.set_dimension()
         if bounding_box is not None:

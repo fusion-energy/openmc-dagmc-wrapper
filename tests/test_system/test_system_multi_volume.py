@@ -24,15 +24,14 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description_bigger = {
-            "pf_coil_case_mat": "Be",
-            "center_column_shield_mat": "Be",
-            "blanket_rear_wall_mat": "Be",
-            "divertor_mat": "Be",
-            "tf_coil_mat": "Be",
-            "pf_coil_mat": "Be",
-            "inboard_tf_coils_mat": "Be",
-            "blanket_mat": "Be",
-            "firstwall_mat": "Be",
+            'mat_blanket': "Be",
+            'mat_blanket_rear_wall': "Be",
+            'mat_center_column_shield': "Be",
+            'mat_divertor_lower': "Be",
+            'mat_divertor_upper': "Be",
+            'mat_firstwall': "Be",
+            'mat_inboard_tf_coils': "Be",
+            'mat_plasma': "Be"
         }
 
         self.material_description_smaller = {

@@ -1,5 +1,4 @@
 import os
-import tarfile
 import unittest
 import urllib.request
 from pathlib import Path
