@@ -142,5 +142,11 @@ dmypy.json
 *.trelis
 *.out
 *.tar.gz
-examples/neutronics_workflow-0.0.2/
-tests/neutronics_workflow-0.0.2/
+
+tests/example_01_single_volume_cell_tally/
+tests/example_02_multi_volume_cell_tally/
+tests/example_04_multi_volume_regular_mesh_tally/
+tests/example_05_3D_unstructured_mesh_tally/
+tests/output_files_produced.zip
+
+_version.py

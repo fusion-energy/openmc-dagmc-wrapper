@@ -9,3 +9,5 @@ from .Tally import Tally
 from .tallies import *
 
 from .Settings import FusionSettings
+
+from .model import Model

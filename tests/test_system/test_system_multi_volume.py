@@ -3,7 +3,7 @@ import tarfile
 import unittest
 import urllib.request
 from pathlib import Path
-
+import zipfile
 import openmc
 import openmc_dagmc_wrapper as odw
 
@@ -13,27 +13,27 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
 
     def setUp(self):
 
-        if not Path("tests/v0.0.2.tar.gz").is_file():
-            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+        if not Path("tests/output_files_produced.zip").is_file():
+            url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
+            urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
-            tar.extractall("tests")
-            tar.close()
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
+            zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description_bigger = {
-            "pf_coil_case_mat": "Be",
-            "center_column_shield_mat": "Be",
-            "blanket_rear_wall_mat": "Be",
-            "divertor_mat": "Be",
-            "tf_coil_mat": "Be",
-            "pf_coil_mat": "Be",
-            "inboard_tf_coils_mat": "Be",
-            "blanket_mat": "Be",
-            "firstwall_mat": "Be",
+            "mat_blanket": "Be",
+            "mat_blanket_rear_wall": "Be",
+            "mat_center_column_shield": "Be",
+            "mat_divertor_lower": "Be",
+            "mat_divertor_upper": "Be",
+            "mat_firstwall": "Be",
+            "mat_inboard_tf_coils": "Be",
+            "mat_plasma": "Be",
         }
 
         self.material_description_smaller = {
@@ -60,10 +60,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         os.system("rm statepoint*.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_bigger,
-            correspondence_dict=self.material_description_bigger,
-        )
+        materials = odw.Materials(correspondence_dict=self.material_description_bigger)
         my_tally = odw.CellTally("TBR")
         my_model = openmc.model.Model(
             geometry=geometry,

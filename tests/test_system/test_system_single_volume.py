@@ -1,9 +1,8 @@
 import os
-import tarfile
 import unittest
 import urllib.request
 from pathlib import Path
-
+import zipfile
 import neutronics_material_maker as nmm
 import openmc
 import openmc_dagmc_wrapper as odw
@@ -16,16 +15,17 @@ class TestShape(unittest.TestCase):
 
     def setUp(self):
 
-        if not Path("tests/v0.0.2.tar.gz").is_file():
-            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+        if not Path("tests/output_files_produced.zip").is_file():
+            url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
+            urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-            tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
-            tar.extractall("tests")
-            tar.close()
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
+            zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description = {
             "tungsten": "tungsten",
@@ -65,16 +65,11 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "WC"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "WC"})
 
-        my_model = openmc.model.Model(
-            geometry=geometry,
-            materials=materials,
-            tallies=[],
-            settings=self.settings)
+        my_model = openmc.Model(
+            geometry=geometry, materials=materials, tallies=[], settings=self.settings
+        )
 
         statepoint_file = my_model.run()
 
@@ -95,15 +90,12 @@ class TestShape(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename="no_graveyard_dagmc_file.h5m")
         materials = odw.Materials(
-            h5m_filename="no_graveyard_dagmc_file.h5m",
-            correspondence_dict={"mat1": "WC"},
+            correspondence_dict={"mat_my_material": "WC"},
         )
 
-        my_model = openmc.model.Model(
-            geometry=geometry,
-            materials=materials,
-            tallies=[],
-            settings=self.settings)
+        my_model = openmc.Model(
+            geometry=geometry, materials=materials, tallies=[], settings=self.settings
+        )
 
         statepoint_file = my_model.run()
 
@@ -121,23 +113,24 @@ class TestShape(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={"mat1": test_mat},
+            correspondence_dict={"mat_my_material": test_mat},
         )
 
-        my_tally = odw.CellTally("heating", target="mat1", materials=materials)
+        my_tally = odw.CellTally(
+            "heating", target="mat_my_material", materials=materials
+        )
         self.settings.batches = 2
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
             settings=self.settings,
         )
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
         self.settings.batches = 10
-        assert h5m_filename.name == "statepoint.2.h5"
+        assert statepoint_filename.name == "statepoint.2.h5"
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         assert len(results.tallies.items()) == 1
 
     def test_neutronics_component_simulation_with_nmm(self):
@@ -149,23 +142,20 @@ class TestShape(unittest.TestCase):
         test_mat = nmm.Material.from_library("Be")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={"mat1": test_mat},
-        )
+        materials = odw.Materials(correspondence_dict={"mat_my_material": test_mat})
 
         my_tally = odw.CellTally("heating", target=1)
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_tally],
             settings=self.settings,
         )
 
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         assert len(results.tallies.items()) == 1
 
     def test_incorrect_cell_tallies(self):
@@ -197,28 +187,21 @@ class TestShape(unittest.TestCase):
         mat.set_density("g/cm3", 2.1)
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": mat})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": mat})
         my_tallies = odw.CellTallies(
-            tally_types=[
-                "heating",
-                "flux",
-                "TBR",
-                "neutron_spectra",
-                "photon_spectra"])
+            tally_types=["heating", "flux", "TBR", "neutron_spectra", "photon_spectra"]
+        )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
             settings=self.settings,
         )
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         # spectra add two tallies in this case (photons and neutrons)
         assert len(results.tallies.items()) == 5
         assert len(results.meshes) == 0
@@ -234,16 +217,10 @@ class TestShape(unittest.TestCase):
         mat.set_density("g/cm3", 2.1)
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": mat})
-        my_tallies = odw.CellTallies(
-            tally_types=[
-                "neutron_spectra",
-                "photon_spectra"])
+        materials = odw.Materials(correspondence_dict={"mat_my_material": mat})
+        my_tallies = odw.CellTallies(tally_types=["neutron_spectra", "photon_spectra"])
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -262,10 +239,7 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies2D(
             tally_types=["heating"],
@@ -273,16 +247,16 @@ class TestShape(unittest.TestCase):
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
             settings=self.settings,
         )
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         print(results.meshes)
         assert len(results.meshes) == 3
         assert len(results.tallies.items()) == 3
@@ -296,31 +270,28 @@ class TestShape(unittest.TestCase):
         os.system("rm *.vtk")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies3D(
             tally_types=["heating", "(n,Xt)"],
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
             settings=self.settings,
         )
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         # ideally these tallies would share the same mesh and there would be 1
         # mesh
         assert len(results.meshes) == 2
         assert len(results.tallies.items()) == 2
-        assert Path(h5m_filename).exists() is True
+        assert Path(statepoint_filename).exists() is True
 
     def test_neutronics_component_3d_and_2d_mesh_simulation(self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
@@ -331,10 +302,7 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
             tally_type="heating",
@@ -347,21 +315,20 @@ class TestShape(unittest.TestCase):
             bounding_box=geometry.corners(),
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_3d_tally] + my_2d_tallies.tallies,
             settings=self.settings,
         )
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
-    def test_neutronics_component_3d_and_2d_mesh_simulation_with_corner_points(
-            self):
+    def test_neutronics_component_3d_and_2d_mesh_simulation_with_corner_points(self):
         """Makes a neutronics model and simulates with a 3D and 2D mesh tally
         and checks that the vtk and png files are produced. This checks the
         mesh ID values don't overlap"""
@@ -370,10 +337,7 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
             tally_type="heating",
@@ -386,11 +350,12 @@ class TestShape(unittest.TestCase):
             bounding_box=[(5, 5, 5), (15, 15, 15)],
         )
 
-        assert my_3d_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
-        for tally in my_2d_tallies.tallies:
-            assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
+        # Removed as tallies are not meshes
+        # assert my_3d_tally.bounding_box == [(0, 0, 0), (10, 10, 10)]
+        # for tally in my_2d_tallies.tallies:
+        #     assert tally.bounding_box == [(5, 5, 5), (15, 15, 15)]
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=[my_3d_tally] + my_2d_tallies.tallies,
@@ -398,9 +363,9 @@ class TestShape(unittest.TestCase):
         )
 
         # performs an openmc simulation on the model
-        h5m_filename = my_model.run()
+        statepoint_filename = my_model.run()
 
-        results = openmc.StatePoint(h5m_filename)
+        results = openmc.StatePoint(statepoint_filename)
         assert len(results.meshes) == 4  # one 3D and three 2D
         assert len(results.tallies.items()) == 4  # one 3D and three 2D
 
@@ -412,14 +377,11 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(tally_types=["TBR", "heating", "flux"])
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -439,16 +401,13 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(
             tally_types=["photon_fast_flux", "neutron_fast_flux", "flux"]
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -468,16 +427,13 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
-            correspondence_dict={
-                "mat1": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(
             tally_types=["photon_effective_dose", "neutron_effective_dose"]
         )
 
-        my_model = openmc.model.Model(
+        my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=my_tallies.tallies,
@@ -496,13 +452,12 @@ class TestShape(unittest.TestCase):
 
     #     geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
     #     materials = odw.Materials(
-    #         h5m_filename=self.h5m_filename_smaller,
-    #         correspondence_dict={"mat1": "Be"})
+    #         correspondence_dict={"mat_my_material": "Be"})
 
     #     my_tallies = odw.CellTallies(
     #         tally_types=["(n,Xt)", "heating", "flux"])
 
-    #     my_model = openmc.model.Model(
+    #     my_model = openmc.Model(
     #         geometry=geometry,
     #         materials=materials,
     #         tallies=my_tallies.tallies,
@@ -522,10 +477,6 @@ class TestShape(unittest.TestCase):
             """Attempts to simulate without a dagmc_smaller.h5m file which
             should fail with a FileNotFoundError"""
 
-            import shutil
-
-            shutil.copy(self.h5m_filename_smaller, ".")
-
             # creates xml files so that the code passes the xml file check
             os.system("touch geometry.xml")
             os.system("touch materials.xml")
@@ -533,14 +484,18 @@ class TestShape(unittest.TestCase):
             os.system("touch tallies.xml")
             os.system("rm dagmc.h5m")
 
-            odw.Materials(
-                h5m_filename="dagmc.h5m",
-                correspondence_dict={
-                    "mat1": "Be"})
+            materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
-        self.assertRaises(
-            FileNotFoundError,
-            test_missing_h5m_file_error_handling)
+            geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
+            geometry.h5m_filename = "changed_to_file_that_does_not_exist"
+            odw.Model(
+                geometry=geometry,
+                materials=materials,
+                tallies=[],
+                settings=self.settings,
+            )
+
+        self.assertRaises(FileNotFoundError, test_missing_h5m_file_error_handling)
 
 
 if __name__ == "__main__":

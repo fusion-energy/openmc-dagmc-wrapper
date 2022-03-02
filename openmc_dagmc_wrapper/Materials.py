@@ -10,18 +10,14 @@ class Materials(openmc.Materials):
     input formats.
 
     Args:
-        h5m_filename: the filename of the h5m file containing the DAGMC
-            geometry
         correspondence_dict: A dictionary that maps the material tags present
             within the DAGMC file with materials. Materials can be provided in
             a variety of formats including neutronics_material_maker.Material
             objects, strings or openmc.Material objects.
     """
 
-    def __init__(self, h5m_filename: str, correspondence_dict: dict):
+    def __init__(self, correspondence_dict: dict):
         self.correspondence_dict = correspondence_dict
-        self.h5m_filename = h5m_filename
-        self.checks()
         self.set_openmc_materials()
         super().__init__(list(self.openmc_materials.values()))
 
@@ -43,14 +39,14 @@ class Materials(openmc.Materials):
 
         self.openmc_materials = openmc_materials
 
-    def checks(self):
-        materials_in_h5m = di.get_materials_from_h5m(self.h5m_filename)
+    def checks(self, h5m_filename):
+        materials_in_h5m = di.get_materials_from_h5m(h5m_filename)
         # # checks all the required materials are present
         for reactor_material in self.correspondence_dict.keys():
             if reactor_material not in materials_in_h5m:
                 msg = (
                     f"material with tag {reactor_material} was not found in "
-                    f"the dagmc h5m file. The DAGMC file {self.h5m_filename} "
+                    f"the dagmc h5m file. The DAGMC file {h5m_filename} "
                     f"contains the following material tags {materials_in_h5m}."
                 )
                 raise ValueError(msg)

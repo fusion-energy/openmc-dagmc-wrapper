@@ -12,7 +12,7 @@ class MeshTally2D(Tally):
     Args:
         tally_type (str): [description]
         plane (str): "xy", "xz", "yz"
-        mesh_resolution (list): [description]
+        resolution (list): [description]
         bounding_box ([type], optional): either a .h5m filename or
             [point1, point2].
     """
@@ -23,18 +23,21 @@ class MeshTally2D(Tally):
         plane: str,
         bounding_box: List[Tuple[float]],
         plane_slice_location: Tuple[float, float] = (1, -1),
-        mesh_resolution: Tuple[float, float] = (400, 400),
+        resolution: Tuple[float, float] = (400, 400),
     ):
-        mesh = RegularMesh2D(
+        self.mesh = RegularMesh2D(
             plane=plane,
-            resolution=mesh_resolution,
+            resolution=resolution,
             plane_slice_location=plane_slice_location,
-            bounding_box=bounding_box
+            bounding_box=bounding_box,
         )
+
+        self.plane = plane
+        self.tally_type = tally_type
 
         super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
-        self.filters.append(openmc.MeshFilter(mesh))
+        self.filters.append(openmc.MeshFilter(self.mesh))
 
 
 class MeshTallies2D:
@@ -63,7 +66,7 @@ class MeshTallies2D:
                     MeshTally2D(
                         tally_type=tally_type,
                         plane=plane,
-                        mesh_resolution=meshes_resolution,
+                        resolution=meshes_resolution,
                         bounding_box=bounding_box,
                     )
                 )

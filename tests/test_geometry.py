@@ -1,6 +1,7 @@
 import tarfile
 import unittest
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import openmc
@@ -12,16 +13,17 @@ class TestSettings(unittest.TestCase):
 
     def setUp(self):
 
-        if not Path("tests/v0.0.2.tar.gz").is_file():
-            url = "https://github.com/fusion-energy/neutronics_workflow/archive/refs/tags/v0.0.2.tar.gz"
-            urllib.request.urlretrieve(url, "tests/v0.0.2.tar.gz")
+        if not Path("tests/output_files_produced.zip").is_file():
+            url = "https://github.com/fusion-energy/fusion_neutronics_workflow/releases/download/0.0.8/output_files_produced.zip"
+            urllib.request.urlretrieve(url, "tests/output_files_produced.zip")
 
-        tar = tarfile.open("tests/v0.0.2.tar.gz", "r:gz")
-        tar.extractall("tests")
-        tar.close()
+        with zipfile.ZipFile("tests/output_files_produced.zip", "r") as zip_ref:
+            zip_ref.extractall("tests")
 
-        self.h5m_filename_smaller = "tests/neutronics_workflow-0.0.2/example_01_single_volume_cell_tally/stage_2_output/dagmc.h5m"
-        self.h5m_filename_bigger = "tests/neutronics_workflow-0.0.2/example_02_multi_volume_cell_tally/stage_2_output/dagmc.h5m"
+        self.h5m_filename_smaller = (
+            "tests/example_01_single_volume_cell_tally/dagmc.h5m"
+        )
+        self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
         self.material_description_bigger = {
             "pf_coil_case_mat": "Be",
@@ -38,7 +40,6 @@ class TestSettings(unittest.TestCase):
     def test_attributes(self):
         my_geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         assert my_geometry.reflective_angles is None
-        assert my_geometry.graveyard_box is None
 
     def test_corners_types(self):
         """checks the corner method returns the correct types"""
@@ -73,3 +74,14 @@ class TestSettings(unittest.TestCase):
         assert small_corners[1][0] + 1 == big_corners[1][0]
         assert small_corners[1][1] + 2 == big_corners[1][1]
         assert small_corners[1][2] + 3 == big_corners[1][2]
+
+    def test_geometry_with_missing_h5m_file(self):
+        """Creates Geometry objects and to check if error handeling is working"""
+
+        def test_missing_h5m_file_error_handling():
+            """Attempts to simulate without a dagmc_smaller.h5m file which
+            should fail with a FileNotFoundError"""
+
+            odw.Geometry(h5m_filename="not_file_here.h5m")
+
+        self.assertRaises(FileNotFoundError, test_missing_h5m_file_error_handling)
