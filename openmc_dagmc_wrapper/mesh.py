@@ -23,26 +23,27 @@ class RegularMesh2D(openmc.RegularMesh):
     def set_dimension(self):
         if self.plane == "xy":
             self.dimension = [
-                self.mesh_resolution[0],
-                self.mesh_resolution[1],
+                self.resolution[0],
+                self.resolution[1],
                 1,
             ]
 
         elif self.plane == "xz":
             self.dimension = [
-                self.mesh_resolution[0],
+                self.resolution[0],
                 1,
-                self.mesh_resolution[1],
+                self.resolution[1],
             ]
 
         elif self.plane == "yz":
             self.dimension = [
                 1,
-                self.mesh_resolution[0],
-                self.mesh_resolution[1],
+                self.resolution[0],
+                self.resolution[1],
             ]
 
     def set_bounds(self, bounding_box):
+
         if self.plane == "xy":
             self.lower_left = [
                 bounding_box[0][0],
@@ -50,33 +51,33 @@ class RegularMesh2D(openmc.RegularMesh):
                 self.plane_slice_location[1],
             ]
             self.upper_right = [
-                self.bounding_box[1][0],
-                self.bounding_box[1][1],
+                bounding_box[1][0],
+                bounding_box[1][1],
                 self.plane_slice_location[0],
             ]
 
         elif self.plane == "xz":
             self.lower_left = [
-                self.bounding_box[0][0],
+                bounding_box[0][0],
                 self.plane_slice_location[1],
-                self.bounding_box[0][2],
+                bounding_box[0][2],
             ]
             self.upper_right = [
-                self.bounding_box[1][0],
+                bounding_box[1][0],
                 self.plane_slice_location[0],
-                self.bounding_box[1][2],
+                bounding_box[1][2],
             ]
 
         elif self.plane == "yz":
             self.lower_left = [
                 self.plane_slice_location[1],
-                self.bounding_box[0][1],
-                self.bounding_box[0][2],
+                bounding_box[0][1],
+                bounding_box[0][2],
             ]
             self.upper_right = [
                 self.plane_slice_location[0],
-                self.bounding_box[1][1],
-                self.bounding_box[1][2],
+                bounding_box[1][1],
+                bounding_box[1][2],
             ]
 
 

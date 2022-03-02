@@ -59,10 +59,7 @@ class TestObjectNeutronicsArguments(unittest.TestCase):
         os.system("rm statepoint*.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_bigger)
-        materials = odw.Materials(
-            h5m_filename=self.h5m_filename_bigger,
-            correspondence_dict=self.material_description_bigger,
-        )
+        materials = odw.Materials(correspondence_dict=self.material_description_bigger)
         my_tally = odw.CellTally("TBR")
         my_model = openmc.model.Model(
             geometry=geometry,

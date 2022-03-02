@@ -50,26 +50,26 @@ class TestMeshTally2D(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
             correspondence_dict={
-                "mat1": "Be",
+                "mat_my_material": "Be",
             },
         )
         tally1 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xy",
             bounding_box=geometry.corners(),
-            mesh_resolution=(10, 200),
+            resolution=(10, 200),
         )
         tally2 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
             bounding_box=geometry.corners(),
-            mesh_resolution=(20, 100),
+            resolution=(20, 100),
         )
         tally3 = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
             bounding_box=geometry.corners(),
-            mesh_resolution=(30, 500),
+            resolution=(30, 500),
         )
 
         tallies = openmc.Tallies([tally1, tally2, tally3])
@@ -97,19 +97,19 @@ class TestMeshTally2D(unittest.TestCase):
             tally_type="neutron_flux",
             plane="xy",
             bounding_box=geometry.corners(),
-            mesh_resolution=(10, 20),
+            resolution=(10, 20),
         )
         tally_yz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="yz",
             bounding_box=geometry.corners(),
-            mesh_resolution=(10, 20),
+            resolution=(10, 20),
         )
         tally_xz = odw.MeshTally2D(
             tally_type="neutron_flux",
             plane="xz",
             bounding_box=geometry.corners(),
-            mesh_resolution=(10, 20),
+            resolution=(10, 20),
         )
 
         assert tally_xy.mesh.dimension == [10, 20, 1]
