@@ -120,7 +120,10 @@ class TestShape(unittest.TestCase):
             correspondence_dict={"mat_my_material": test_mat},
         )
 
-        my_tally = odw.CellTally("heating", target="mat_my_material", materials=materials)
+        my_tally = odw.CellTally(
+            "heating",
+            target="mat_my_material",
+            materials=materials)
         self.settings.batches = 2
         my_model = openmc.model.Model(
             geometry=geometry,
@@ -144,7 +147,9 @@ class TestShape(unittest.TestCase):
         test_mat = nmm.Material.from_library("Be")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": test_mat})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": test_mat})
 
         my_tally = odw.CellTally("heating", target=1)
 
@@ -248,7 +253,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies2D(
             tally_types=["heating"],
@@ -279,7 +286,9 @@ class TestShape(unittest.TestCase):
         os.system("rm *.vtk")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies3D(
             tally_types=["heating", "(n,Xt)"],
@@ -311,7 +320,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
             tally_type="heating",
@@ -347,7 +358,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
             tally_type="heating",
@@ -386,7 +399,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(tally_types=["TBR", "heating", "flux"])
 
@@ -410,7 +425,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(
             tally_types=["photon_fast_flux", "neutron_fast_flux", "flux"]
@@ -436,7 +453,9 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(
+            correspondence_dict={
+                "mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(
             tally_types=["photon_effective_dose", "neutron_effective_dose"]
