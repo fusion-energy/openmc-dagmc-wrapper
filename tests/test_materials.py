@@ -37,10 +37,7 @@ class TestMaterial(unittest.TestCase):
 
     def test_resulting_attributes_with_single_material_and_string(self):
 
-        my_material = odw.Materials(
-            correspondence_dict={
-                "mat1": "Be"},
-            h5m_filename=self.h5m_filename_smaller)
+        my_material = odw.Materials(correspondence_dict={"mat1": "Be"})
 
         assert isinstance(my_material, openmc.Materials)
         assert len(my_material) == 1
@@ -52,7 +49,7 @@ class TestMaterial(unittest.TestCase):
         """Set a material as a string which should raise an error"""
 
         def incorrect_materials():
-            odw.Materials(self.h5m_filename_smaller, "coucou")
+            odw.Materials("coucou")
 
         self.assertRaises(TypeError, incorrect_materials)
 
@@ -60,30 +57,24 @@ class TestMaterial(unittest.TestCase):
         """Sets a material as an int which should raise an error"""
 
         def incorrect_materials_type():
-            odw.Materials(
-                h5m_filename=self.h5m_filename_smaller,
-                correspondence_dict={"mat1": 23},
-            )
+            odw.Materials(correspondence_dict={"mat1": 23})
 
         self.assertRaises(TypeError, incorrect_materials_type)
 
     def test_mat_not_in_h5m_file(self):
         def incorrect_material_tag():
-            odw.Materials(
-                h5m_filename=self.h5m_filename_smaller,
-                correspondence_dict={"coucou": 23},
-            )
+            odw.Materials(correspondence_dict={"coucou": "23"})
 
         self.assertRaises(ValueError, incorrect_material_tag)
 
-    def test_not_enough_materials_in_dict(self):
-        def incorrect_corres_dict():
-            odw.Materials(
-                h5m_filename=self.h5m_filename_smaller,
-                correspondence_dict={},
-            )
+    # TODO this check has now moved to odw.Model so tallies, geometry and
+    # settings will need adding to construct a model object to trigger the
+    # ValueError
+    # def test_not_enough_materials_in_dict(self):
+    #     def incorrect_corres_dict():
+    #         odw.Materials(correspondence_dict={})
 
-        self.assertRaises(ValueError, incorrect_corres_dict)
+    #     self.assertRaises(ValueError, incorrect_corres_dict)
 
 
 if __name__ == "__main__":

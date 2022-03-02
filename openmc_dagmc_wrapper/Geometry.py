@@ -7,10 +7,8 @@ from dagmc_bounding_box import DagmcBoundingBox
 
 
 class Geometry(openmc.Geometry):
-    """A openmc.Geometry object with a DAGMC Universe. If the model
-    requires a graveyard bounding box this will be automatically added. When
-    simulating a sector model reflecting surfaces can be added to complete the
-    boundary conditions.
+    """A openmc.Geometry object with a DAGMC Universe. When simulating a sector
+    model reflecting surfaces can be added to complete the boundary conditions.
 
     Args:
         h5m_filename: the filename of the h5m file containing the DAGMC
@@ -18,21 +16,15 @@ class Geometry(openmc.Geometry):
         reflective_angles: if a sector model is being simulated this argument
             can be used to specify the angles (in radians) to use when
             creating reflecting surfaces for a sector model.
-        graveyard_box: If a certain size of graveyard is required then the
-            upper left and lower right corners can be specified. If this is not
-            specified then the code checks to see if a graveyard exists and if
-            none are found then it makes the graveyard to encompass the geometry
     """
 
     def __init__(
         self,
         h5m_filename: str,
         reflective_angles: Tuple[float, float] = None,
-        graveyard_box=None,
     ):
         self.h5m_filename = h5m_filename
         self.reflective_angles = reflective_angles
-        self.graveyard_box = graveyard_box
         self.dagmc_bounding_box = DagmcBoundingBox(h5m_filename)
 
         super().__init__(root=self.make_root())
@@ -61,19 +53,15 @@ class Geometry(openmc.Geometry):
             # made
 
             if "graveyard" not in di.get_materials_from_h5m(self.h5m_filename):
-                # vac_surfs = self.create_cube_of_vacuum_surfaces()
-                # # creates a cube of surfaces for the boundary conditions
-                # region = +vac_surfs[0] & \
-                #          -vac_surfs[1] & \
-                #          +vac_surfs[2] & \
-                #          -vac_surfs[3] & \
-                #          +vac_surfs[4] & \
-                #          -vac_surfs[5]
-                vac_surf = self.create_sphere_of_vacuum_surface()
+                vac_surf = openmc.Sphere(
+                    r=1000000,  # set to 10km to be big enough for models
+                    surface_id=99999999,  # set to large surface id to avoid overlaps
+                    boundary_type="vacuum"
+                )
                 region = -vac_surf
 
                 containing_cell = openmc.Cell(
-                    cell_id=9999, region=region, fill=dag_univ
+                    cell_id=99999999, region=region, fill=dag_univ
                 )
                 root = [containing_cell]
             else:
@@ -111,22 +99,3 @@ class Geometry(openmc.Geometry):
             root = [containing_cell]
 
         return root
-
-    def create_sphere_of_vacuum_surface(self):
-        """Creates a single vacuum surfaces that surround the geometry and can
-        be used as an alternative to the traditionally DAGMC graveyard cell"""
-
-        if self.graveyard_box is None:
-            # TODO this could be refactored using self.corners()
-            from dagmc_bounding_box import DagmcBoundingBox
-
-            self.graveyard_box = DagmcBoundingBox(self.h5m_filename).corners()
-        bbox = [[*self.graveyard_box[0]], [*self.graveyard_box[1]]]
-
-        largest_radius = 3 * max(max(bbox[0]), max(bbox[1]))
-
-        sphere_surface = openmc.Sphere(
-            r=largest_radius, surface_id=9999, boundary_type="vacuum"
-        )
-
-        return sphere_surface

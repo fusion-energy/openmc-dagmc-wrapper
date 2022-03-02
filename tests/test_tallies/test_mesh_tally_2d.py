@@ -49,7 +49,6 @@ class TestMeshTally2D(unittest.TestCase):
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(
-            h5m_filename=self.h5m_filename_smaller,
             correspondence_dict={
                 "mat1": "Be",
             },

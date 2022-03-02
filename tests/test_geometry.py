@@ -38,7 +38,6 @@ class TestSettings(unittest.TestCase):
     def test_attributes(self):
         my_geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         assert my_geometry.reflective_angles is None
-        assert my_geometry.graveyard_box is None
 
     def test_corners_types(self):
         """checks the corner method returns the correct types"""

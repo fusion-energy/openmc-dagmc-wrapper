@@ -149,3 +149,4 @@ tests/example_04_multi_volume_regular_mesh_tally/
 tests/example_05_3D_unstructured_mesh_tally/
 tests/output_files_produced.zip
 
+_version.py
