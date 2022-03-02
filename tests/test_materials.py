@@ -1,11 +1,10 @@
-import tarfile
 import unittest
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import openmc
 import openmc_dagmc_wrapper as odw
-import zipfile
 
 
 class TestMaterial(unittest.TestCase):
