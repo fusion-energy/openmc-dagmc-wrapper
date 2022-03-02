@@ -484,9 +484,7 @@ class TestShape(unittest.TestCase):
             os.system("touch tallies.xml")
             os.system("rm dagmc.h5m")
 
-            materials = odw.Materials(
-                correspondence_dict={
-                    "mat_my_material": "Be"})
+            materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
             geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
             geometry.h5m_filename = "changed_to_file_that_does_not_exist"
