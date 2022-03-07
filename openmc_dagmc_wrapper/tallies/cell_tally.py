@@ -34,7 +34,7 @@ class CellTally(Tally):
 
     def __init__(
         self,
-        tally_type: str,
+        tally_type: Union[str, int] = None,
         target: Union[int, str] = None,
         materials: Materials = None,
         **kwargs
@@ -49,7 +49,10 @@ class CellTally(Tally):
 
     def set_name(self):
         if self.target is not None:
-            self.name = str(self.target) + "_" + self.tally_type
+            if self.tally_type:
+                self.name = self.tally_type + "_on_cell_" + str(self.target)
+            elif self.scores:
+                self.name = '_'.join(self.scores) + "_on_cell_" + str(self.target)
         else:
             self.name = self.tally_type
 
