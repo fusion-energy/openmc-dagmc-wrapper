@@ -52,7 +52,7 @@ class CellTally(Tally):
             if self.tally_type:
                 self.name = self.tally_type + "_on_cell_" + str(self.target)
             elif self.scores:
-                self.name = '_'.join(self.scores) + "_on_cell_" + str(self.target)
+                self.name = "_".join(self.scores) + "_on_cell_" + str(self.target)
         else:
             self.name = self.tally_type
 
