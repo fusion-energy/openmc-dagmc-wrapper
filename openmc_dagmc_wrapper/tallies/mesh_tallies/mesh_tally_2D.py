@@ -38,35 +38,3 @@ class MeshTally2D(Tally):
         super().__init__(tally_type)
         self.name = self.tally_type + "_on_2D_mesh_" + self.plane
         self.filters.append(openmc.MeshFilter(self.mesh))
-
-
-class MeshTallies2D:
-    """[summary]
-
-    Args:
-        tally_types (list): [description]
-        planes (list): list of str with planes
-        meshes_resolutions (list): [description]
-        meshes_corners (list, optional): [description]. Defaults to None.
-        bounding_box ([type], optional): [description]. Defaults to None.
-    """
-
-    def __init__(
-        self,
-        tally_types: str,
-        planes: str,
-        bounding_box: Union[str, List[Tuple[float]]],
-        meshes_resolution: Tuple[float, float] = (400, 400),
-    ):
-        self.tallies = []
-        self.tally_types = tally_types
-        for tally_type in self.tally_types:
-            for plane in planes:
-                self.tallies.append(
-                    MeshTally2D(
-                        tally_type=tally_type,
-                        plane=plane,
-                        resolution=meshes_resolution,
-                        bounding_box=bounding_box,
-                    )
-                )

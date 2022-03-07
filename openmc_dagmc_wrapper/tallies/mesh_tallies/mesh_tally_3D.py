@@ -25,33 +25,3 @@ class MeshTally3D(Tally):
         mesh.lower_left = bounding_box[0]
         mesh.upper_right = bounding_box[1]
         return mesh
-
-
-class MeshTallies3D:
-    """Creates several MeshTally3D, one for each tally_type provided. The
-    tallies share the same mesh.
-
-    Args:
-        tally_types (list): [description]
-        bounding_box ([type], optional): [description]. Defaults to None.
-        meshes_resolutions (list): [description]
-    """
-
-    def __init__(
-        self,
-        tally_types: str,
-        bounding_box: List[Tuple[float]],
-        resolution: Tuple[float] = (100, 100, 100),
-    ):
-        self.tallies = []
-        self.tally_types = tally_types
-        self.bounding_box = bounding_box
-        self.resolution = resolution
-        for tally_type in self.tally_types:
-            self.tallies.append(
-                MeshTally3D(
-                    tally_type=tally_type,
-                    resolution=resolution,
-                    bounding_box=bounding_box,
-                )
-            )
