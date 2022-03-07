@@ -38,9 +38,9 @@ class TestMeshTally3D(unittest.TestCase):
         error"""
 
         def incorrect_mesh_tally_3d_type():
-            odw.MeshTally3D(1, bounding_box=[(10, 10, 10), (-10, -10, -10)])
+            odw.MeshTally3D(tally_type=1, bounding_box=[(10, 10, 10), (-10, -10, -10)])
 
-        self.assertRaises(TypeError, incorrect_mesh_tally_3d_type)
+        self.assertRaises(ValueError, incorrect_mesh_tally_3d_type)
 
     def test_meshfilter_from_h5m_file(self):
         # build
@@ -53,7 +53,7 @@ class TestMeshTally3D(unittest.TestCase):
 
         # run
         my_tally = odw.MeshTally3D(
-            "heating",
+            "neutron_heating",
             bounding_box=geometry.corners(),
         )
         produced_filter = my_tally.filters[-1]
@@ -75,7 +75,7 @@ class TestMeshTally3D(unittest.TestCase):
         expected_mesh.dimension = (100, 100, 100)
 
         # run
-        my_tally = odw.MeshTally3D("heating", bounding_box=bbox)
+        my_tally = odw.MeshTally3D("neutron_heating", bounding_box=bbox)
         produced_filter = my_tally.filters[-1]
         produced_mesh = produced_filter.mesh
         # test

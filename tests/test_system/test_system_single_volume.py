@@ -117,7 +117,7 @@ class TestShape(unittest.TestCase):
         )
 
         my_tally = odw.CellTally(
-            "heating", target="mat_my_material", materials=materials
+            "neutron_heating", target="mat_my_material", materials=materials
         )
         self.settings.batches = 2
         my_model = openmc.Model(
@@ -144,7 +144,7 @@ class TestShape(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(correspondence_dict={"mat_my_material": test_mat})
 
-        my_tally = odw.CellTally("heating", target=1)
+        my_tally = odw.CellTally("neutron_heating", target=1)
 
         my_model = openmc.Model(
             geometry=geometry,
@@ -174,7 +174,7 @@ class TestShape(unittest.TestCase):
         def incorrect_cell_tally_type():
             odw.CellTally(1)
 
-        self.assertRaises(TypeError, incorrect_cell_tally_type)
+        self.assertRaises(ValueError, incorrect_cell_tally_type)
 
     def test_neutronics_component_cell_simulation_heating(self):
         """Makes a neutronics model and simulates with a cell tally"""
@@ -189,7 +189,7 @@ class TestShape(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(correspondence_dict={"mat_my_material": mat})
         my_tallies = odw.CellTallies(
-            tally_types=["heating", "flux", "TBR", "neutron_spectra", "photon_spectra"]
+            tally_types=["neutron_heating", "neutron_fast_flux", "TBR", "neutron_spectra", "photon_spectra"]
         )
 
         my_model = openmc.Model(
@@ -242,7 +242,7 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies2D(
-            tally_types=["heating"],
+            tally_types=["neutron_heating"],
             planes=["xy", "xz", "yz"],
             bounding_box=geometry.corners(),
         )
@@ -257,7 +257,6 @@ class TestShape(unittest.TestCase):
         statepoint_filename = my_model.run()
 
         results = openmc.StatePoint(statepoint_filename)
-        print(results.meshes)
         assert len(results.meshes) == 3
         assert len(results.tallies.items()) == 3
 
@@ -273,7 +272,7 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.MeshTallies3D(
-            tally_types=["heating", "(n,Xt)"],
+            tally_types=["neutron_heating", "(n,Xt)"],
             bounding_box=geometry.corners(),
         )
 
@@ -305,13 +304,13 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
-            tally_type="heating",
+            tally_type="neutron_heating",
             bounding_box=geometry.corners(),
         )
 
         my_2d_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
-            tally_types=["heating"],
+            tally_types=["neutron_heating"],
             bounding_box=geometry.corners(),
         )
 
@@ -340,13 +339,13 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_3d_tally = odw.MeshTally3D(
-            tally_type="heating",
+            tally_type="neutron_heating",
             bounding_box=[(0, 0, 0), (10, 10, 10)],
         )
 
         my_2d_tallies = odw.MeshTallies2D(
             planes=["xz", "xy", "yz"],
-            tally_types=["heating"],
+            tally_types=["neutron_heating"],
             bounding_box=[(5, 5, 5), (15, 15, 15)],
         )
 
@@ -379,7 +378,7 @@ class TestShape(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
-        my_tallies = odw.CellTallies(tally_types=["TBR", "heating", "flux"])
+        my_tallies = odw.CellTallies(tally_types=["TBR", "neutron_heating", "neutron_fast_flux"])
 
         my_model = openmc.Model(
             geometry=geometry,
@@ -404,7 +403,7 @@ class TestShape(unittest.TestCase):
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
         my_tallies = odw.CellTallies(
-            tally_types=["photon_fast_flux", "neutron_fast_flux", "flux"]
+            tally_types=["photon_fast_flux", "neutron_fast_flux", "neutron_flux"]
         )
 
         my_model = openmc.Model(
@@ -455,7 +454,7 @@ class TestShape(unittest.TestCase):
     #         correspondence_dict={"mat_my_material": "Be"})
 
     #     my_tallies = odw.CellTallies(
-    #         tally_types=["(n,Xt)", "heating", "flux"])
+    #         scores=["(n,Xt)", "heating", "neutron_fast_flux"])
 
     #     my_model = openmc.Model(
     #         geometry=geometry,
