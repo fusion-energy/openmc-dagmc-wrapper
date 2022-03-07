@@ -14,7 +14,8 @@ jobs:
   testing:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/openmc-data-storage/miniconda3_4.9.2_endfb-7.1_nndc_tendl_2019
+      # image: ghcr.io/openmc-data-storage/miniconda3_4.9.2_endfb-7.1_nndc_tendl_2019
+      image: ghcr.io/fusion-energy/openmc-dagmc-wrapper:dependencies
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -31,10 +32,4 @@ jobs:
 
       - name: run tests
         run: |
-          pytest tests/test_neutronics_utils.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_example_neutronics_simulations.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_settings.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_geometry.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_materials.py -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_tallies/ -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
-          pytest tests/test_system/ -v --cov=openmc_dagmc_wrapper --cov-append --cov-report term --cov-report xml
+          pytest tests -v

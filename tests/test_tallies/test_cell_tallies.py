@@ -24,15 +24,17 @@ class TestCellTallies(unittest.TestCase):
         self.h5m_filename_bigger = "tests/example_02_multi_volume_cell_tally/dagmc.h5m"
 
     def test_name(self):
-        my_tally = odw.CellTally("heating", target=1)
+        my_tally = odw.CellTally(tally_type="neutron_heating", target=1)
 
-        assert my_tally.name == "1_heating"
+        assert my_tally.name == "neutron_heating_on_cell_1"
 
-        my_tally = odw.CellTally("heating", target="coucou", materials=[])
-        assert my_tally.name == "coucou_heating"
+        my_tally = odw.CellTally(
+            tally_type="neutron_heating", target="coucou", materials=[]
+        )
+        assert my_tally.name == "neutron_heating_on_cell_coucou"
 
     def test_cell_filter(self):
-        my_tally = odw.CellTally("heating", target=4)
+        my_tally = odw.CellTally(scores=["heating"], target=4)
 
         assert len(my_tally.filters[0].bins) == 1
         assert my_tally.filters[0].bins[0] == 4

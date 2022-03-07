@@ -11,11 +11,17 @@ class Tally(openmc.Tally):
     specified materials or volumes.
     """
 
-    def __init__(self, tally_type, **kwargs):
+    def __init__(self, tally_type=None, tally_id=None, name="", **kwargs):
 
         self.tally_type = tally_type
-        super().__init__(**kwargs)
-        self.set_score()
+        super().__init__(tally_id=tally_id, name=name)
+
+        if "scores" in kwargs:
+            self.scores = kwargs["scores"]
+            if self.tally_type is not None:
+                raise ValueError("A score and a tally_type can not both be set")
+        else:
+            self.set_score()
         self.filters = compute_filters(self.tally_type)
 
     @property
@@ -24,38 +30,45 @@ class Tally(openmc.Tally):
 
     @tally_type.setter
     def tally_type(self, value):
-        output_options = (
-            [
-                "TBR",
-                "flux",
-                "heating",
-                "photon_heating",
-                "neutron_heating",
-                "neutron_flux",
-                "photon_flux",
-                "absorption",
-                "neutron_effective_dose",
-                "photon_effective_dose",
-                "neutron_fast_flux",
-                "photon_fast_flux",
-                "neutron_spectra",
-                "photon_spectra",
-            ]
-            + list(REACTION_MT.keys())
-            + list(REACTION_NAME.keys())
-        )
+        output_options = [
+            "TBR",
+            "neutron_flux",
+            "photon_flux",
+            "neutron_fast_flux",
+            "photon_fast_flux",
+            "photon_heating",
+            "neutron_heating",
+            "neutron_effective_dose",
+            "photon_effective_dose",
+            "neutron_spectra",
+            "photon_spectra",
+            None,
+        ]
         if value not in output_options:
-            raise ValueError(
-                "tally_type argument",
-                value,
-                "not allowed, the following options are supported",
-                output_options,
+            msg = (
+                f"tally_type argument {value} is not supported, the "
+                f"following options are supported {output_options}"
             )
+            openmc_supported_scores = (
+                list(REACTION_MT.keys())
+                + [str(mt) for mt in list(REACTION_MT.keys())]
+                + list(REACTION_NAME.keys())
+            )
+
+            if value in openmc_supported_scores:
+                msg = (
+                    msg + f"\n {value} is supported by native OpenMC scores "
+                    f"Try setting the Tally with scores=[{value}] instead "
+                    "of with tally_type"
+                )
+
+            raise ValueError(msg)
+
         self._tally_type = value
 
     def set_score(self):
+
         flux_scores = [
-            "flux",
             "neutron_flux",
             "photon_flux",
             "neutron_fast_flux",
@@ -66,13 +79,18 @@ class Tally(openmc.Tally):
             "photon_effective_dose",
         ]
 
+        heating_scores = [
+            "neutron_heating",
+            "photon_heating",
+        ]
+
         if self.tally_type == "TBR":
             # H3-production could replace this
             self.scores = ["(n,Xt)"]
         elif self.tally_type in flux_scores:
             self.scores = ["flux"]
-        else:
-            self.scores = [self.tally_type]
+        elif self.tally_type in heating_scores:
+            self.scores = ["heating"]
 
 
 def compute_filters(tally_type):

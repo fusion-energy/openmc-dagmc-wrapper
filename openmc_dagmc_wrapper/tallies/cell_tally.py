@@ -34,7 +34,7 @@ class CellTally(Tally):
 
     def __init__(
         self,
-        tally_type: str,
+        tally_type: Union[str, int] = None,
         target: Union[int, str] = None,
         materials: Materials = None,
         **kwargs
@@ -49,9 +49,15 @@ class CellTally(Tally):
 
     def set_name(self):
         if self.target is not None:
-            self.name = str(self.target) + "_" + self.tally_type
+            if self.tally_type:
+                self.name = self.tally_type + "_on_cell_" + str(self.target)
+            elif self.scores:
+                self.name = "_".join(self.scores) + "_on_cell_" + str(self.target)
         else:
-            self.name = self.tally_type
+            if self.tally_type:
+                self.name = self.tally_type + "_on_cell"
+            elif self.scores:
+                self.name = "_".join(self.scores) + "_on_cell"
 
     def set_filters(self):
         if isinstance(self.target, str):  # material filter
@@ -65,55 +71,3 @@ class CellTally(Tally):
             self.filters.append(tally_filter)
         else:
             return
-
-
-class CellTallies:
-    """
-    Collection of odw.CellTally objects stored in self.tallies
-
-    Usage:
-    my_mats = odw.Materials(....)
-    my_tallies = odw.CellTallies(
-        tally_types=['TBR', "neutron_flux"],
-        target=["Be", 2],
-        materials=my_mats
-    )
-    my_tallies = odw.CellTallies(
-    tally_types=[
-        'TBR',
-        "neutron_flux"],
-         target=[2])
-
-    Args:
-        tally_types ([type]): [description]
-        targets (list, optional): [description]. Defaults to [None].
-        materials ([type], optional): [description]. Defaults to None.
-        h5m_filename
-    """
-
-    def __init__(
-        self,
-        tally_types: Iterable,
-        targets: Iterable = [None],
-        materials=None,
-        h5m_filename=None,
-    ):
-
-        self.tallies = []
-        self.tally_types = tally_types
-        self.targets = targets
-        self.materials = materials
-        self.h5m_filename = h5m_filename
-
-        if self.targets == "all_volumes":
-            all_targets = di.get_volumes_from_h5m(self.h5m_filename)
-        elif self.targets == "all_materials":
-            all_targets = di.get_materials_from_h5m(self.h5m_filename)
-        else:
-            all_targets = self.targets
-
-        for score in self.tally_types:
-            for target in all_targets:
-                self.tallies.append(
-                    CellTally(tally_type=score, target=target, materials=materials)
-                )
