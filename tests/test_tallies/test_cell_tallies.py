@@ -28,7 +28,9 @@ class TestCellTallies(unittest.TestCase):
 
         assert my_tally.name == "neutron_heating_on_cell_1"
 
-        my_tally = odw.CellTally(tally_type="neutron_heating", target="coucou", materials=[])
+        my_tally = odw.CellTally(
+            tally_type="neutron_heating", target="coucou", materials=[]
+        )
         assert my_tally.name == "neutron_heating_on_cell_coucou"
 
     def test_cell_filter(self):

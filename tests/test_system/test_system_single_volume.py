@@ -425,9 +425,7 @@ class TestShape(unittest.TestCase):
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
         materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
-        my_tallies = odw.CellTally(
-            tally_type="photon_effective_dose"
-        )
+        my_tallies = odw.CellTally(tally_type="photon_effective_dose")
 
         my_model = openmc.Model(
             geometry=geometry,
@@ -449,17 +447,15 @@ class TestShape(unittest.TestCase):
         os.system("rm summary.h5")
 
         geometry = odw.Geometry(h5m_filename=self.h5m_filename_smaller)
-        materials = odw.Materials(
-            correspondence_dict={"mat_my_material": "Be"})
+        materials = odw.Materials(correspondence_dict={"mat_my_material": "Be"})
 
-        my_tallies = odw.CellTally(
-            scores=["(n,Xt)", "heating", "neutron_fast_flux"])
+        my_tallies = odw.CellTally(scores=["(n,Xt)", "heating", "neutron_fast_flux"])
 
         my_model = openmc.Model(
             geometry=geometry,
             materials=materials,
             tallies=openmc.Tallies([my_tallies]),
-            settings=self.settings
+            settings=self.settings,
         )
 
         statepoint_file = my_model.run()
