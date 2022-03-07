@@ -54,7 +54,10 @@ class CellTally(Tally):
             elif self.scores:
                 self.name = "_".join(self.scores) + "_on_cell_" + str(self.target)
         else:
-            self.name = self.tally_type
+            if self.tally_type:
+                self.name = self.tally_type + "_on_cell"
+            elif self.scores:
+                self.name = "_".join(self.scores) + "_on_cell"
 
     def set_filters(self):
         if isinstance(self.target, str):  # material filter

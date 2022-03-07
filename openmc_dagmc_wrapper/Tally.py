@@ -15,7 +15,13 @@ class Tally(openmc.Tally):
 
         self.tally_type = tally_type
         super().__init__(tally_id=tally_id, name=name)
-        self.set_score(**kwargs)
+
+        if "scores" in kwargs:
+            self.scores = kwargs["scores"]
+            if self.tally_type is not None:
+                raise ValueError("A score and a tally_type can not both be set")
+        else:
+            self.set_score()
         self.filters = compute_filters(self.tally_type)
 
     @property
@@ -60,11 +66,7 @@ class Tally(openmc.Tally):
 
         self._tally_type = value
 
-    def set_score(self, **kwargs):
-        if "scores" in kwargs:
-            self.scores = kwargs["scores"]
-            if self.tally_type is not None:
-                raise ValueError("A score and a tally_type can not both be set")
+    def set_score(self):
 
         flux_scores = [
             "neutron_flux",
@@ -77,11 +79,18 @@ class Tally(openmc.Tally):
             "photon_effective_dose",
         ]
 
+        heating_scores = [
+            "neutron_heating",
+            "photon_heating",
+        ]
+
         if self.tally_type == "TBR":
             # H3-production could replace this
             self.scores = ["(n,Xt)"]
         elif self.tally_type in flux_scores:
             self.scores = ["flux"]
+        elif self.tally_type in heating_scores:
+            self.scores = ["heating"]
 
 
 def compute_filters(tally_type):
