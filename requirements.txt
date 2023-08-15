@@ -1,0 +1,21 @@
+--extra-index-url https://shimwell.github.io/wheels
+openmc
+cadquery
+jupyterlab
+paramak
+pyvista[jupyter]
+pytest
+nbformat
+nbconvert
+ipykernel
+jupyter-book
+openmc_source_plotter
+openmc_depletion_plotter
+openmc_data_downloader
+openmc_data
+dagmc_geometry_slice_plotter
+cad_to_dagmc>=0.11.1
+openmc-plasma-source
+openmc_regular_mesh_plotter
+neutronics_material_maker[density]
+dagmc_h5m_file_inspector
