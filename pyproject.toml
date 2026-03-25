@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openmc_dagmc_wrapper"
+version = "0.1.0"
+description = "Perform a set of standard neutronics simulations with OpenMC and DAGMC"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "The openmc_dagmc_wrapper Development Team", email = "mail@jshimwell.com"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/fusion-energy/openmc_dagmc_wrapper"
+
+[tool.setuptools.packages.find]
+where = ["src"]

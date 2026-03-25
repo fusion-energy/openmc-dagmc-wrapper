@@ -5,7 +5,6 @@ import openmc
 from neutronics_material_maker import Material
 import openmc_source_plotter as osp
 import cadquery as cq
-from cad_to_dagmc import CadToDagmc
 import dagmc_h5m_file_inspector as di
 import re
 from openmc.deplete import d1s
@@ -156,69 +155,6 @@ class OpenmcDagmcWrapper:
         self.geometry= None
         self._outline_cache: dict[tuple, list] = {}  # keyed by (mesh_name, basis)
         self.material_map: dict = material_map if material_map is not None else {}
-
-    def generate_dagmc(self, cad: str, set_sizes: dict, min_mesh_size: float = 4., remove: list[str] | None = None, threads: int = 0, filename: str | None = None):
-        """Convert a CAD STEP file to a DAGMC h5m geometry file.
-
-        Args:
-            cad: Path to the STEP (.stp) CAD file.
-            set_sizes: Dict mapping material tag names to target mesh sizes (cm).
-                Overrides the default min_mesh_size for specific components.
-            min_mesh_size: Default minimum mesh size (cm) for all components
-                not listed in set_sizes.
-            remove: Optional list of assembly names to remove before meshing.
-                Names correspond to entries in the STEP assembly hierarchy
-                (e.g. 'filamentary_coilset', 'structure', 'intercoil_plate_0').
-            threads: Number of gmsh meshing threads. 0 means all cores
-                (default), 1 uses a single thread.
-            filename: Output h5m filename. Defaults to self.dagmc_filepath.
-        """
-        if filename is None:
-            filename = self.dagmc_filepath
-
-        assembly = cq.Assembly().importStep(path=cad)
-
-        if remove:
-            for name in remove:
-                self._remove_from_assembly(assembly, name)
-
-        my_model = CadToDagmc()
-        # note the step file has assembly entries with names so we can use this names to assign material tags to the geometry
-        my_model.add_cadquery_object(cadquery_object=assembly, material_tags='assembly_names')
-
-        # set fine mesh size for stellarator
-        set_size_dict = {key: min_mesh_size for key in my_model.material_tags}
-        # set coarse mesh size for bioshield
-        set_size_dict.update(set_sizes)
-
-        # export the mesh to a DAGMC h5m file
-        my_model.export_dagmc_h5m_file(
-            filename=filename,
-            min_mesh_size=3,
-            max_mesh_size=3000,
-            imprint=False,
-            set_size=set_size_dict,
-            meshing_backend="gmsh",
-            scale_factor=100,
-            threads=threads,
-        )
-
-    @staticmethod
-    def _remove_from_assembly(assembly, name: str):
-        """Remove a named part from the assembly, searching recursively."""
-        for child in assembly.children:
-            if child.name == name:
-                assembly.remove(name)
-                print(f"Removed '{name}' from '{assembly.name}'")
-                return
-        for child in assembly.children:
-            if hasattr(child, 'children') and child.children:
-                try:
-                    OpenmcDagmcWrapper._remove_from_assembly(child, name)
-                    return
-                except ValueError:
-                    continue
-        raise ValueError(f"No object with name '{name}' found in the assembly")
 
     def load_dagmc_geometry(self):
         """Load the DAGMC h5m file into an OpenMC Geometry and store it on self.geometry."""
