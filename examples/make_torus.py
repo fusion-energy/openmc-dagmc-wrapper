@@ -1,3 +1,6 @@
+from openmc_dagmc_wrapper import OpenmcDagmcWrapper
+import openmc
+from cad_to_dagmc import CadToDagmc
 import cadquery as cq
 from cadquery.vis import show
 
@@ -20,8 +23,14 @@ wall_thickness = 300
 inner_half = major_radius + minor_radius + padding
 outer_half = inner_half + wall_thickness
 
-outer_box = cq.Workplane("XY").box(outer_half * 2, outer_half * 2, outer_half * 2)
-inner_box = cq.Workplane("XY").box(inner_half * 2, inner_half * 2, inner_half * 2)
+outer_box = cq.Workplane("XY").box(
+    outer_half * 2,
+    outer_half * 2,
+    outer_half * 2)
+inner_box = cq.Workplane("XY").box(
+    inner_half * 2,
+    inner_half * 2,
+    inner_half * 2)
 box = outer_box.cut(inner_box)
 
 assembly = cq.Assembly()
@@ -32,10 +41,14 @@ assembly.export("assembly.step")
 
 # show(assembly)
 
-from cad_to_dagmc import CadToDagmc
 
 model = CadToDagmc()
-model.add_cadquery_object(cadquery_object=assembly, material_tags=["first_wall", "center_column", "bioshield"])
+model.add_cadquery_object(
+    cadquery_object=assembly,
+    material_tags=[
+        "first_wall",
+        "center_column",
+        "bioshield"])
 
 model.export_dagmc_h5m_file(
     filename="dagmc.h5m",
@@ -43,13 +56,14 @@ model.export_dagmc_h5m_file(
     angular_tolerance=0.1,
 )
 
-import openmc
-from openmc_dagmc_wrapper import OpenmcDagmcWrapper
 
 wrapper = OpenmcDagmcWrapper(
     cross_sections="/home/jon/nuclear_data/endf-b8.0-hdf5/cross_sections.xml",
     chain_file="/home/jon/nuclear_data/chain-endf-b8.0.xml",
-    material_map={"first_wall": "eurofer", "bioshield": "concrete_ordinary", "center_column": "eurofer"},
+    material_map={
+        "first_wall": "eurofer",
+        "bioshield": "concrete_ordinary",
+        "center_column": "eurofer"},
 )
 wrapper.load_dagmc_geometry()
 source = openmc.IndependentSource()

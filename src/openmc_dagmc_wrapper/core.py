@@ -29,6 +29,7 @@ mpl.rcParams['xtick.labelsize'] = 14
 mpl.rcParams['ytick.labelsize'] = 14
 mpl.rcParams['legend.title_fontsize'] = 16
 
+
 def format_sci(value: float) -> str:
     """Format a number in compact scientific notation, e.g. 1e19, 1.5e19."""
     exp = int(f"{value:.0e}".split("e+")[1]) if value != 0 else 0
@@ -36,6 +37,7 @@ def format_sci(value: float) -> str:
     if coeff == int(coeff):
         return f"{int(coeff)}e{exp}"
     return f"{coeff:g}e{exp}"
+
 
 def format_time(seconds: float, compact: bool = False) -> str:
     """Convert a duration in seconds to a human-readable string.
@@ -70,13 +72,16 @@ def format_time(seconds: float, compact: bool = False) -> str:
     else:
         return f"{seconds/31536000:.2f} years"
 
-def get_last_pulse_type(timestep_index: int, timesteps_and_source_rates: list) -> str | None:
+
+def get_last_pulse_type(
+        timestep_index: int,
+        timesteps_and_source_rates: list) -> str | None:
     """Determine the type of the last neutron pulse.
-    
+
     Args:
         timestep_index: Current timestep index (0-based or 1-based depending on usage)
         timesteps_and_source_rates: List of tuples (duration, source_rate, phase)
-        
+
     Returns:
         String indicating the pulse type: 'dd', 'dt', or None if no pulse found
     """
@@ -89,13 +94,15 @@ def get_last_pulse_type(timestep_index: int, timesteps_and_source_rates: list) -
             return phase.upper()
     return None
 
-def get_last_pulse_magnitude(timestep_index: int, timesteps_and_source_rates: list) -> float | None:
+
+def get_last_pulse_magnitude(timestep_index: int,
+                             timesteps_and_source_rates: list) -> float | None:
     """Determine the number of neutrons in the last neutron pulse.
-    
+
     Args:
         timestep_index: Current timestep index (0-based or 1-based depending on usage)
         timesteps_and_source_rates: List of tuples (duration, source_rate, phase)
-        
+
     Returns:
         The source rate (neutrons/s) of the last pulse, or None if no pulse found.
     """
@@ -108,13 +115,16 @@ def get_last_pulse_magnitude(timestep_index: int, timesteps_and_source_rates: li
             return source_rate
     return None
 
-def calculate_time_since_last_pulse(timestep_index: int, timesteps_and_source_rates: list) -> float:
+
+def calculate_time_since_last_pulse(
+        timestep_index: int,
+        timesteps_and_source_rates: list) -> float:
     """Calculate the time elapsed since the last neutron pulse.
-    
+
     Args:
         timestep_index: Current timestep index (0-based or 1-based depending on usage)
         timesteps_and_source_rates: List of tuples (duration, source_rate, phase)
-        
+
     Returns:
         Time in seconds since the last neutron pulse (where source_rate != 0)
     """
@@ -131,7 +141,11 @@ def calculate_time_since_last_pulse(timestep_index: int, timesteps_and_source_ra
 
 
 class OpenmcDagmcWrapper:
-    def __init__(self, cross_sections: str | Path, chain_file: str | Path, material_map: dict | None = None):
+    def __init__(
+            self,
+            cross_sections: str | Path,
+            chain_file: str | Path,
+            material_map: dict | None = None):
         """Initialise the wrapper and set OpenMC global config paths.
 
         Args:
@@ -147,18 +161,21 @@ class OpenmcDagmcWrapper:
         openmc.config["cross_sections"] = str(cross_sections)
         openmc.config["chain_file"] = str(chain_file)
         self.dagmc_filepath = 'dagmc.h5m'
-        self.dd_source:openmc.Source = None
-        self.dt_source:openmc.Source = None
+        self.dd_source: openmc.Source = None
+        self.dt_source: openmc.Source = None
         self.materials: openmc.Materials = None
         self.neutron_weight_windows = None
         self.tungsten_armour_thickness = 0.02  # cm
-        self.geometry= None
-        self._outline_cache: dict[tuple, list] = {}  # keyed by (mesh_name, basis)
+        self.geometry = None
+        # keyed by (mesh_name, basis)
+        self._outline_cache: dict[tuple, list] = {}
         self.material_map: dict = material_map if material_map is not None else {}
 
     def load_dagmc_geometry(self):
         """Load the DAGMC h5m file into an OpenMC Geometry and store it on self.geometry."""
-        root = openmc.DAGMCUniverse(filename=self.dagmc_filepath,auto_geom_ids=True)
+        root = openmc.DAGMCUniverse(
+            filename=self.dagmc_filepath,
+            auto_geom_ids=True)
 
         dag_universe = root.bounded_universe(padding_distance=500)
 
@@ -181,23 +198,28 @@ class OpenmcDagmcWrapper:
         elif source_type == 'dt':
             self.dt_source = source_xml
         else:
-            raise ValueError(f'source {source_type} not recognized, must be "dd" or "dt"')
+            raise ValueError(
+                f'source {source_type} not recognized, must be "dd" or "dt"')
 
         print(f'loaded source {source_type} from {source_xml_path}')
-    
-    def plot_source(self, source_type: str = 'dt', output: str = 'source_plot.html'):
+
+    def plot_source(
+            self,
+            source_type: str = 'dt',
+            output: str = 'source_plot.html'):
         """Plot the spatial distribution of a loaded neutron source as a 3D scatter.
 
         Args:
             source_type: 'dd' or 'dt' — which source to plot.
             output: Output HTML file path for the interactive Plotly figure.
         """
-        if source_type=='dd':
+        if source_type == 'dd':
             source_to_plot = self.dd_source
         elif source_type == 'dt':
             source_to_plot = self.dt_source
         else:
-            raise ValueError(f'source {source_type} not recognized, must be "dd" or "dt"')
+            raise ValueError(
+                f'source {source_type} not recognized, must be "dd" or "dt"')
 
         fig = osp.plot_source_position(this=source_to_plot, n_samples=5_000)
         fig.update_layout(
@@ -211,7 +233,12 @@ class OpenmcDagmcWrapper:
         )
         fig.write_html(output)
 
-    def plot_geometry(self, output_dir: str = ".", n_samples: int | None = None, color_map: dict | None = None, removed_mat_names: set | None = None):
+    def plot_geometry(
+            self,
+            output_dir: str = ".",
+            n_samples: int | None = None,
+            color_map: dict | None = None,
+            removed_mat_names: set | None = None):
         """Plot geometry slices with a material colour legend.
 
         Produces standard XY, XZ, YZ views and zoomed XY/XZ views, saved as
@@ -238,7 +265,8 @@ class OpenmcDagmcWrapper:
             if base_name in color_map:
                 mat_colors[mat] = color_map[base_name]
             else:
-                raise ValueError(f"Material {mat.name} not accounted for in color scheme.")
+                raise ValueError(
+                    f"Material {mat.name} not accounted for in color scheme.")
 
         settings = openmc.Settings()
         if n_samples and self.dt_source:
@@ -251,7 +279,10 @@ class OpenmcDagmcWrapper:
                 settings.source = self.dd_source
             else:
                 settings.source = [self.dd_source]
-        model = openmc.Model(geometry=self.geometry, materials=self.materials, settings=settings)
+        model = openmc.Model(
+            geometry=self.geometry,
+            materials=self.materials,
+            settings=settings)
         bb = model.bounding_box
 
         views = [
@@ -288,7 +319,11 @@ class OpenmcDagmcWrapper:
             plot_ax = model.plot(**plot_kwargs)
             if width is not None:
                 axis_scale = 0.01  # cm to m
-                x_idx, y_idx = {'xy': (0, 1), 'xz': (0, 2), 'yz': (1, 2)}[basis]
+                x_idx, y_idx = {
+                    'xy': (
+                        0, 1), 'xz': (
+                        0, 2), 'yz': (
+                        1, 2)}[basis]
                 plot_ax.set_xlim(
                     (origin[x_idx] - 0.5 * width[0]) * axis_scale,
                     (origin[x_idx] + 0.5 * width[0]) * axis_scale,
@@ -317,12 +352,22 @@ class OpenmcDagmcWrapper:
                 if isinstance(color, str):
                     patch = Patch(color=color, label=display_name)
                 else:
-                    patch = Patch(color=[c / 255 for c in color], label=display_name)
+                    patch = Patch(
+                        color=[
+                            c / 255 for c in color],
+                        label=display_name)
                 legend_labels.append(display_name)
                 legend_handles.append(patch)
 
             if n_samples:
-                legend_handles.append(Line2D([], [], marker='o', color='C0', linestyle='None', label='Neutron Source'))
+                legend_handles.append(
+                    Line2D(
+                        [],
+                        [],
+                        marker='o',
+                        color='C0',
+                        linestyle='None',
+                        label='Neutron Source'))
                 legend_labels.append('Neutron Source')
 
             legend = ax.legend(
@@ -331,7 +376,11 @@ class OpenmcDagmcWrapper:
                 borderaxespad=0, frameon=True, title="Components",
             )
             output_path = output_dir / filename
-            fig.savefig(output_path, dpi=300, bbox_inches='tight', bbox_extra_artists=[legend])
+            fig.savefig(
+                output_path,
+                dpi=300,
+                bbox_inches='tight',
+                bbox_extra_artists=[legend])
             print(f"saved {output_path}")
             plt.close(fig)
 
@@ -357,12 +406,12 @@ class OpenmcDagmcWrapper:
         except KeyError:
             raise ValueError(
                 f"Material '{material_name}' (nmm key '{nmm_key}') not found "
-                f"in neutronics_material_maker. Add it to material_map or the nmm library."
-            )
+                f"in neutronics_material_maker. Add it to material_map or the nmm library.")
         new_mat.name = material_name
         return new_mat
 
-    def make_tungsten_armour_material(self, steel_name: str) -> openmc.Material:
+    def make_tungsten_armour_material(
+            self, steel_name: str) -> openmc.Material:
         """Create a steel+tungsten armour mixed material.
 
         Computes volume fractions from the DAGMC first_wall surface area
@@ -427,8 +476,11 @@ class OpenmcDagmcWrapper:
                         ],
                     }
         """
-        root = openmc.DAGMCUniverse(filename=self.dagmc_filepath,auto_geom_ids=True)
-        volumes_by_dag_tag = di.get_volumes_from_h5m_by_material_name(self.dagmc_filepath)
+        root = openmc.DAGMCUniverse(
+            filename=self.dagmc_filepath,
+            auto_geom_ids=True)
+        volumes_by_dag_tag = di.get_volumes_from_h5m_by_material_name(
+            self.dagmc_filepath)
         materials = openmc.Materials()
         for mat_name in root.material_names:
 
@@ -436,7 +488,6 @@ class OpenmcDagmcWrapper:
 
             if mat_name_base not in dag_tag_to_material:
                 raise ValueError(f'Unknown mat_name: {mat_name}')
-            
 
             material_components = dag_tag_to_material[mat_name_base]
             if len(material_components) == 1:
@@ -596,7 +647,9 @@ class OpenmcDagmcWrapper:
         )
         plt.colorbar(im, ax=ax, label="Weight Window Lower Bounds")
 
-        temp_model = openmc.Model(geometry=self.geometry, materials=self.materials)
+        temp_model = openmc.Model(
+            geometry=self.geometry,
+            materials=self.materials)
         ax2 = temp_model.plot(
             outline="only",
             extent=temp_model.bounding_box.extent["xy"],
@@ -657,7 +710,8 @@ class OpenmcDagmcWrapper:
 
         if weight_window is not None:
             settings.weight_windows_on = True
-            settings.weight_window_checkpoints = {"collision": True, "surface": True}
+            settings.weight_window_checkpoints = {
+                "collision": True, "surface": True}
             settings.survival_biasing = False
             settings.weight_windows = weight_window
 
@@ -757,7 +811,8 @@ class OpenmcDagmcWrapper:
                     closest_idx = int(np.abs(x_values).argmin())
                     data_2d = data[closest_idx, :, :]
                 else:
-                    raise ValueError(f"basis must be 'xy', 'xz', or 'yz', got '{basis}'")
+                    raise ValueError(
+                        f"basis must be 'xy', 'xz', or 'yz', got '{basis}'")
 
                 if value == "mean":
                     pico_to_milli = 1e-9
@@ -783,8 +838,11 @@ class OpenmcDagmcWrapper:
                 norm = None
 
             im = ax1.imshow(
-                data_2d, extent=extent, interpolation=None, norm=norm, origin="upper"
-            )
+                data_2d,
+                extent=extent,
+                interpolation=None,
+                norm=norm,
+                origin="upper")
             ax_labels = {
                 "xy": ("X [m]", "Y [m]"),
                 "xz": ("X [m]", "Z [m]"),
@@ -850,7 +908,8 @@ class OpenmcDagmcWrapper:
 
         # Plot dose maps
         for particles, data_2d in data_slices.items():
-            fig, ax, cbar = plot_heatmap(particles, data_2d, extent, True, True)
+            fig, ax, cbar = plot_heatmap(
+                particles, data_2d, extent, True, True)
             cbar.set_label(f"Dose from {particles} [mSv/pulse]")
             ax.set_title(
                 f"Instantaneous dose from {particles}\n"
@@ -865,7 +924,8 @@ class OpenmcDagmcWrapper:
 
         # Plot relative error maps
         for particles, rel_err in rel_err_slices.items():
-            fig, ax, cbar = plot_heatmap(particles, rel_err, extent, False, False)
+            fig, ax, cbar = plot_heatmap(
+                particles, rel_err, extent, False, False)
             cbar.set_label(f"Relative error from {particles}")
             ax.set_title(f"Instantaneous dose relative error from {particles}")
             fname = f"instant_dose_rel_err_{particles.replace(' ', '_')}.png"
@@ -911,9 +971,11 @@ class OpenmcDagmcWrapper:
         valid_particles = {"neutron", "photon"}
         for score, particle in tallies:
             if score not in valid_scores:
-                raise ValueError(f"score must be one of {valid_scores}, got '{score}'")
+                raise ValueError(
+                    f"score must be one of {valid_scores}, got '{score}'")
             if particle not in valid_particles:
-                raise ValueError(f"particle must be one of {valid_particles}, got '{particle}'")
+                raise ValueError(
+                    f"particle must be one of {valid_particles}, got '{particle}'")
 
         if isinstance(tally_meshes, openmc.RegularMesh):
             tally_meshes = [tally_meshes]
@@ -948,9 +1010,11 @@ class OpenmcDagmcWrapper:
                     energy_bins, dose_coeffs = openmc.data.dose_coefficients(
                         particle=particle, geometry="ISO"
                     )
-                    filters.append(openmc.EnergyFunctionFilter(
-                        energy=energy_bins, y=dose_coeffs, interpolation="cubic"
-                    ))
+                    filters.append(
+                        openmc.EnergyFunctionFilter(
+                            energy=energy_bins,
+                            y=dose_coeffs,
+                            interpolation="cubic"))
                     tally.scores = ["flux"]
                 elif score == "flux":
                     tally.scores = ["flux"]
@@ -1013,7 +1077,8 @@ class OpenmcDagmcWrapper:
         openmc_score = "flux" if score in ("flux", "dose") else score
 
         if score == "flux" and particle == "total":
-            raise ValueError("Total flux is not physically meaningful — plot neutron and photon flux separately.")
+            raise ValueError(
+                "Total flux is not physically meaningful — plot neutron and photon flux separately.")
 
         # Score-dependent units and scale factors
         unit_map = {
@@ -1070,7 +1135,8 @@ class OpenmcDagmcWrapper:
                 mean_2d = mean[closest_idx, :, :]
                 rel_err_2d = rel_err[closest_idx, :, :]
             else:
-                raise ValueError(f"basis must be 'xy', 'xz', or 'yz', got '{basis}'")
+                raise ValueError(
+                    f"basis must be 'xy', 'xz', or 'yz', got '{basis}'")
 
             mesh_voxel_volume = mesh.volumes[0][0][0]
             extent = mesh.bounding_box.extent[basis]
@@ -1110,7 +1176,8 @@ class OpenmcDagmcWrapper:
         # Pre-render geometry outline once per (mesh_name, basis), then reuse
         cache_key = (mesh_name, basis)
         if cache_key not in self._outline_cache:
-            print(f"Rendering geometry outline for {mesh_name} {basis} (cached for reuse) ...")
+            print(
+                f"Rendering geometry outline for {mesh_name} {basis} (cached for reuse) ...")
             temp_model = openmc.Model(
                 geometry=self.geometry, materials=self.materials
             )
@@ -1138,8 +1205,11 @@ class OpenmcDagmcWrapper:
         def _add_outline(ax):
             for paths, color, lw in self._outline_cache[cache_key]:
                 ax.add_collection(
-                    mcoll.PathCollection(paths, facecolors="none", edgecolors=color, linewidths=lw)
-                )
+                    mcoll.PathCollection(
+                        paths,
+                        facecolors="none",
+                        edgecolors=color,
+                        linewidths=lw))
 
         particle_label = particle.capitalize()
         title = (
@@ -1181,9 +1251,11 @@ class OpenmcDagmcWrapper:
         # --- Relative error map (discrete 12-level linear colormap) ---
         output_rel_err = output.replace(".png", "_rel_err.png")
         fig, ax1 = plt.subplots(figsize=(10, 8))
-        valid_rel = rel_err_2d.compressed() if hasattr(rel_err_2d, "compressed") else rel_err_2d[np.isfinite(rel_err_2d)]
+        valid_rel = rel_err_2d.compressed() if hasattr(
+            rel_err_2d, "compressed") else rel_err_2d[np.isfinite(rel_err_2d)]
         if len(valid_rel) > 0 and valid_rel.min() != valid_rel.max():
-            re_bounds = np.linspace(valid_rel.min(), valid_rel.max(), n_levels + 1)
+            re_bounds = np.linspace(
+                valid_rel.min(), valid_rel.max(), n_levels + 1)
             re_cmap = plt.get_cmap("viridis", n_levels)
             re_norm = BoundaryNorm(re_bounds, ncolors=re_cmap.N)
         else:
@@ -1251,8 +1323,8 @@ class OpenmcDagmcWrapper:
         elif fuel == 'dt':
             settings.source = self.dt_source
         else:
-            raise ValueError(f'fuel {fuel} not recognized, must be "dd" or "dt"')
-
+            raise ValueError(
+                f'fuel {fuel} not recognized, must be "dd" or "dt"')
 
         photon_particle_filter = openmc.ParticleFilter("photon")
 
@@ -1282,11 +1354,15 @@ class OpenmcDagmcWrapper:
         my_tallies = openmc.Tallies([dose_tally_photons])
 
         model = openmc.Model(
-            geometry=self.geometry, materials=self.materials, settings=settings, tallies=my_tallies
-        )
+            geometry=self.geometry,
+            materials=self.materials,
+            settings=settings,
+            tallies=my_tallies)
 
-        # passing in the nuclides here ensures that the tallies have a predictable ParentNuclideFilter where the nuclides are ordered
-        radionuclides = sorted(d1s.get_radionuclides(model, chain_file=openmc.config["chain_file"]))
+        # passing in the nuclides here ensures that the tallies have a
+        # predictable ParentNuclideFilter where the nuclides are ordered
+        radionuclides = sorted(d1s.get_radionuclides(
+            model, chain_file=openmc.config["chain_file"]))
         print(f"Radionuclides: {len(radionuclides)}")
         d1s.prepare_tallies(model=model, nuclides=radionuclides)
 
@@ -1309,7 +1385,10 @@ class OpenmcDagmcWrapper:
         self._last_radionuclides = radionuclides
         return model, radionuclides
 
-    def get_full_mesh(self, cube_volume: float, name: str = "full_ww_mesh") -> openmc.RegularMesh:
+    def get_full_mesh(
+            self,
+            cube_volume: float,
+            name: str = "full_ww_mesh") -> openmc.RegularMesh:
         """Create a regular mesh spanning the full geometry bounding box.
 
         The number of voxels is chosen so each has approximately the given
@@ -1329,7 +1408,11 @@ class OpenmcDagmcWrapper:
         )
         return full_ww_mesh
 
-    def get_component_mesh(self, component_name: str, cube_volume: float, name: str | None = None) -> openmc.RegularMesh:
+    def get_component_mesh(
+            self,
+            component_name: str,
+            cube_volume: float,
+            name: str | None = None) -> openmc.RegularMesh:
         """Create a regular mesh covering a single DAGMC component's bounding box.
 
         Args:
@@ -1340,8 +1423,11 @@ class OpenmcDagmcWrapper:
         Returns:
             An openmc.RegularMesh bounding the named component.
         """
-        bb_ll_ur = di.get_bounding_box_from_h5m(self.dagmc_filepath, component_name)
-        bb = openmc.BoundingBox(lower_left=bb_ll_ur[0], upper_right=bb_ll_ur[1])
+        bb_ll_ur = di.get_bounding_box_from_h5m(
+            self.dagmc_filepath, component_name)
+        bb = openmc.BoundingBox(
+            lower_left=bb_ll_ur[0],
+            upper_right=bb_ll_ur[1])
         return openmc.RegularMesh.from_domain(
             domain=bb,
             dimension=int(bb.volume // cube_volume),
@@ -1386,18 +1472,18 @@ class OpenmcDagmcWrapper:
 
         # Validate that required statepoints are provided
         if needs_dd and statepoint_d1s_dd is None:
-            raise ValueError("DD shots found in schedule but statepoint_d1s_dd not provided")
+            raise ValueError(
+                "DD shots found in schedule but statepoint_d1s_dd not provided")
         if needs_dt and statepoint_d1s_dt is None:
-            raise ValueError("DT shots found in schedule but statepoint_d1s_dt not provided")
+            raise ValueError(
+                "DT shots found in schedule but statepoint_d1s_dt not provided")
 
         timesteps = [item[0] for item in timesteps_and_source_rates]
 
-        source_rates_dd = [
-            entry[1] if entry[2] == "dd" else 0 for entry in timesteps_and_source_rates
-        ]
-        source_rates_dt = [
-            entry[1] if entry[2] == "dt" else 0 for entry in timesteps_and_source_rates
-        ]
+        source_rates_dd = [entry[1] if entry[2] ==
+                           "dd" else 0 for entry in timesteps_and_source_rates]
+        source_rates_dt = [entry[1] if entry[2] ==
+                           "dt" else 0 for entry in timesteps_and_source_rates]
 
         model = openmc.Model(geometry=self.geometry, materials=self.materials)
 
@@ -1445,7 +1531,8 @@ class OpenmcDagmcWrapper:
                     filters=[openmc.ParentNuclideFilter],
                     filter_bins=[(nuc,)],
                 )
-                arr = sl.get_reshaped_data(value='mean', expand_dims=True).squeeze()
+                arr = sl.get_reshaped_data(
+                    value='mean', expand_dims=True).squeeze()
                 if single_shape is None:
                     single_shape = arr.shape
                 rows.append(arr.ravel())
@@ -1464,7 +1551,8 @@ class OpenmcDagmcWrapper:
             print("Extracting DT tally data from statepoint...")
             with openmc.StatePoint(statepoint_d1s_dt) as sp:
                 tally_dt = sp.get_tally(name="photon_dose_on_mesh")
-                tally_matrix_dt, mesh_shape, nuclides_list_dt = extract_tally_matrix(tally_dt)
+                tally_matrix_dt, mesh_shape, nuclides_list_dt = extract_tally_matrix(
+                    tally_dt)
             nuclides_list = nuclides_list_dt
             gc.collect()
 
@@ -1472,7 +1560,8 @@ class OpenmcDagmcWrapper:
             print("Extracting DD tally data from statepoint...")
             with openmc.StatePoint(statepoint_d1s_dd) as sp:
                 tally_dd = sp.get_tally(name="photon_dose_on_mesh")
-                tally_matrix_dd, mesh_shape, nuclides_list_dd = extract_tally_matrix(tally_dd)
+                tally_matrix_dd, mesh_shape, nuclides_list_dd = extract_tally_matrix(
+                    tally_dd)
             nuclides_list = nuclides_list_dd
             gc.collect()
 
@@ -1496,9 +1585,15 @@ class OpenmcDagmcWrapper:
         # Replaces per-iteration dict lookups with a simple numpy index.
         # ------------------------------------------------------------------
 
-        def build_factor_matrix(time_factors: dict, nuclides_list: list, n_timesteps_out: int) -> np.ndarray:
+        def build_factor_matrix(
+                time_factors: dict,
+                nuclides_list: list,
+                n_timesteps_out: int) -> np.ndarray:
             first_nuc = nuclides_list[0]
-            mat = np.zeros((n_timesteps_out, len(nuclides_list)), dtype=np.float64)
+            mat = np.zeros(
+                (n_timesteps_out,
+                 len(nuclides_list)),
+                dtype=np.float64)
             for j, nuc in enumerate(nuclides_list):
                 nuc_factors = time_factors[nuc]
                 for i_cool in range(n_timesteps_out):
@@ -1510,11 +1605,13 @@ class OpenmcDagmcWrapper:
 
         if needs_dt:
             print("Building DT time-factor matrix...")
-            factor_matrix_dt = build_factor_matrix(time_factors_dt, nuclides_list, n_timesteps_out)
+            factor_matrix_dt = build_factor_matrix(
+                time_factors_dt, nuclides_list, n_timesteps_out)
             time_factors_dt = None
         if needs_dd:
             print("Building DD time-factor matrix...")
-            factor_matrix_dd = build_factor_matrix(time_factors_dd, nuclides_list, n_timesteps_out)
+            factor_matrix_dd = build_factor_matrix(
+                time_factors_dd, nuclides_list, n_timesteps_out)
             time_factors_dd = None
         gc.collect()
 
@@ -1550,18 +1647,22 @@ class OpenmcDagmcWrapper:
 
         for chunk_start in range(0, n_timesteps_out, chunk_t):
             chunk_end = min(chunk_start + chunk_t, n_timesteps_out)
-            print(f"  Timesteps {chunk_start + 1}–{chunk_end} / {n_timesteps_out}")
+            print(
+                f"  Timesteps {chunk_start + 1}–{chunk_end} / {n_timesteps_out}")
 
             # (chunk_size, n_voxels) = (chunk_size, n_nuclides) @ (n_nuclides, n_voxels)
-            result_flat = np.zeros((chunk_end - chunk_start, n_voxels), dtype=np.float64)
+            result_flat = np.zeros(
+                (chunk_end - chunk_start, n_voxels), dtype=np.float64)
 
             if needs_dt:
                 result_flat += factor_matrix_dt[chunk_start:chunk_end] @ tally_matrix_dt
             if needs_dd:
                 result_flat += factor_matrix_dd[chunk_start:chunk_end] @ tally_matrix_dd
 
-            result_chunk = result_flat.reshape(chunk_end - chunk_start, *mesh_shape)
-            result_chunk = np.nan_to_num(result_chunk, nan=0.0, posinf=0.0, neginf=0.0)
+            result_chunk = result_flat.reshape(
+                chunk_end - chunk_start, *mesh_shape)
+            result_chunk = np.nan_to_num(
+                result_chunk, nan=0.0, posinf=0.0, neginf=0.0)
 
             zarr_store[chunk_start:chunk_end] = result_chunk
             timestep_indices.extend(range(chunk_start + 1, chunk_end + 1))
@@ -1611,7 +1712,8 @@ class OpenmcDagmcWrapper:
             x_scale: Matplotlib x-axis scale ('symlog', 'linear', or 'log').
             y_scale: Matplotlib y-axis scale ('log' or 'linear').
         """
-        # multiplication by pico_to_milli converts from (pico) pSv to (milli) mSv
+        # multiplication by pico_to_milli converts from (pico) pSv to (milli)
+        # mSv
         pico_to_milli = 1e-9
 
         timesteps = [item[0] for item in timesteps_and_source_rates]
@@ -1638,27 +1740,31 @@ class OpenmcDagmcWrapper:
 
         if locations is None:
             locations = []
-        location_indexes = [mesh.get_indices_at_coords(loc) for loc in locations]
+        location_indexes = [
+            mesh.get_indices_at_coords(loc) for loc in locations]
 
         # Validate labels parameter
-        if labels is not None and len(labels) != len(corrected_d1s_tallies_files):
+        if labels is not None and len(labels) != len(
+                corrected_d1s_tallies_files):
             raise ValueError(
                 f"Length of labels ({len(labels)}) must match length of "
-                f"corrected_d1s_tallies_files ({len(corrected_d1s_tallies_files)})"
-            )
+                f"corrected_d1s_tallies_files ({len(corrected_d1s_tallies_files)})")
 
-        for file_idx, corrected_d1s_tallies_file in enumerate(corrected_d1s_tallies_files):
+        for file_idx, corrected_d1s_tallies_file in enumerate(
+                corrected_d1s_tallies_files):
             # Open zarr file directly (no dask dependency needed)
             zarr_data = zarr.open(corrected_d1s_tallies_file, mode='r')
-            
-            # zarr_data has shape (timesteps, x, y, z) - no radionuclides dimension
+
+            # zarr_data has shape (timesteps, x, y, z) - no radionuclides
+            # dimension
             n_timesteps = zarr_data.shape[0]
 
             max_dose_in_timesteps = []
             for t_idx in range(n_timesteps):
                 # Load one timestep at a time to minimize memory usage
                 dose_t = zarr_data[t_idx, :, :, :]
-                max_val = float(np.max(dose_t)) * pico_to_milli * seconds_to_hours / volume_normalization
+                max_val = float(np.max(dose_t)) * pico_to_milli * \
+                    seconds_to_hours / volume_normalization
                 max_dose_in_timesteps.append(max_val)
 
             # Use custom label if provided, otherwise use default
@@ -1666,7 +1772,7 @@ class OpenmcDagmcWrapper:
                 dose_label = labels[file_idx]
             else:
                 dose_label = 'Maximum dose facility wide'
-            
+
             ax1.plot(
                 time_in_days,
                 max_dose_in_timesteps,
@@ -1674,11 +1780,13 @@ class OpenmcDagmcWrapper:
                 label=dose_label,
             )
 
-            for i, (location, location_index) in enumerate(zip(locations, location_indexes)):
-                location_doses=[]
+            for i, (location, location_index) in enumerate(
+                    zip(locations, location_indexes)):
+                location_doses = []
                 for t_idx in range(n_timesteps):
                     # Access specific location for this timestep
-                    dose_at_location = float(zarr_data[t_idx, location_index[0], location_index[1], location_index[2]])
+                    dose_at_location = float(
+                        zarr_data[t_idx, location_index[0], location_index[1], location_index[2]])
                     dose_at_location *= pico_to_milli * seconds_to_hours / volume_normalization
                     location_doses.append(dose_at_location)
 
@@ -1705,7 +1813,7 @@ class OpenmcDagmcWrapper:
                 (30.4, "1 month"),
                 (182.5, "6 months"),
                 (365, "1 year"),
-                (365*1.5, "1.5 years"),
+                (365 * 1.5, "1.5 years"),
             ]
             ax1.xaxis.minorticks_on()
         elif x_scale == 'symlog':
@@ -1746,16 +1854,16 @@ class OpenmcDagmcWrapper:
         plt.close()
 
     def plot_shutdown_dose_maps(
-            self,
-            output_dir: str,
-            timesteps_and_source_rates: list,
-            corrected_d1s_tallies_file: str,
-            mesh: openmc.RegularMesh,
-            basis: str = 'xy',
-            plot_center: list | None = None,
-            plot_width: float | None = None,
-            plot_height: float | None = None,
-        ):
+        self,
+        output_dir: str,
+        timesteps_and_source_rates: list,
+        corrected_d1s_tallies_file: str,
+        mesh: openmc.RegularMesh,
+        basis: str = 'xy',
+        plot_center: list | None = None,
+        plot_width: float | None = None,
+        plot_height: float | None = None,
+    ):
         """Plot 2D shutdown dose rate heatmaps for each cooling timestep.
 
         Reads corrected D1S tallies from a zarr file, slices through the
@@ -1775,7 +1883,8 @@ class OpenmcDagmcWrapper:
             plot_width: Width of zoomed view in metres (requires plot_center).
             plot_height: Height of zoomed view in metres (requires plot_center).
         """
-        # multiplication by pico_to_milli converts from (pico) pSv to (milli) mSv
+        # multiplication by pico_to_milli converts from (pico) pSv to (milli)
+        # mSv
         pico_to_milli = 1e-9
         seconds_to_hours = 3600
 
@@ -1799,12 +1908,16 @@ class OpenmcDagmcWrapper:
         # divided by mesh element volume converts from mSv-cm3 to mSv
         volume_normalization = mesh.volumes[0][0][0]
 
-        meter_scaled_extent = [i/100 for i in self.geometry.bounding_box.extent[basis]]
+        meter_scaled_extent = [
+            i / 100 for i in self.geometry.bounding_box.extent[basis]]
 
         print('meter_scaled_extent:', meter_scaled_extent)
-        print('mesh.bounding_box.extent[basis]:', mesh.bounding_box.extent[basis])
+        print(
+            'mesh.bounding_box.extent[basis]:',
+            mesh.bounding_box.extent[basis])
 
-        # Origin coordinates for geometry plot are in cm (OpenMC internal units)
+        # Origin coordinates for geometry plot are in cm (OpenMC internal
+        # units)
         origin_x_cm = mesh_x_value
         origin_y_cm = mesh_y_value
         origin_z_cm = mesh_z_value
@@ -1849,7 +1962,8 @@ class OpenmcDagmcWrapper:
                 origin_y_cm = center_y * 100
                 origin_z_cm = center_z * 100
             else:
-                raise ValueError(f"Unsupported basis '{basis}'. Expected 'xy', 'xz', or 'yz'.")
+                raise ValueError(
+                    f"Unsupported basis '{basis}'. Expected 'xy', 'xz', or 'yz'.")
 
             # Clamp to geometry bounds to avoid empty ranges
             x_min = max(x_min, meter_scaled_extent[0])
@@ -1861,15 +1975,22 @@ class OpenmcDagmcWrapper:
             geom_width_cm = (plot_width * 100, plot_height * 100)
 
         da = zarr.open(corrected_d1s_tallies_file, mode='r')
-        scaled_max_tally_value_all_timesteps = float(np.max(da)) * pico_to_milli * seconds_to_hours / volume_normalization
+        scaled_max_tally_value_all_timesteps = float(
+            np.max(da)) * pico_to_milli * seconds_to_hours / volume_normalization
 
         # Determine origin for geometry outline based on basis
         if basis == 'xy':
             _geom_origin = (origin_x_cm, origin_y_cm, origin_z_cm)
         elif basis == 'yz':
-            _geom_origin = (origin_x_cm, origin_y_cm, origin_z_cm) if zoom_enabled else None
+            _geom_origin = (
+                origin_x_cm,
+                origin_y_cm,
+                origin_z_cm) if zoom_enabled else None
         else:  # xz
-            _geom_origin = (origin_x_cm, origin_y_cm, origin_z_cm) if zoom_enabled else None
+            _geom_origin = (
+                origin_x_cm,
+                origin_y_cm,
+                origin_z_cm) if zoom_enabled else None
 
         # Cache geometry outline — render once and reuse across all timesteps
         print("Caching geometry outline (rendering once)...")
@@ -1917,8 +2038,9 @@ class OpenmcDagmcWrapper:
         plt.close(_cache_fig)
         del _cache_fig, _cache_ax, _outline_ax
         gc.collect()
-        print(f"Cached {len(_cached_images)} images, {len(_cached_lines)} lines, "
-              f"{len(_cached_collections)} collections from geometry outline")
+        print(
+            f"Cached {len(_cached_images)} images, {len(_cached_lines)} lines, "
+            f"{len(_cached_collections)} collections from geometry outline")
 
         for i_cool in range(1, len(timesteps)):
             fig, ax1 = plt.subplots(figsize=(10, 8))
@@ -1930,30 +2052,43 @@ class OpenmcDagmcWrapper:
                 data_slice = da[t_idx, :, closest_mesh_index_to_y0, :]
             elif basis == 'yz':
                 data_slice = da[t_idx, closest_mesh_index_to_x0, :, :]
-            
+
             data_slice = np.squeeze(data_slice)
 
             if zoom_enabled:
                 if basis == 'xy':
-                    x_mask = (x_coords_m >= plot_extent[0]) & (x_coords_m <= plot_extent[1])
-                    y_mask = (y_coords_m >= plot_extent[2]) & (y_coords_m <= plot_extent[3])
+                    x_mask = (
+                        x_coords_m >= plot_extent[0]) & (
+                        x_coords_m <= plot_extent[1])
+                    y_mask = (
+                        y_coords_m >= plot_extent[2]) & (
+                        y_coords_m <= plot_extent[3])
                     x_idx = np.where(x_mask)[0]
                     y_idx = np.where(y_mask)[0]
                 elif basis == 'xz':
-                    x_mask = (x_coords_m >= plot_extent[0]) & (x_coords_m <= plot_extent[1])
-                    z_mask = (z_coords_m >= plot_extent[2]) & (z_coords_m <= plot_extent[3])
+                    x_mask = (
+                        x_coords_m >= plot_extent[0]) & (
+                        x_coords_m <= plot_extent[1])
+                    z_mask = (
+                        z_coords_m >= plot_extent[2]) & (
+                        z_coords_m <= plot_extent[3])
                     x_idx = np.where(x_mask)[0]
                     y_idx = np.where(z_mask)[0]
                 else:  # basis == 'yz'
-                    y_mask = (y_coords_m >= plot_extent[0]) & (y_coords_m <= plot_extent[1])
-                    z_mask = (z_coords_m >= plot_extent[2]) & (z_coords_m <= plot_extent[3])
+                    y_mask = (
+                        y_coords_m >= plot_extent[0]) & (
+                        y_coords_m <= plot_extent[1])
+                    z_mask = (
+                        z_coords_m >= plot_extent[2]) & (
+                        z_coords_m <= plot_extent[3])
                     x_idx = np.where(y_mask)[0]
                     y_idx = np.where(z_mask)[0]
 
                 if len(x_idx) > 0 and len(y_idx) > 0:
-                    data_slice = data_slice[x_idx[0]:x_idx[-1] + 1, y_idx[0]:y_idx[-1] + 1]
+                    data_slice = data_slice[x_idx[0]                                            :x_idx[-1] + 1, y_idx[0]:y_idx[-1] + 1]
 
-            data_slice = (data_slice * pico_to_milli * seconds_to_hours) / volume_normalization
+            data_slice = (data_slice * pico_to_milli *
+                          seconds_to_hours) / volume_normalization
 
             max_dose_in_timestep_slice = max(data_slice.flatten())
 
@@ -1961,25 +2096,44 @@ class OpenmcDagmcWrapper:
 
             # Create a masked array to make 0 values appear white in the plot
             masked_data = ma.masked_where(data_slice == 0, data_slice)
-            
+
             # create a plot of the mean flux values
             cmap = plt.get_cmap('viridis').copy()
             cmap.set_bad('white', 1.0)  # Set zero/masked values to white
-            
+
             plot_1 = ax1.imshow(
                 masked_data,
                 interpolation=None,
                 origin='upper',
                 extent=plot_extent,
                 cmap=cmap,
-                norm=LogNorm(vmax=scaled_max_tally_value_all_timesteps, vmin=0.35/100),
+                norm=LogNorm(
+                    vmax=scaled_max_tally_value_all_timesteps,
+                    vmin=0.35 / 100),
             )
             cbar = plt.colorbar(plot_1, ax=ax1, format='%.2e')
-            cbar.ax.hlines(max_dose_in_timestep_slice, *cbar.ax.get_xlim(), color='green', linewidth=2, zorder=10)
-            cbar.ax.hlines(0.35, *cbar.ax.get_xlim(), color='red', linewidth=2, zorder=11, linestyles='dashed')
+            cbar.ax.hlines(
+                max_dose_in_timestep_slice,
+                *cbar.ax.get_xlim(),
+                color='green',
+                linewidth=2,
+                zorder=10)
+            cbar.ax.hlines(
+                0.35,
+                *cbar.ax.get_xlim(),
+                color='red',
+                linewidth=2,
+                zorder=11,
+                linestyles='dashed')
 
-            X = np.linspace(plot_extent[0], plot_extent[1], data_slice.shape[1])
-            Y = np.linspace(plot_extent[2], plot_extent[3], data_slice.shape[0])
+            X = np.linspace(
+                plot_extent[0],
+                plot_extent[1],
+                data_slice.shape[1])
+            Y = np.linspace(
+                plot_extent[2],
+                plot_extent[3],
+                data_slice.shape[0])
             X, Y = np.meshgrid(X, Y)
             Y = Y[::-1]
             levels = [0.35]  # 350 µSv/h = 0.35 mSv/h
@@ -1991,7 +2145,8 @@ class OpenmcDagmcWrapper:
                 linestyles='dashed',
                 zorder=10,
             )
-            cbar.ax.yaxis.set_ticklabels([str(lev) for lev in levels], minor=True)
+            cbar.ax.yaxis.set_ticklabels(
+                [str(lev) for lev in levels], minor=True)
 
             # Replay cached geometry outline onto the current axes
             for _img_data in _cached_images:
@@ -2020,11 +2175,15 @@ class OpenmcDagmcWrapper:
                 ))
             time_in_seconds = sum(timesteps[1:i_cool])
 
-            time_since_last_pulse = calculate_time_since_last_pulse(i_cool, timesteps_and_source_rates)
-            last_pulse_type = get_last_pulse_type(i_cool, timesteps_and_source_rates)
-            last_pulse_magnitude = get_last_pulse_magnitude(i_cool, timesteps_and_source_rates)
+            time_since_last_pulse = calculate_time_since_last_pulse(
+                i_cool, timesteps_and_source_rates)
+            last_pulse_type = get_last_pulse_type(
+                i_cool, timesteps_and_source_rates)
+            last_pulse_magnitude = get_last_pulse_magnitude(
+                i_cool, timesteps_and_source_rates)
 
-            last_pulse_type_text = str(last_pulse_type) if last_pulse_type is not None else "None"
+            last_pulse_type_text = str(
+                last_pulse_type) if last_pulse_type is not None else "None"
             last_pulse_magnitude_text = f"{last_pulse_magnitude:.2e}" if last_pulse_magnitude is not None else "N/A"
             if basis == 'xy':
                 ax1.set_xlabel("X [m]")
@@ -2035,23 +2194,33 @@ class OpenmcDagmcWrapper:
             elif basis == 'yz':
                 ax1.set_xlabel("Y [m]")
                 ax1.set_ylabel("Z [m]")
-            cbar.set_label("Decay Gamma Dose [milli Sv per hour]")  # Label for the color bar
-        
-            title_text = (f"Shutdown Dose Rate for a series of DD and DT shots\n"
-                    "Contour showing 350 µSv/h dose limit\n"
-                    f"Time since first irradiation: {format_time(time_in_seconds)}\n"
-                    f"Time since last pulse: {format_time(time_since_last_pulse)}\n"
-                    f"Last pulse {last_pulse_type_text} with {last_pulse_magnitude_text} neutrons\n"
-                    f"Max dose: {max_dose_in_timestep_slice:.2e} mSv/h"
-            )
+            # Label for the color bar
+            cbar.set_label("Decay Gamma Dose [milli Sv per hour]")
+
+            title_text = (
+                f"Shutdown Dose Rate for a series of DD and DT shots\n"
+                "Contour showing 350 µSv/h dose limit\n"
+                f"Time since first irradiation: {format_time(time_in_seconds)}\n"
+                f"Time since last pulse: {format_time(time_since_last_pulse)}\n"
+                f"Last pulse {last_pulse_type_text} with {last_pulse_magnitude_text} neutrons\n"
+                f"Max dose: {max_dose_in_timestep_slice:.2e} mSv/h")
             ax1.set_title(title_text)
-            cbar.ax.hlines(max_dose_in_timestep_slice, *cbar.ax.get_xlim(), color='red', linewidth=2, label='Max value')
+            cbar.ax.hlines(
+                max_dose_in_timestep_slice,
+                *cbar.ax.get_xlim(),
+                color='red',
+                linewidth=2,
+                label='Max value')
 
             Path(output_dir).mkdir(parents=True, exist_ok=True)
 
             print(f"Saving dose map for timestep {i_cool} of {len(timesteps)}")
             filename_prefix = 'zoomed_' if zoom_enabled else ''
-            plt.savefig(Path(output_dir) / f'{filename_prefix}shutdown_dose_map_timestep_{basis}_{str(i_cool).zfill(3)}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(
+                Path(output_dir) /
+                f'{filename_prefix}shutdown_dose_map_timestep_{basis}_{str(i_cool).zfill(3)}.png',
+                dpi=300,
+                bbox_inches='tight')
             plt.close('all')
             plt.clf()
             gc.collect()
@@ -2080,7 +2249,9 @@ class OpenmcDagmcWrapper:
 
         model = getattr(self, '_last_model', None)
         if model is None:
-            model = openmc.Model(geometry=self.geometry, materials=self.materials)
+            model = openmc.Model(
+                geometry=self.geometry,
+                materials=self.materials)
 
         # ── Mesh dimensions ──────────────────────────────────────────────────
         nx_s, ny_s, nz_s = scoring_mesh.dimension
@@ -2094,7 +2265,11 @@ class OpenmcDagmcWrapper:
         dy_s = (sy_max - sy_min) / ny_s
         dz_s = (sz_max - sz_min) / nz_s
 
-        scoring_extent = [sx_min / 100, sx_max / 100, sz_min / 100, sz_max / 100]
+        scoring_extent = [
+            sx_min / 100,
+            sx_max / 100,
+            sz_min / 100,
+            sz_max / 100]
         born_extent = [
             born_mesh.lower_left[0] / 100, born_mesh.upper_right[0] / 100,
             born_mesh.lower_left[2] / 100, born_mesh.upper_right[2] / 100,
@@ -2112,7 +2287,8 @@ class OpenmcDagmcWrapper:
 
         # ── Time correction factors ──────────────────────────────────────────
         timesteps = [t[0] for t in timesteps_and_source_rates]
-        source_rates = [t[1] if t[2] == 'dt' else 0 for t in timesteps_and_source_rates]
+        source_rates = [t[1] if t[2] ==
+                        'dt' else 0 for t in timesteps_and_source_rates]
         cumulative = np.cumsum(timesteps)
 
         time_factors = d1s.time_correction_factors(
@@ -2135,7 +2311,8 @@ class OpenmcDagmcWrapper:
         gc.collect()
 
         mmap_path = str(out / '_raw_mean.dat')
-        print(f"Extracting raw tally data to memory-mapped file ({n_spatial * n_nuclides * 8 / 1e9:.1f} GB) ...")
+        print(
+            f"Extracting raw tally data to memory-mapped file ({n_spatial * n_nuclides * 8 / 1e9:.1f} GB) ...")
         raw_mean = np.memmap(mmap_path, dtype=np.float64, mode='w+',
                              shape=(n_spatial, n_nuclides))
 
@@ -2146,17 +2323,22 @@ class OpenmcDagmcWrapper:
                 c_end = min(c_start + chunk_spatial, n_spatial)
                 flat_start = c_start * n_nuclides
                 flat_end = c_end * n_nuclides
-                chunk = results_dset[flat_start:flat_end, 0, 0].astype(np.float64)
+                chunk = results_dset[flat_start:flat_end,
+                                     0, 0].astype(np.float64)
                 chunk /= n_realizations
                 raw_mean[c_start:c_end, :] = chunk.reshape(-1, n_nuclides)
         raw_mean.flush()
-        print(f"  raw_mean shape: {raw_mean.shape}  (memory-mapped, {os.path.getsize(mmap_path) / 1e9:.1f} GB on disk)")
+        print(
+            f"  raw_mean shape: {raw_mean.shape}  (memory-mapped, {os.path.getsize(mmap_path) / 1e9:.1f} GB on disk)")
 
         # ── Material colors for geometry plot ────────────────────────────────
         cmap_tab = plt.get_cmap('tab20', 20)
         base_names = {}
         for mat in model.materials:
-            base = re.sub(r'_\d+$', '', mat.name) if mat.name else f"mat_{mat.id}"
+            base = re.sub(
+                r'_\d+$',
+                '',
+                mat.name) if mat.name else f"mat_{mat.id}"
             base_names.setdefault(base, []).append(mat)
         base_color = {
             base: tuple(int(c * 255) for c in cmap_tab(i % 20)[:3])
@@ -2192,7 +2374,9 @@ class OpenmcDagmcWrapper:
                 geo_extent = child.get_extent()
                 break
         for child in ax_geo.get_children():
-            if hasattr(child, 'get_offsets') and child.get_offsets().shape[0] > 0:
+            if hasattr(
+                    child,
+                    'get_offsets') and child.get_offsets().shape[0] > 0:
                 source_xy = child.get_offsets()
                 source_color = child.get_facecolor()
                 source_sizes = child.get_sizes()
@@ -2216,7 +2400,8 @@ class OpenmcDagmcWrapper:
 
         outline_collections = []
         for coll in ax_outline.collections:
-            outline_collections.append((coll.get_paths(), coll.get_edgecolor(), coll.get_linewidth()))
+            outline_collections.append(
+                (coll.get_paths(), coll.get_edgecolor(), coll.get_linewidth()))
         plt.close(fig_outline)
         del fig_outline, ax_outline
         gc.collect()
@@ -2234,7 +2419,8 @@ class OpenmcDagmcWrapper:
         print("  Geometry plot and outline cached.")
 
         fixed_norm = LogNorm(vmin=dose_vmin, vmax=dose_vmax, clip=True)
-        print(f"  Fixed dose color range: {dose_vmin:.0e} – {dose_vmax:.0e} mSv/h")
+        print(
+            f"  Fixed dose color range: {dose_vmin:.0e} – {dose_vmax:.0e} mSv/h")
 
         # ── Loop over cooling timesteps ──────────────────────────────────────
         n_timesteps_out = len(timesteps) - 1
@@ -2242,10 +2428,12 @@ class OpenmcDagmcWrapper:
         for i_cool in range(1, n_timesteps_out + 1):
             time_at_step = cumulative[i_cool]
             time_text = format_time(time_at_step)
-            print(f"\n── Timestep {i_cool}/{n_timesteps_out}  ({time_text}) ──")
+            print(
+                f"\n── Timestep {i_cool}/{n_timesteps_out}  ({time_text}) ──")
 
             # Apply TCF via matrix-vector multiply (sums over nuclides)
-            tcf_vector = np.array([time_factors[nuc][i_cool] for nuc in radionuclides])
+            tcf_vector = np.array([time_factors[nuc][i_cool]
+                                   for nuc in radionuclides])
             data_2d = (raw_mean @ tcf_vector).reshape(n_scoring, n_born)
 
             # 3-D dose map and peak
@@ -2253,28 +2441,33 @@ class OpenmcDagmcWrapper:
             dose_3d = dose_per_scoring.reshape(nz_s, ny_s, nx_s)
 
             peak_flat = np.argmax(dose_per_scoring)
-            peak_iz, peak_iy, peak_ix = np.unravel_index(np.argmax(dose_3d), dose_3d.shape)
+            peak_iz, peak_iy, peak_ix = np.unravel_index(
+                np.argmax(dose_3d), dose_3d.shape)
             peak_x_cm = sx_min + (peak_ix + 0.5) * dx_s
             peak_y_cm = sy_min + (peak_iy + 0.5) * dy_s
             peak_z_cm = sz_min + (peak_iz + 0.5) * dz_s
 
             # xz slice at fixed y-index
-            dose_slice_xz = dose_3d[peak_iz, :, :] if nz_s == 1 else dose_3d[:, slice_iy, :]
+            dose_slice_xz = dose_3d[peak_iz, :,
+                                    :] if nz_s == 1 else dose_3d[:, slice_iy, :]
 
             # Born-from at peak dose, summed along y
             born_3d = data_2d[peak_flat, :].reshape(nz_b, ny_b, nx_b)
             born_map_xz = born_3d.sum(axis=1)
 
             # Convert to mSv/h
-            dose_mSv = (dose_slice_xz * pico_to_milli * seconds_to_hours) / volume_norm
+            dose_mSv = (dose_slice_xz * pico_to_milli *
+                        seconds_to_hours) / volume_norm
             masked_dose = ma.masked_where(dose_mSv == 0, dose_mSv)
             max_dose = float(dose_mSv.max())
 
-            print(f"  Peak at ({peak_x_cm/100:.2f}m, {peak_y_cm/100:.2f}m, {peak_z_cm/100:.2f}m)"
-                  f"  max dose: {max_dose:.2e} mSv/h")
+            print(
+                f"  Peak at ({peak_x_cm/100:.2f}m, {peak_y_cm/100:.2f}m, {peak_z_cm/100:.2f}m)"
+                f"  max dose: {max_dose:.2e} mSv/h")
 
             # ── 3-panel figure ───────────────────────────────────────────────
-            fig, (ax_model, ax_dose, ax_born) = plt.subplots(1, 3, figsize=(30, 8))
+            fig, (ax_model, ax_dose, ax_born) = plt.subplots(
+                1, 3, figsize=(30, 8))
 
             # Left: geometry
             if geo_img is not None:
@@ -2284,35 +2477,78 @@ class OpenmcDagmcWrapper:
                                  c=source_color, s=source_sizes, zorder=5)
             ax_model.set_xlim(scoring_extent[0], scoring_extent[1])
             ax_model.set_ylim(scoring_extent[2], scoring_extent[3])
-            ax_model.legend(handles=legend_handles, fontsize=8, loc='upper left', ncol=2)
+            ax_model.legend(
+                handles=legend_handles,
+                fontsize=8,
+                loc='upper left',
+                ncol=2)
             ax_model.set_xlabel("X [m]")
             ax_model.set_ylabel("Z [m]")
-            ax_model.set_title(f"Geometry — {component_name}\nxz slice at y={slice_y_cm/100:.2f} m")
+            ax_model.set_title(
+                f"Geometry — {component_name}\nxz slice at y={slice_y_cm/100:.2f} m")
 
             # Middle: dose map
             cmap_dose = plt.get_cmap('viridis').copy()
             cmap_dose.set_bad('white', 1.0)
             im1 = ax_dose.imshow(
-                masked_dose, extent=scoring_extent, origin='lower',
-                cmap=cmap_dose, norm=LogNorm(vmin=fixed_norm.vmin, vmax=fixed_norm.vmax),
+                masked_dose,
+                extent=scoring_extent,
+                origin='lower',
+                cmap=cmap_dose,
+                norm=LogNorm(
+                    vmin=fixed_norm.vmin,
+                    vmax=fixed_norm.vmax),
             )
             cbar1 = plt.colorbar(im1, ax=ax_dose, format='%.2e')
             cbar1.set_label("Decay Gamma Dose [mSv/h]")
-            cbar1.ax.hlines(max_dose, *cbar1.ax.get_xlim(), color='green', linewidth=2, zorder=10)
-            cbar1.ax.hlines(0.35, *cbar1.ax.get_xlim(), color='red', linewidth=2, zorder=11, linestyles='dashed')
+            cbar1.ax.hlines(
+                max_dose,
+                *cbar1.ax.get_xlim(),
+                color='green',
+                linewidth=2,
+                zorder=10)
+            cbar1.ax.hlines(
+                0.35,
+                *cbar1.ax.get_xlim(),
+                color='red',
+                linewidth=2,
+                zorder=11,
+                linestyles='dashed')
 
             positive_dose = dose_mSv[dose_mSv > 0]
             if positive_dose.size > 0:
-                X = np.linspace(scoring_extent[0], scoring_extent[1], dose_mSv.shape[1])
-                Z = np.linspace(scoring_extent[2], scoring_extent[3], dose_mSv.shape[0])
+                X = np.linspace(
+                    scoring_extent[0],
+                    scoring_extent[1],
+                    dose_mSv.shape[1])
+                Z = np.linspace(
+                    scoring_extent[2],
+                    scoring_extent[3],
+                    dose_mSv.shape[0])
                 X, Z = np.meshgrid(X, Z)
-                ax_dose.contour(X, Z, dose_mSv, levels=[0.35], colors=['red'], linewidths=1.5, linestyles='dashed')
-                ax_dose.plot(peak_x_cm / 100, peak_z_cm / 100, 'c*', markersize=18,
-                             label=f"Peak dose ({peak_x_cm/100:.2f} m, {peak_z_cm/100:.2f} m)")
+                ax_dose.contour(
+                    X,
+                    Z,
+                    dose_mSv,
+                    levels=[0.35],
+                    colors=['red'],
+                    linewidths=1.5,
+                    linestyles='dashed')
+                ax_dose.plot(
+                    peak_x_cm / 100,
+                    peak_z_cm / 100,
+                    'c*',
+                    markersize=18,
+                    label=f"Peak dose ({peak_x_cm/100:.2f} m, {peak_z_cm/100:.2f} m)")
                 ax_dose.legend(fontsize=12, loc='upper left')
 
             for paths, color, lw in outline_collections:
-                ax_dose.add_collection(mcoll.PathCollection(paths, facecolors='none', edgecolors=color, linewidths=lw))
+                ax_dose.add_collection(
+                    mcoll.PathCollection(
+                        paths,
+                        facecolors='none',
+                        edgecolors=color,
+                        linewidths=lw))
 
             ax_dose.set_xlabel("X [m]")
             ax_dose.set_ylabel("Z [m]")
@@ -2326,29 +2562,46 @@ class OpenmcDagmcWrapper:
             positive = born_map_xz[born_map_xz > 0]
             if positive.size > 0:
                 im2 = ax_born.imshow(
-                    born_map_xz, extent=born_extent, origin='lower',
-                    norm=LogNorm(vmin=positive.min(), vmax=positive.max()), cmap="inferno",
+                    born_map_xz,
+                    extent=born_extent,
+                    origin='lower',
+                    norm=LogNorm(
+                        vmin=positive.min(),
+                        vmax=positive.max()),
+                    cmap="inferno",
                 )
                 cbar2 = plt.colorbar(im2, ax=ax_born, format='%.1e')
-                cbar2.set_label("Dose contribution from birth location [pSv cm³/source]")
+                cbar2.set_label(
+                    "Dose contribution from birth location [pSv cm³/source]")
             else:
                 print("  WARNING: no positive values in born-from map")
 
-            ax_born.plot(peak_x_cm / 100, peak_z_cm / 100, 'c*', markersize=18,
-                         label=f"Peak dose ({peak_x_cm/100:.2f} m, {peak_z_cm/100:.2f} m)")
+            ax_born.plot(
+                peak_x_cm / 100,
+                peak_z_cm / 100,
+                'c*',
+                markersize=18,
+                label=f"Peak dose ({peak_x_cm/100:.2f} m, {peak_z_cm/100:.2f} m)")
 
             for paths, color, lw in outline_collections:
-                ax_born.add_collection(mcoll.PathCollection(paths, facecolors='none', edgecolors=color, linewidths=lw))
+                ax_born.add_collection(
+                    mcoll.PathCollection(
+                        paths,
+                        facecolors='none',
+                        edgecolors=color,
+                        linewidths=lw))
 
             ax_born.legend(fontsize=12, loc='upper left')
             ax_born.set_xlabel("X [m]")
             ax_born.set_ylabel("Z [m]")
             ax_born.set_title(
                 f"Where do decay photons causing peak dose originate?\n"
-                f"Peak at ({peak_x_cm/100:.2f} m, {peak_y_cm/100:.2f} m, {peak_z_cm/100:.2f} m)"
-            )
+                f"Peak at ({peak_x_cm/100:.2f} m, {peak_y_cm/100:.2f} m, {peak_z_cm/100:.2f} m)")
 
-            fig.suptitle(f"D1S analysis — {time_text} after single DT pulse", fontsize=20, y=1.02)
+            fig.suptitle(
+                f"D1S analysis — {time_text} after single DT pulse",
+                fontsize=20,
+                y=1.02)
             filename = out / f"dose_and_born_from_{str(i_cool).zfill(3)}.png"
             plt.savefig(filename, dpi=dpi, bbox_inches='tight')
             print(f"  Saved {filename}")
@@ -2416,13 +2669,14 @@ class OpenmcDagmcWrapper:
 
         print("Loading tally sum data ...")
         raw_sum = tally.sum.ravel()
-        print(f"  {raw_sum.shape[0]:,} elements, {raw_sum.nbytes / 1e9:.1f} GB")
+        print(
+            f"  {raw_sum.shape[0]:,} elements, {raw_sum.nbytes / 1e9:.1f} GB")
 
         sp.close()
         del sp, tally
         gc.collect()
 
-        # ── Step 2: Per-nuclide spatial sums via reshape view ─────────────────────
+        # ── Step 2: Per-nuclide spatial sums via reshape view ────────────────
         print("Computing per-nuclide spatial sums ...")
         per_nuc_sum = raw_sum.reshape(-1, n_nuclides).sum(axis=0)
         per_nuc_sum /= n_realizations
@@ -2431,10 +2685,11 @@ class OpenmcDagmcWrapper:
         gc.collect()
         print(f"  Large array freed. per_nuc_sum shape: {per_nuc_sum.shape}")
 
-        # ── Step 3: Compute time correction factors ───────────────────────────────
+        # ── Step 3: Compute time correction factors ──────────────────────────
         print("Computing time correction factors ...")
         timesteps = [t[0] for t in timesteps_and_source_rates]
-        source_rates = [t[1] if t[2] == "dt" else 0 for t in timesteps_and_source_rates]
+        source_rates = [t[1] if t[2] ==
+                        "dt" else 0 for t in timesteps_and_source_rates]
         cumulative = np.cumsum(timesteps)
 
         time_factors = d1s.time_correction_factors(
@@ -2444,7 +2699,7 @@ class OpenmcDagmcWrapper:
             timestep_units="s",
         )
 
-        # ── Step 4: Report top nuclides per timestep ──────────────────────────────
+        # ── Step 4: Report top nuclides per timestep ─────────────────────────
         header = f"{'Step':>4} | {'Time':>8} |"
         for rank in range(1, n_top + 1):
             header += f" {'#' + str(rank) + ' Nuclide':>12} {'%':>6} |"
@@ -2456,7 +2711,8 @@ class OpenmcDagmcWrapper:
         n_cooling = len(timesteps) - 1
         dominant_per_timestep = []
         for i_cool in range(1, n_cooling + 1):
-            tcf = np.array([time_factors[nuc][i_cool] for nuc in nuclide_names])
+            tcf = np.array([time_factors[nuc][i_cool]
+                            for nuc in nuclide_names])
             per_nuc_dose = per_nuc_sum * tcf
             total_dose = per_nuc_dose.sum()
 
@@ -2479,14 +2735,15 @@ class OpenmcDagmcWrapper:
 
         print("=" * len(header))
 
-        # ── Step 5: Plot nuclide contributions vs cooling time ────────────────────
+        # ── Step 5: Plot nuclide contributions vs cooling time ───────────────
         print("\nBuilding nuclide contribution plot ...")
 
         time_days = []
         pct_by_nuclide = {nuc: [] for nuc in nuclide_names}
 
         for i_cool in range(1, n_cooling + 1):
-            tcf = np.array([time_factors[nuc][i_cool] for nuc in nuclide_names])
+            tcf = np.array([time_factors[nuc][i_cool]
+                            for nuc in nuclide_names])
             per_nuc_dose = per_nuc_sum * tcf
             total_dose = per_nuc_dose.sum()
             if total_dose <= 0:
@@ -2504,7 +2761,8 @@ class OpenmcDagmcWrapper:
                 significant.append(nuc)
 
         significant.sort(key=lambda n: max(pct_by_nuclide[n]), reverse=True)
-        print(f"  {len(significant)} nuclides exceed {contribution_threshold}% at some timestep: {significant}")
+        print(
+            f"  {len(significant)} nuclides exceed {contribution_threshold}% at some timestep: {significant}")
 
         # ── Build pathway labels for legend ──────────────────────────────────
         material_nuclides = set()
@@ -2536,12 +2794,20 @@ class OpenmcDagmcWrapper:
         colors = plt.get_cmap('tab10', 10)
         for i, nuc in enumerate(significant):
             pct = np.array(pct_by_nuclide[nuc])
-            ax.plot(time_days, pct, linewidth=2.5, color=colors(i % 10), label=pathway_labels[nuc])
+            ax.plot(
+                time_days,
+                pct,
+                linewidth=2.5,
+                color=colors(
+                    i %
+                    10),
+                label=pathway_labels[nuc])
 
         ax.set_xscale('log')
         ax.set_xlabel('Cooling time [days]')
         ax.set_ylabel('Contribution to total dose [%]')
-        ax.set_title(title or 'Dominant nuclide contributors to decay photon dose\nvs cooling time after single DT pulse')
+        ax.set_title(
+            title or 'Dominant nuclide contributors to decay photon dose\nvs cooling time after single DT pulse')
         ax.set_ylim(0, 100)
         ax.set_xlim(time_days[0], time_days[-1])
         ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), framealpha=0.9)
@@ -2557,8 +2823,16 @@ class OpenmcDagmcWrapper:
             (2557, '7 yr'), (3652, '10 yr'),
         ]
         t_min, t_max = time_days[0], time_days[-1]
-        month_days = [d for d, _ in candidate_ticks if t_min * 0.8 <= d <= t_max * 1.2]
-        month_labels = [label for d, label in candidate_ticks if t_min * 0.8 <= d <= t_max * 1.2]
+        month_days = [
+            d for d,
+            _ in candidate_ticks if t_min *
+            0.8 <= d <= t_max *
+            1.2]
+        month_labels = [
+            label for d,
+            label in candidate_ticks if t_min *
+            0.8 <= d <= t_max *
+            1.2]
         ax2.set_xscale('log')
         ax2.set_xlim(ax.get_xlim())
         ax2.set_xticks(month_days)
@@ -2658,4 +2932,3 @@ class OpenmcDagmcWrapper:
                     print(f"  {p['parent']:<12} {p['reaction']:<20}")
 
         return results
-
